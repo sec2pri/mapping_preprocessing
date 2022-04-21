@@ -40,7 +40,6 @@ import org.bridgedb.rdb.construct.DataDerby;
 import org.bridgedb.rdb.construct.GdbConstruct;
 import org.bridgedb.rdb.construct.GdbConstructImpl3;
 //import org.bridgedb.tools.qc.BridgeQC;
-import org.xml.sax.InputSource;
 
 /**
  * Mapping the secondary identifiers (retired or withdrawn identifies) to primary identifiers (currently used identifiers).
@@ -51,33 +50,29 @@ import org.xml.sax.InputSource;
  */
 public class sec2pri {
 
-	public static String sourceName = "hgncID";
-	public static String sourceCode = "H";
-	private static DataSource daPriId;
-	private static DataSource dsWhen;
+	public static String sourceName = "";
+	public static String sourceCode = "";
+	public static String DbVersion = "1.0.0";
+	public static String BridgeDbVersion = "3.0.13";
+	private static DataSource dsPriId;
 	private static DataSource dsSecId;
 	private static GdbConstruct newDb;
 	
 	public static void main(String[] args) throws IOException, IDMapperException, SQLException {
-		String sourceName = args[0];  
-		System.out.println(sourceName);
-		String sourceCode = args[2];
-		System.out.println(sourceCode);
-
+		sec2pri.sourceName = args[0];  
+		sec2pri.sourceCode = args[2];  
+		
 		setupDatasources();
 		File outputDir = new File("output");
 		outputDir.mkdir();
 		File outputFile = new File(outputDir, sourceName + ".bridge");
 		createDb(outputFile);
-		//File releasedDb = new File(outputDir, "publications_20200510.bridge");
-
 		File inputDir = new File("input");
-
 		BufferedReader file = new BufferedReader(new FileReader(inputDir + "/" + sourceName + ".csv"));
         String dataRow = file.readLine(); // skip the first line
         dataRow = file.readLine();
 
-		Map<Xref, Set<Xref>> map = new HashMap<Xref, Set<Xref>>();
+        Map<Xref, Set<Xref>> map = new HashMap<Xref, Set<Xref>>();
 		int counter = 0;
 		int counter2 = 0;
 		boolean finished = false;
@@ -86,24 +81,15 @@ public class sec2pri {
         	String splitChar = args[1]; 
         	String[] fields = dataRow.split(splitChar);
         	String identifier = fields[0].replaceAll("\"", "");
-			Xref secId = new Xref(identifier, dsSecId);
+			Xref secId = new Xref(identifier, dsSecId, false); //the first column is the secondary id so idPrimary = false
 			map.put(secId, new HashSet<Xref>());
-			//System.out.println(secId);
 
 			
 			if (fields.length > 1) {
-				// no defined ExistingBySystemCode for date of the removal
-				//String when = fields[1].replaceAll("\"", "");
-				//Xref whenRef = new Xref(when, dsWhen); # 
-				//map.get(secId).add(whenRef);	
-				//System.out.println(whenRef);
-
-				if (fields.length > 2) {
-					String priId = fields[2].replaceAll("\"", "");
-					Xref priIdRef = new Xref(priId, daPriId);
-					map.get(secId).add(priIdRef);
-					//System.out.println(priIdRef);
-				}
+				String priId = fields[1].replaceAll("\"", "");
+				Xref priIdRef = new Xref(priId, dsPriId);
+				map.get(secId).add(priIdRef);
+				//System.out.println(priIdRef);
 			}
 			dataRow = file.readLine();
 			counter++;
@@ -120,7 +106,6 @@ public class sec2pri {
 		newDb.finalize();
 		file.close();
 		System.out.println("[INFO]: Database finished.");
-		//runQC(releasedDb, outputFile);
 	}
 	
 	private static void createDb(File outputFile) throws IDMapperException {
@@ -132,41 +117,34 @@ public class sec2pri {
 			
 		String dateStr = new SimpleDateFormat("yyyyMMdd").format(new Date());
 		newDb.setInfo("BUILDDATE", dateStr);
-		//String sourceName = args[0];  
-		newDb.setInfo("DATASOURCENAME", sourceName);
-		newDb.setInfo("DATASOURCEVERSION", "1.0.0");
-		newDb.setInfo("BRIDGEDBVERSION", "3.0.13");
+		newDb.setInfo("DATASOURCENAME", sec2pri.sourceName);
+		
+		newDb.setInfo("DATASOURCEVERSION", DbVersion);
+		newDb.setInfo("BRIDGEDBVERSION", BridgeDbVersion);
 		newDb.setInfo("DATATYPE", "Identifiers");	
 
 	}
 	
 	private static void setupDatasources() {
 		DataSourceTxt.init();
-		daPriId = DataSource.getExistingBySystemCode(sourceCode);
-		dsWhen = DataSource.getExistingBySystemCode("O");
-		dsSecId = DataSource.getExistingBySystemCode("O");
+		dsPriId = DataSource.getExistingBySystemCode(sec2pri.sourceCode);
+		dsSecId = DataSource.getExistingBySystemCode(sec2pri.sourceCode);
 	}
-
-	//private static String readQuery(String path) throws IOException {
-	//	String content = readFile(path, StandardCharsets.UTF_8);
-	//	return content;
-	//}
-
-	//private static String readFile(String path, Charset encoding) throws IOException {
-	//	byte[] encoded = Files.readAllBytes(Paths.get(path));
-	//	return new String(encoded, encoding);
-	//}
 
 	private static void addEntries(Map<Xref, Set<Xref>> dbEntries) throws IDMapperException {
 		Set<Xref> addedXrefs = new HashSet<Xref>();
 		for (Xref ref : dbEntries.keySet()) {
 			Xref mainXref = ref;
+			//System.out.println("mainXref: " + mainXref.isPrimary());
+
 			if (addedXrefs.add(mainXref)) newDb.addGene(mainXref);
 			newDb.addLink(mainXref, mainXref);
 
 			for (Xref rightXref : dbEntries.get(mainXref)) {
 				if (!rightXref.equals(mainXref) && rightXref != null) {
 					if (addedXrefs.add(rightXref)) newDb.addGene(rightXref);
+					//System.out.println("rightXref: " + rightXref.isPrimary());
+
 					newDb.addLink(mainXref, rightXref);
 				}
 			}
@@ -174,18 +152,7 @@ public class sec2pri {
 			newDb.commit();
 		}
 	}
-	
-	private static String[] inputSource(String[] args) throws IOException {
-		String[] source = {args[0], args[1]};
 
-		return (source);
-	}
-
-	
-	//private static void runQC(File oldDB, File newDB) throws IDMapperException, SQLException{
-	//	BridgeQC qc = new BridgeQC (oldDB, newDB);
-	//	qc.run();
-	//}
 }
 
 
