@@ -1,6 +1,6 @@
 Prepare input files for creating derby databases
 ----------
-The input file should containes two columns (`#did` = secondary identifiers, `nextofkin` = primary identifiers).
+The input file should containes two columns (`#did` = secondary identifier, `nextofkin` = primary identifier that replaces the identifier).
 
 ### some exaples of input preparation
 
