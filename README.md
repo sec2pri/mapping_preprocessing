@@ -23,12 +23,4 @@ The files are released via the [BridgeDb Website](http://www.bridgedb.org/mappin
 
 The mapping files are also archived on [Zenodo]()
 
-License
--------
-
-This repository: New BSD.
-
-Derby License -> http://db.apache.org/derby/license.html
-
-BridgeDb License -> http://www.bridgedb.org/browser/trunk/LICENSE-2.0.txt
 
