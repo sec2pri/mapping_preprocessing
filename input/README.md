@@ -6,9 +6,9 @@ The input file should containes two columns (`#did` = secondary identifier, `nex
 
 #### Download the ``uniport`` file containing the secondary and primary identifiers
 ```script
-https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/docs/sec_ac.txt #Secondary ids together with their corresponding current primary ids
-# https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/docs/delac_sp.txt #Ids deleted from Swiss-Prot
-# https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/docs/delac_tr.txt.gz #Ids deleted from TrEMBL
+https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/docs/sec_ac.txt # Secondary ids together with their corresponding current primary ids
+# https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/docs/delac_sp.txt # Ids deleted from Swiss-Prot
+# https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/docs/delac_tr.txt.gz # Ids deleted from TrEMBL
 ```
 #### Perepare the input data (R script)
 ```{r}
@@ -50,7 +50,7 @@ hgnc <- data.frame (HGNC_ID = rep (hgnc$HGNC_ID, sapply (s, length)),
                     WITHDRAWN_SYMBOL = rep (hgnc$WITHDRAWN_SYMBOL, sapply (s, length)),
                     HGNC_ID.SYMBOL.STATUS = unlist (s))
 ## Table of HGNC ids 
- hgnc_ID <- hgnc %>% 
+hgnc_ID <- hgnc %>% 
   mutate (HGNC_ID = gsub (".*:", "", HGNC_ID),
           HGNC_ID.SYMBOL.STATUS = gsub (".*:|\\|.*", "", HGNC_ID.SYMBOL.STATUS)) %>% 
     select (HGNC_ID, HGNC_ID.SYMBOL.STATUS) %>% 
