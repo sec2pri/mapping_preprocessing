@@ -10,7 +10,7 @@ mvn clean install assembly:single
 java -cp target/create-bridgedb-secondary2primary-0.0.1-SNAPSHOT-jar-with-dependencies.jar org.bridgedb.sec2pri.sec2pri $databaseName $separator $databaseCode
 ```
 
-**`databaseName`:** database name located in the `input` directory;
+**`databaseName`:** database name located in the `input` directory. Some examples of input data can be found [here](input/README.md);
 
 **`separator`:** the field separator character;
 
