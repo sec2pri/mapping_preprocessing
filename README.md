@@ -10,7 +10,7 @@ HGNC:1531|Merged/Split|CBBM|HGNC:4206/OPN1MW/Approved, HGNC:9936/OPN1LW/Approved
 HGNC:354|Merged/Split|AIH2|HGNC:3344/ENAM/Approved
 HGNC:440|Entry Withdrawn|ALPPL1| 
 
-#### Withdrawn Entries (deleted ids)
+#### Withdrawn entries (deleted ids)
 Some molecular entries were withdrawn/deleted from a database and they won't exist anymore. `HGNC:440` is an example of withdrawn id from HGNC.
 
 #### Split/merged ids
