@@ -25,7 +25,7 @@ CBBM|OPN1LW
 HGNC:354|HGNC:3344
 AIH2|ENAM
 
-The split ids may introduce one-to-multiple mapping issue which should be further evaluated.
+The split ids may introduce one-to-multiple mapping issues which should be further evaluated.
 
 ### Secondary ids vs duplicate ids
 In some databases, multiple ids refer to the same entity. We define these ids as duplicate ids. Below you see an example from [HMDB](https://hmdb.ca/metabolites/HMDB0004160):
