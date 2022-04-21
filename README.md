@@ -2,11 +2,18 @@
 
 Creation of secondary to primary mapping database.
 
+Installation
+--------
+Java 11 is required.
+
+```shell
+mvn clean install assembly:single
+```
+
 How to create a Derby file
 --------
 
 ```shell
-mvn clean install assembly:single
 java -cp target/create-bridgedb-secondary2primary-0.0.1-SNAPSHOT-jar-with-dependencies.jar org.bridgedb.sec2pri.sec2pri $databaseName $separator $databaseCode
 ```
 
@@ -19,7 +26,7 @@ java -cp target/create-bridgedb-secondary2primary-0.0.1-SNAPSHOT-jar-with-depend
 Releases
 --------
 
-The files are released via the [BridgeDb Website](http://www.bridgedb.org/mapping-databases)
+The files are released via the [BridgeDb Website](https://bridgedb.github.io/data/gene_database/)
 
 The mapping files are also archived on [Zenodo]()
 
