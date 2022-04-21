@@ -44,7 +44,7 @@ HMDB04159|HMDB0004160
 HMDB04160|HMDB0004160
 HMDB04161|HMDB0004160
 
-The BridgeDb project has started collecting this information to create secondary to primary mapping databases, which will improve data interoperability.
+The BridgeDb project is collecting this information to create secondary to primary mapping databases, which will improve data interoperability.
 
 
 Installation
