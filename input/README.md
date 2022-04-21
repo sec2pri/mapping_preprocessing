@@ -34,7 +34,7 @@ rbind (uniport,uniport_sp, uniport_tr) %>% write.csv ("input/uniport.csv", row.n
 
 #### Download the ``HGNC`` file containing the secondary and primary identifiers
 ```script
-http://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/withdrawn.txt
+http://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/withdrawn.txt # Secondary ids together with their corresponding current primary ids
 ```
 #### Perepare the input data (R script)
 ```{r}
