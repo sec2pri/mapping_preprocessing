@@ -2,6 +2,7 @@ Prepare input files for creating derby databases
 ----------
 The input file should containes two columns (`#did` = secondary identifier, `nextofkin` = primary identifier that replaces the identifier).
 
+ENT_WDN stands for Entry withdrawn (deleted ids)  
 ### some examples of input preparation
 
 #### Download the ``uniport`` file containing the secondary and primary identifiers
