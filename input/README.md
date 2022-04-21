@@ -2,24 +2,33 @@ Prepare input files for creating derby databases
 ----------
 The input file should containes two columns (`#did` = secondary identifier, `nextofkin` = primary identifier that replaces the identifier).
 
-### some exaples of input preparation
+### some examples of input preparation
 
 #### Download the ``uniport`` file containing the secondary and primary identifiers
 ```script
-https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/docs/sec_ac.txt
+https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/docs/sec_ac.txt #Secondary ids together with their corresponding current primary ids
+# https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/docs/delac_sp.txt #Ids deleted from Swiss-Prot
+# https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/docs/delac_tr.txt.gz #Ids deleted from TrEMBL
 ```
 #### Perepare the input data (R script)
 ```{r}
 # required libraries
 library (dplyr)
 library (tidyr)
-
-uniport <- read.csv ("Dir to the database file/sec_ac.txt", sep = ",", skip = 31, header = F) %>% # read only the table which starts on line 32 
+uniport <- read.csv ("Dir to the database file/sec_ac.txt", sep = ",", skip = 31, header = F) %>%
   tidyr::separate (V1, c ('#did', 'nextofkin')) %>%
   mutate (`#did` = gsub (" ", "", `#did`),
           nextofkin = gsub (" ", "", nextofkin)) %>% 
   select (`#did`, nextofkin) 
-uniport %>% write.csv ("input/uniport.csv", row.names = F)
+uniport_sp <- read.csv ("Dir to the database file/delac_sp.txt", sep = ",", skip = 27, header = F) %>%
+  rename (`#did`= V1) %>%
+  mutate (`#did` = gsub (" ", "", `#did`),
+          nextofkin = "ENT_WDN") 
+uniport_tr <- read.csv ("Dir to the database file/delac_tr.gz", sep = ",", skip = 27, header = F) %>%
+  rename (`#did`= V1) %>%
+  mutate (`#did` = gsub (" ", "", `#did`),
+          nextofkin = "ENT_WDN") 
+rbind (uniport,uniport_sp, uniport_tr) %>% write.csv ("input/uniport.csv", row.names = F)
 ```
 
 #### Download the ``HGNC`` file containing the secondary and primary identifiers
