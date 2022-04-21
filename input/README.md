@@ -15,16 +15,16 @@ https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/comp
 # required libraries
 library (dplyr)
 library (tidyr)
-uniport <- read.csv ("Dir to the database file/sec_ac.txt", sep = ",", skip = 31, header = F) %>%
+uniport <- read.csv ("Dir to the database file/sec_ac.txt", sep = ",", skip = 31, header = F) %>%  # read only the table which starts on line 32 
   tidyr::separate (V1, c ('#did', 'nextofkin')) %>%
   mutate (`#did` = gsub (" ", "", `#did`),
           nextofkin = gsub (" ", "", nextofkin)) %>% 
   select (`#did`, nextofkin) 
-uniport_sp <- read.csv ("Dir to the database file/delac_sp.txt", sep = ",", skip = 27, header = F) %>%
+uniport_sp <- read.csv ("Dir to the database file/delac_sp.txt", sep = ",", skip = 27, header = F) %>%  # read only the table which starts on line 28 
   rename (`#did`= V1) %>%
   mutate (`#did` = gsub (" ", "", `#did`),
           nextofkin = "ENT_WDN") 
-uniport_tr <- read.csv ("Dir to the database file/delac_tr.gz", sep = ",", skip = 27, header = F) %>%
+uniport_tr <- read.csv ("Dir to the database file/delac_tr.gz", sep = ",", skip = 27, header = F) %>%  # read only the table which starts on line 28 
   rename (`#did`= V1) %>%
   mutate (`#did` = gsub (" ", "", `#did`),
           nextofkin = "ENT_WDN") 
