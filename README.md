@@ -76,4 +76,7 @@ The files are released via the [BridgeDb Website](https://bridgedb.github.io/dat
 The mapping files are also archived on [Zenodo]()
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> ed07d1ab68684852275f9e69f7a34064684d625b
