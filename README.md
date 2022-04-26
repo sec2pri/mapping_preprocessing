@@ -57,16 +57,22 @@ mvn clean install assembly:single
 
 How to create a Derby file
 --------
+1) when the input is txt file
 
 ```shell
-java -cp target/create-bridgedb-secondary2primary-0.0.1-SNAPSHOT-jar-with-dependencies.jar org.bridgedb.sec2pri.sec2pri $databaseName $separator $databaseCode
+java -cp target/create-bridgedb-secondary2primary-0.0.1-SNAPSHOT-jar-with-dependencies.jar org.bridgedb.sec2pri.TXTsec2pri $databaseName $databaseCode $separator
 ```
 
 **`databaseName`:** database name located in the `input` directory. Some examples of input data can be found [here](input/README.md);
 
+**`databaseCode`:** the annotation of data sources database, called SytemCodes extracted from [here](https://bridgedb.github.io/pages/system-codes.html).
+
 **`separator`:** the field separator character;
 
-**`databaseCode`:** the annotation of data sources database, called SytemCodes extracted from [here](https://bridgedb.github.io/pages/system-codes.html).
+2) when the input is a zip file contating the XML files
+```shell
+java -cp target/create-bridgedb-secondary2primary-0.0.1-SNAPSHOT-jar-with-dependencies.jar org.bridgedb.sec2pri.XMLsec2pri $databaseName $databaseCode $perNode $secNode $secNodeTag $idOrName
+```
 
 Releases
 --------
