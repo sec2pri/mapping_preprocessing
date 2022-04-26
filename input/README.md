@@ -1,6 +1,9 @@
 Prepare input files for creating derby databases
 ----------
-The input file should containes two columns (`#did` = secondary identifier, `nextofkin` = primary identifier that replaces the identifier).
+The input file can be in 2 different formats: (1) a text file with two columns (2) a zip file containing XML files
+
+## Text file
+The text file should containes two columns (`#did` = secondary identifier, `nextofkin` = primary identifier that replaces the identifier).
 
 ENT_WDN stands for Entry withdrawn (deleted ids)  
 ### some examples of input preparation
@@ -64,3 +67,20 @@ hgnc_SYMBOL <- hgnc %>%
   rename (`#did`= WITHDRAWN_SYMBOL, nextofkin = HGNC_ID.SYMBOL.STATUS) 
 hgnc_SYMBOL %>% write.csv ("input/hgncSymbol.csv", row.names = F)
 ```
+
+## Zip file
+Each entry would be a XML file in the zip file.
+The zip file for HMDB can be generated as explained [here](https://github.com/bridgedb/create-bridgedb-metabolites#:~:text=make%20sure%20the%20HMDB%20data%20file%20is%20saved%20as%20hmdb_metabolites.zip%20and%20to%20create%20a%20new%20zip%20file%20will%20each%20metabolite%20in%20separate%20XML%20file%3A). The copy of the commands from `create-bridgedb-metabolites` repo is shown below: 
+
+```script
+mkdir hmdb
+wget http://www.hmdb.ca/system/downloads/current/hmdb_metabolites.zip
+unzip hmdb_metabolites.zip
+cd hmdb
+cp ../hmdb_metabolites.xml .
+xml_split -v -l 1 hmdb_metabolites.xml
+rm hmdb_metabolites.xml
+cd ..
+zip -r hmdb_metabolites_split.zip hmdb
+```
+ 
