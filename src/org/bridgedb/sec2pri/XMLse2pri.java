@@ -34,7 +34,7 @@ public class XMLse2pri  {
 	public static String sourceCode = "Ch";
 	public static String perNode = "accession";
 	public static String secNode = "secondary_accessions";
-	public static String secNodeTag = "accession";
+	public static String secNodeTag = "accession"; // if the node doesn't have any tag; args[4] = NA 
 	public static String idOrName = "id";
 	public static String DbVersion = "1.0.0";
 	public static String BridgeDbVersion = "3.0.13";
@@ -79,6 +79,8 @@ public class XMLse2pri  {
 				while (entries.hasMoreElements() && !finished) {
 					// get the zip entry
 					ZipEntry entry = entries.nextElement();
+					//System.out.println(entry.getName());
+
 					if (!entry.isDirectory() && entry.getName() != "hmdb_metabolites.xml") {
 						//an instance of factory that gives a document builder
 						InputStream inputStream = zipfile.getInputStream(entry);
@@ -91,22 +93,34 @@ public class XMLse2pri  {
 						Element priId = (Element) priList.item(0); // assumption: there is only one primary id used by the database
 						
 						if (priId != null && secIdList.getLength() != 0) {
-							for (int itr = 0; itr < secIdList.getLength(); itr++) {
-								Node node = secIdList.item(itr);
-								if (node.getNodeType() == Node.ELEMENT_NODE) {
-									Element eElement = (Element) node;
-									NodeList secIds = eElement.getElementsByTagName(XMLse2pri.secNodeTag);
-									for (int itr2 = 0; itr2 < secIds.getLength(); itr2++) {
-										Element identifier = (Element) secIds.item(itr2);
-										
-										Xref secId = new Xref(identifier.getTextContent(), dsSecId, false); //the first column is the secondary id so idPrimary = false
-										map.put(secId, new HashSet<Xref>());
-										Xref priIdRef = new Xref(priId.getTextContent(), dsPriId);
-										map.get(secId).add(priIdRef);
-										}
+							if (!XMLse2pri.secNodeTag.equalsIgnoreCase("NA")) { // when there is tag for the node
+								for (int itr = 0; itr < secIdList.getLength(); itr++) {
+									Node node = secIdList.item(itr);
+									if (node.getNodeType() == Node.ELEMENT_NODE) {
+										Element eElement = (Element) node;
+										NodeList secIds = eElement.getElementsByTagName(XMLse2pri.secNodeTag);
+										for (int itr2 = 0; itr2 < secIds.getLength(); itr2++) {
+											Element identifier = (Element) secIds.item(itr2);
+											Xref secId = new Xref(identifier.getTextContent(), dsSecId, false); //the first column is the secondary id so idPrimary = false
+											map.put(secId, new HashSet<Xref>());
+											Xref priIdRef = new Xref(priId.getTextContent(), dsPriId);
+											map.get(secId).add(priIdRef);
+											}
+										} 
 									}
-								}
+								} else { // when there is no tag for the node
+									Element secId = (Element) secIdList.item(0); // assumption: there is only one name used by the database
+									Xref secIdRef = new Xref(secId.getTextContent(), dsSecId);
+									//System.out.println(secId.getTextContent());
+
+									map.put(secIdRef, new HashSet<Xref>());
+									Xref priIdRef = new Xref(priId.getTextContent(), dsPriId);
+									//System.out.println(priId.getTextContent());
+
+									map.get(secIdRef).add(priIdRef);
+									}
 							}
+						
 						counter++;
 						if (counter == 5000) {
 							counter2++;
@@ -118,10 +132,13 @@ public class XMLse2pri  {
 							}
 						}
 					}
+				System.out.println("Start to the creation of the database, might take some time");
 				addEntries(map);
 				}
 		newDb.finalize();
 		System.out.println("[INFO]: Database finished.");
+		System.out.println(new Date());
+
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -131,7 +148,11 @@ public class XMLse2pri  {
 	private static void setupDatasources() {
 		DataSourceTxt.init();
 		dsPriId = DataSource.getExistingBySystemCode(XMLse2pri.sourceCode);
-		dsSecId = DataSource.getExistingBySystemCode(XMLse2pri.sourceCode);
+		if (!XMLse2pri.secNodeTag.equalsIgnoreCase("NA")) {
+			dsSecId = DataSource.getExistingBySystemCode(XMLse2pri.sourceCode);
+		} else {
+			dsSecId = DataSource.getExistingBySystemCode("O");
+		}
 	}
 	
 	private static void createDb(File outputFile) throws IDMapperException {
@@ -139,12 +160,10 @@ public class XMLse2pri  {
 		newDb = new GdbConstructImpl3(outputFile.getAbsolutePath(),new DataDerby(), DBConnector.PROP_RECREATE);
 		newDb.createGdbTables();
 		newDb.preInsert();
-		
 			
 		String dateStr = new SimpleDateFormat("yyyyMMdd").format(new Date());
 		newDb.setInfo("BUILDDATE", dateStr);
 		newDb.setInfo("DATASOURCENAME", TXTsec2pri.sourceName);
-		
 		newDb.setInfo("DATASOURCEVERSION", DbVersion);
 		newDb.setInfo("BRIDGEDBVERSION", BridgeDbVersion);
 		newDb.setInfo("DATATYPE", "Identifiers");	
