@@ -38,8 +38,10 @@ import org.bridgedb.bio.DataSourceTxt;
 import org.bridgedb.rdb.construct.DBConnector;
 import org.bridgedb.rdb.construct.DataDerby;
 import org.bridgedb.rdb.construct.GdbConstruct;
-import org.bridgedb.rdb.construct.GdbConstructImpl3;
+import org.bridgedb.rdb.construct.GdbConstructImpl4;
 //import org.bridgedb.tools.qc.BridgeQC;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Mapping the secondary identifiers (retired or withdrawn identifies) to primary identifiers (currently used identifiers).
@@ -51,17 +53,19 @@ import org.bridgedb.rdb.construct.GdbConstructImpl3;
 public class TXTsec2pri {
 
 	public static String sourceName = "";
-	public static String sourceCode = "";
+	public static String sourceIdCode = "";
+	public static String sourceSymbolCode = "";
 	public static String DbVersion = "1.0.0";
 	public static String BridgeDbVersion = "3.0.13";
-	private static DataSource dsPriId;
-	private static DataSource dsSecId;
+	private static DataSource dsId;
+	private static DataSource dsSymbol;
 	private static GdbConstruct newDb;
 	
 	public static void main(String[] args) throws IOException, IDMapperException, SQLException {
 		TXTsec2pri.sourceName = args[0];  
-		TXTsec2pri.sourceCode = args[1];  
-		
+		TXTsec2pri.sourceIdCode = args[1];  
+		TXTsec2pri.sourceSymbolCode = args[2];  
+
 		setupDatasources();
 		File outputDir = new File("output");
 		outputDir.mkdir();
@@ -78,39 +82,61 @@ public class TXTsec2pri {
 		boolean finished = false;
         while (dataRow != null && !finished) {
         	//the input for separator e.g. '\t'
-        	String splitChar = args[2]; 
+        	String splitChar = args[3]; 
         	String[] fields = dataRow.split(splitChar);
-        	String identifier = fields[0].replaceAll("\"", "");
-			Xref secId = new Xref(identifier, dsSecId, false); //the first column is the secondary id so idPrimary = false
-			map.put(secId, new HashSet<Xref>());
 
+        	String identifier = fields[0].replaceAll("\"", "");
+			Xref priId = new Xref(identifier, dsId);
+			map.put(priId, new HashSet<Xref>());
 			
 			if (fields.length > 1) {
-				String priId = fields[1].replaceAll("\"", "");
-				Xref priIdRef = new Xref(priId, dsPriId);
-				map.get(secId).add(priIdRef);
-				//System.out.println(priIdRef);
-			}
+				if (!fields[1].replaceAll("\"", "").contentEquals("NA")) {
+					String secIds = fields[1].replaceAll("\"", "");
+					List<String> ArraySecIds = Arrays.asList(secIds.split("; "));
+					for (String secId:ArraySecIds) { 
+						Xref secIdRef = new Xref(secId, dsId, false); //the first column is the secondary id so idPrimary = false
+						map.get(priId).add(secIdRef);
+						}
+					}
+								
+				if (fields.length > 2) {
+					String priSymbols = fields[2].replaceAll("\"", "");
+					List<String> ArrayPriSymbols = Arrays.asList(priSymbols.split("; "));
+					for (String priSymbol:ArrayPriSymbols) { 
+						Xref priSymbolRef = new Xref(priSymbol, dsSymbol);
+						map.get(priId).add(priSymbolRef);
+						}
+					if (fields.length > 3) {
+						String secSymbols = fields[3].replaceAll("\"", "");
+						List<String> ArraySecSymbols = Arrays.asList(secSymbols.split("; "));
+						for (String secSymbol:ArraySecSymbols) { 
+							Xref secSymbolRef = new Xref(secSymbol, dsSymbol, false);  //the first column is the secondary id so idPrimary = false
+							map.get(priId).add(secSymbolRef);
+							}
+						}
+					}
+				}
+			
 			dataRow = file.readLine();
 			counter++;
 			if (counter == 5000) {
 				counter2++;
-				System.out.println("5k mark " + counter2 + ": " + secId);
+				System.out.println("5k mark " + counter2 + ": " + priId);
 				counter = 0;
 				addEntries(map);
 				map.clear();
 				// finished = true;
+				}
 			}
-		}
-		addEntries(map);
+        
+        addEntries(map);
 		newDb.finalize();
 		file.close();
 		System.out.println("[INFO]: Database finished.");
 	}
 	
 	private static void createDb(File outputFile) throws IDMapperException {
-			
-		newDb = new GdbConstructImpl3(outputFile.getAbsolutePath(),new DataDerby(), DBConnector.PROP_RECREATE);
+		newDb = new GdbConstructImpl4(outputFile.getAbsolutePath(),new DataDerby(), DBConnector.PROP_RECREATE);
 		newDb.createGdbTables();
 		newDb.preInsert();
 		
@@ -122,37 +148,32 @@ public class TXTsec2pri {
 		newDb.setInfo("DATASOURCEVERSION", DbVersion);
 		newDb.setInfo("BRIDGEDBVERSION", BridgeDbVersion);
 		newDb.setInfo("DATATYPE", "Identifiers");	
-
-	}
+		}
+	
 	
 	private static void setupDatasources() {
 		DataSourceTxt.init();
-		dsPriId = DataSource.getExistingBySystemCode(TXTsec2pri.sourceCode);
-		dsSecId = DataSource.getExistingBySystemCode(TXTsec2pri.sourceCode);
-	}
-
+		dsId = DataSource.getExistingBySystemCode(TXTsec2pri.sourceIdCode);
+		dsSymbol = DataSource.getExistingBySystemCode(TXTsec2pri.sourceSymbolCode);
+		}
+	
 	private static void addEntries(Map<Xref, Set<Xref>> dbEntries) throws IDMapperException {
 		Set<Xref> addedXrefs = new HashSet<Xref>();
 		for (Xref ref : dbEntries.keySet()) {
 			Xref mainXref = ref;
-			//System.out.println("mainXref: " + mainXref.isPrimary());
-
 			if (addedXrefs.add(mainXref)) newDb.addGene(mainXref);
 			newDb.addLink(mainXref, mainXref);
 
 			for (Xref rightXref : dbEntries.get(mainXref)) {
 				if (!rightXref.equals(mainXref) && rightXref != null) {
 					if (addedXrefs.add(rightXref)) newDb.addGene(rightXref);
-					//System.out.println("rightXref: " + rightXref.isPrimary());
-
 					newDb.addLink(mainXref, rightXref);
+					}
 				}
-			}
-			// System.out.println("[INFO]: Commit " + mainXref);
 			newDb.commit();
+			}
 		}
 	}
 
-}
 
 
