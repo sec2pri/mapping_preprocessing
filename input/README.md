@@ -141,3 +141,8 @@ cd ..
 zip -r hmdb_metabolites_split.zip hmdb
 ```
  
+## SDF file
+```
+wget https://ftp.ebi.ac.uk/pub/databases/chebi/SDF/ChEBI_complete_3star.sdf.gz
+gunzip ChEBI_complete_3star.sdf.gz
+```
