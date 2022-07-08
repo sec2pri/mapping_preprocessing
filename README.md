@@ -71,8 +71,9 @@ java -cp target/create-bridgedb-secondary2primary-0.0.1-SNAPSHOT-jar-with-depend
 
 2) when the input is a zip file contating the XML files
 ```shell
-java -cp target/create-bridgedb-secondary2primary-0.0.1-SNAPSHOT-jar-with-dependencies.jar org.bridgedb.sec2pri.XMLsec2pri $databaseName $databaseCode $perNode $secNode $secNodeTag $idOrName
+java -cp target/create-bridgedb-secondary2primary-0.0.1-SNAPSHOT-jar-with-dependencies.jar org.bridgedb.sec2pri.XMLsec2pri $databaseName $databaseCode $databaseSymbolCode $priIdNode $secIdNode $secIdNodeTag $priSymbolNode $secSymbolNode $secSymbolNodeTag
 ```
+
 
 Releases
 --------
