@@ -8,7 +8,7 @@ The text file should containes two columns (`#did` = secondary identifier, `next
 ENT_WDN stands for Entry withdrawn (deleted ids)  
 ### some examples of input preparation
 
-#### uniport: perepare the input data (R script)
+#### uniport, perepare the input data (R script)
 ```{r}
 #Download the ``uniport`` file containing the secondary and primary identifiers
 require(downloader)
