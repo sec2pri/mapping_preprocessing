@@ -8,14 +8,20 @@ The text file should containes two columns (`#did` = secondary identifier, `next
 ENT_WDN stands for Entry withdrawn (deleted ids)  
 ### some examples of input preparation
 
-#### Download the ``uniport`` file containing the secondary and primary identifiers
-```script
-https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/docs/sec_ac.txt # Secondary ids together with their corresponding current primary ids
-https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/docs/delac_sp.txt # Ids deleted from Swiss-Prot
-https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/docs/delac_tr.txt.gz # Ids deleted from TrEMBL
-```
-#### Perepare the input data (R script)
+#### uniport: perepare the input data (R script)
 ```{r}
+#Download the ``uniport`` file containing the secondary and primary identifiers
+require(downloader)
+#Ids deleted from Swiss-Prot
+fileUrl <- "https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/docs/delac_sp.txt"
+download(fileUrl, "input/uniport_spDeleted2022041.txt", mode = "wb")
+#ds deleted from TrEMBL
+fileUrl <- "https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/docs/delac_tr.txt.gz"
+download(fileUrl, "input/uniport_trDeleted2022041.gz", mode = "wb")
+#Secondary ids together with their corresponding current primary ids
+fileUrl <- "https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/docs/sec_ac.txt"
+download(fileUrl, "input/uniportWithdrawn2022041.txt", mode = "wb")
+
 # required libraries
 library (dplyr)
 library (tidyr)
@@ -35,37 +41,88 @@ uniport_tr <- read.csv ("Dir to the database file/delac_tr.gz", sep = ",", skip 
 rbind (uniport,uniport_sp, uniport_tr) %>% write.csv ("input/uniport.csv", row.names = F)
 ```
 
-#### Download the ``HGNC`` file containing the secondary and primary identifiers
-```script
-http://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/withdrawn.txt # Secondary ids together with their corresponding current primary ids
-```
-#### Perepare the input data (R script)
+#### HGNC, perepare the input data (R script)
 ```{r}
+#Download the ``HGNC`` file containing the secondary and primary identifiers
+require(downloader)
+#Secondary ids together with their corresponding current primary ids
+fileUrl <- "http://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/withdrawn.txt"
+download(fileUrl, "input/hgncWithdrawn20220414.txt", mode = "wb")
+#Complete set including the previous names
+fileUrl <- "http://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/hgnc_complete_set.txt"
+download(fileUrl, "input/hgncCompleteSet20220509.txt", mode = "wb")
+
 # required libraries
 library (dplyr)
 library (tidyr)
-
-hgnc <- read.csv ("Dir to the database file/hgncWithdrawn20220414.txt", sep = "\t") %>%
+#File that includes the withdrawn ids
+hgnc_WDN <- read.csv ("input/hgncWithdrawn20220414.txt", sep = "\t") %>%
   rename (HGNC_ID.SYMBOL.STATUS = MERGED_INTO_REPORT.S...i.e.HGNC_ID.SYMBOL.STATUS.) %>%
-  mutate (HGNC_ID.SYMBOL.STATUS = ifelse (HGNC_ID.SYMBOL.STATUS == "", STATUS, HGNC_ID.SYMBOL.STATUS))
-s <- strsplit (hgnc$HGNC_ID.SYMBOL.STATUS, split = ",") #considering a separate row for each id in case an id is splited in multiple
-hgnc <- data.frame (HGNC_ID = rep (hgnc$HGNC_ID, sapply (s, length)),
-                    STATUS = rep (hgnc$STATUS, sapply (s, length)),
-                    WITHDRAWN_SYMBOL = rep (hgnc$WITHDRAWN_SYMBOL, sapply (s, length)),
-                    HGNC_ID.SYMBOL.STATUS = unlist (s))
-## Table of HGNC ids 
-hgnc_ID <- hgnc %>% 
-  mutate (HGNC_ID = gsub (".*:", "", HGNC_ID),
-          HGNC_ID.SYMBOL.STATUS = gsub (".*:|\\|.*", "", HGNC_ID.SYMBOL.STATUS)) %>% 
-    select (HGNC_ID, HGNC_ID.SYMBOL.STATUS) %>% 
-    rename (`#did`= HGNC_ID, nextofkin = HGNC_ID.SYMBOL.STATUS) 
-hgnc_ID %>% write.csv ("input/hgncID.csv", row.names = F)
-## Table of gene symbols 
-hgnc_SYMBOL <- hgnc %>% 
-  mutate (HGNC_ID.SYMBOL.STATUS = gsub (".*\\|", "", gsub ("\\|App.*", "", HGNC_ID.SYMBOL.STATUS))) %>% 
-  select (WITHDRAWN_SYMBOL, HGNC_ID.SYMBOL.STATUS) %>% 
-  rename (`#did`= WITHDRAWN_SYMBOL, nextofkin = HGNC_ID.SYMBOL.STATUS) 
-hgnc_SYMBOL %>% write.csv ("input/hgncSymbol.csv", row.names = F)
+  mutate (HGNC_ID.SYMBOL.STATUS = ifelse (HGNC_ID.SYMBOL.STATUS == "", STATUS, HGNC_ID.SYMBOL.STATUS)) %>%
+  select (HGNC_ID, WITHDRAWN_SYMBOL, HGNC_ID.SYMBOL.STATUS)
+s <- strsplit (hgnc_WDN$HGNC_ID.SYMBOL.STATUS, split = ",") #Considering a separate row for each id in case an id is splited in multiple
+hgnc_WDN <- data.frame (HGNC_ID = rep (hgnc_WDN$HGNC_ID, sapply (s, length)),
+                        WITHDRAWN_SYMBOL = rep (hgnc_WDN$WITHDRAWN_SYMBOL, sapply (s, length)),
+                        HGNC_ID.SYMBOL.STATUS = unlist (s))
+length (grep ("Approved|Entry Withdrawn", hgnc_WDN$HGNC_ID.SYMBOL.STATUS)) == nrow (hgnc_WDN) #Checking if all the new ids are approved
+
+hgnc_WDN <- hgnc_WDN %>%
+  mutate (secID = gsub ("\\|.*", "", HGNC_ID),
+          secSymbol = WITHDRAWN_SYMBOL,
+          hgnc_id = ifelse (HGNC_ID.SYMBOL.STATUS == "Entry Withdrawn", "ENT_WDN", gsub ("\\|.*", "", HGNC_ID.SYMBOL.STATUS)),
+          symbol = ifelse (HGNC_ID.SYMBOL.STATUS == "Entry Withdrawn", "ENT_WDN", gsub (".*\\|", "", gsub ("\\|App.*", "", HGNC_ID.SYMBOL.STATUS)))) %>%
+  select (hgnc_id, symbol, secSymbol, secID)
+
+#File that includes the complete set
+hgnc <- read.csv ("input/hgncCompleteSet20220509.txt",
+                  sep = "\t", as.is = T) %>%
+  select (hgnc_id, symbol, alias_symbol, prev_symbol) %>% 
+  mutate (alias_symbol = ifelse (alias_symbol == "", NA, alias_symbol),
+          prev_symbol = ifelse (prev_symbol == "", NA, prev_symbol))
+
+s <- strsplit (hgnc$alias_symbol, split = "\\|") #Considering a separate row for each id in case an id is splited in multiple (alias_symbol)
+hgnc <- data.frame (hgnc_id = rep (hgnc$hgnc_id, sapply (s, length)),
+                    symbol = rep (hgnc$symbol, sapply (s, length)),
+                    prev_symbol = rep (hgnc$prev_symbol, sapply (s, length)),
+                    alias_symbol = unlist (s))
+s <- strsplit (hgnc$prev_symbol, split = "\\|") #considering a separate row for each id in case an id is splited in multiple (prev_symbol)
+hgnc <- data.frame (hgnc_id = rep (hgnc$hgnc_id, sapply (s, length)),
+                    symbol = rep (hgnc$symbol, sapply (s, length)),
+                    alias_symbol = rep (hgnc$alias_symbol, sapply (s, length)),
+                    prev_symbol = unlist (s, use.names = T))
+
+hgnc <- rbind (hgnc [, c ("hgnc_id", "symbol", "alias_symbol")] %>%
+                 rename (secSymbol = alias_symbol),
+               hgnc [, c ("hgnc_id", "symbol", "prev_symbol")] %>%
+                 rename (secSymbol = prev_symbol)) %>% unique () # %>%
+  # mutate (secID = "")
+
+#Fixing the row with NA
+hgnc[hgnc$symbol == "A2M",]
+hgnc_Sec <- hgnc %>% filter (!is.na (secSymbol))
+hgnc_noSec <- hgnc %>% filter (is.na (secSymbol)) %>%
+  filter (!hgnc_id %in% hgnc_Sec$hgnc_id)
+hgnc <- rbind (hgnc_Sec, hgnc_noSec)
+hgnc[hgnc$symbol == "A2M",]
+
+#Merging the two datasets
+hgnc_all <- merge (hgnc_WDN, hgnc, all = T, sort = F) %>% arrange (hgnc_id) %>%
+  select (hgnc_id, secID, symbol, secSymbol) 
+
+hgnc_all[hgnc_all$symbol == "A2M",]
+hgnc_all$secSymbol[hgnc_all$secID == "HGNC:7625"] = "NA"
+
+merge (hgnc_all  %>%
+         filter (hgnc_id == "ENT_WDN") %>%
+         mutate (hgnc_id = make.names (hgnc_id, unique = TRUE)),
+       hgnc_all %>%
+  filter (hgnc_id != "ENT_WDN") %>%
+  mutate (hgnc_id = gsub (" ", "", hgnc_id)) %>%
+  group_by (hgnc_id) %>%
+  summarise (secID = paste0 (unique (na.omit (gsub (" ", "", secID))), collapse = "; "),
+             symbol = paste0 (unique (na.omit (gsub (" ", "", symbol))), collapse = "; "),
+             secSymbol = paste0 (unique (na.omit (gsub (" ", "", secSymbol))), collapse = "; ")) %>%
+  ungroup (), all = T) %>% write.csv ("input/hgnc_all.csv", row.names = F)
 ```
 
 ## Zip file
