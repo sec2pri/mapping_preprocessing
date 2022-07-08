@@ -69,7 +69,7 @@ public class TXTsec2pri {
 		setupDatasources();
 		File outputDir = new File("output");
 		outputDir.mkdir();
-		File outputFile = new File(outputDir, sourceName + ".bridge");
+		File outputFile = new File(outputDir, sourceName + "_secIds.bridge");
 		createDb(outputFile);
 		File inputDir = new File("input");
 		BufferedReader file = new BufferedReader(new FileReader(inputDir + "/" + sourceName + ".csv"));
@@ -131,8 +131,8 @@ public class TXTsec2pri {
         
         addEntries(map);
 		newDb.finalize();
-		file.close();
 		System.out.println("[INFO]: Database finished.");
+		file.close();
 	}
 	
 	private static void createDb(File outputFile) throws IDMapperException {
@@ -165,6 +165,15 @@ public class TXTsec2pri {
 			newDb.addLink(mainXref, mainXref);
 
 			for (Xref rightXref : dbEntries.get(mainXref)) {
+			//	System.out.println("rightXref: " + rightXref);
+			//	System.out.println("mainXref: " + mainXref);
+			//	System.out.println("!rightXref.equals(mainXref): " + !rightXref.equals(mainXref));
+			//	System.out.println("rightXref != null: " + rightXref != null);
+			//	System.out.println("!rightXref.equals(mainXref) && rightXref != null: " + !rightXref.equals(mainXref) + rightXref != null);
+
+				
+
+				
 				if (!rightXref.equals(mainXref) && rightXref != null) {
 					if (addedXrefs.add(rightXref)) newDb.addGene(rightXref);
 					newDb.addLink(mainXref, rightXref);
