@@ -17,13 +17,16 @@ import org.w3c.dom.Node;
 import org.w3c.dom.Element;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;  
 import java.util.zip.*;
@@ -48,6 +51,7 @@ public class XMLse2pri  {
 	
 	public static void main(String args[]) throws IOException, IDMapperException, SQLException {
 		try {
+			//Assign the input argument to the corresponding variables
 			XMLse2pri.sourceName = args[0];
 			XMLse2pri.sourceIdCode = args[1];
 			XMLse2pri.sourceSymbolCode = args[2];
@@ -57,30 +61,39 @@ public class XMLse2pri  {
 			XMLse2pri.priSymbolNode = args[6];
 			XMLse2pri.secSymbolNode = args[7];
 			XMLse2pri.secSymbolNodeTag = args[8];
-			
-			//XMLse2pri.idOrName = args[5];
-			
+			//Create output bridge mapping file
 			setupDatasources();
 			File outputDir = new File("output");
 			outputDir.mkdir();
 			//File outputFile = new File(outputDir, sourceName + "_" + XMLse2pri.idOrName + ".bridge");
 			File outputFile = new File(outputDir, sourceName + ".bridge");
-
 			try {
 				createDb(outputFile);
 				} catch (IDMapperException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 					}
-			///File inputDir = new File("input");
+			
+			//Create output tsv mapping file
+			List<List<String>> listOfsec2pri = new ArrayList<>(); //list of the secondary to primary IDs
+			
+			//File inputDir = new File("input");
 			//creating a constructor of file class and parsing an XML file
 			//File file = new File(new FileReader(inputDir + "/" + sourceName + ".zip"));
 			File file = new File("input/hmdb_metabolites_split.zip");
 			try (ZipFile zipfile = new ZipFile(file)) {
-				// get the Zip Entries using the entries() function
+				// get th.e Zip Entries using the entries() function
 				Enumeration<? extends ZipEntry> entries
 				= zipfile.entries();
 				
+				// creating tsv mapping file
+		        List<String> sec2pri= new ArrayList<String>(); 
+				sec2pri.add("primaryID");
+				sec2pri.add(",");
+				sec2pri.add("secondaryID");
+				sec2pri.add("\n");
+
+			    // creating BridgeDb mapping file
 				Map<Xref, Set<Xref>> map = new HashMap<Xref, Set<Xref>>();
 				int counter = 0;
 				int counter2 = 0;
@@ -107,6 +120,7 @@ public class XMLse2pri  {
 							Xref priIdRef = new Xref(priId.getTextContent(), dsId);
 							map.put(priIdRef, new HashSet<Xref>());
 							
+									
 							if (!XMLse2pri.secIdNodeTag.equalsIgnoreCase("NA")) { // when there is tag for the node
 								for (int itr = 0; itr < secIdList.getLength(); itr++) {
 									Node node = secIdList.item(itr);
@@ -117,6 +131,17 @@ public class XMLse2pri  {
 											Element secId = (Element) secIds.item(itr2);
 											Xref secIdRef = new Xref(secId.getTextContent(), dsId, false); //the first column is the secondary id so idPrimary = false
 											map.get(priIdRef).add(secIdRef);
+											
+											sec2pri.add(priId.getTextContent());
+											sec2pri.add(",");
+											sec2pri.add(secId.getTextContent());
+											//sec2pri.add("\n");
+											// Add the list to list of listfor the secondary to primary id mapping in tsv
+											listOfsec2pri.add(sec2pri);
+											sec2pri = new ArrayList<>();
+											
+											//System.out.println("priId.getTextContent(): " + priId.getTextContent());					
+											//System.out.println("secId.getTextContent(): " + secId.getTextContent());					
 											}
 										}
 									}
@@ -124,6 +149,14 @@ public class XMLse2pri  {
 									Element secId = (Element) secIdList.item(0); // assumption: there is only one name used by the database
 									Xref secIdRef = new Xref(secId.getTextContent(), dsId);
 									map.get(priIdRef).add(secIdRef);
+									
+									sec2pri.add(priId.getTextContent());
+									sec2pri.add(",");
+									sec2pri.add(secId.getTextContent());
+									//sec2pri.add("\n");
+									// Add the list to list of listfor the secondary to primary id mapping in tsv
+									listOfsec2pri.add(sec2pri);
+									sec2pri = new ArrayList<>();
 									}
 							// Adding the primary Symbol
 							NodeList priSymbolList = document.getElementsByTagName(XMLse2pri.priSymbolNode);
@@ -166,6 +199,20 @@ public class XMLse2pri  {
 							}
 						}
 					}
+				File outputTsv = new File(outputDir, sourceName + "_secIds.tsv");
+				FileWriter writer = new FileWriter(outputTsv); 
+				for (int i = 0; i < listOfsec2pri.stream().count(); i++) {
+					List<String> list = listOfsec2pri.get(i);
+					for (String str:list) {
+						writer.write(str);
+						}
+					writer.write(System.lineSeparator());
+				}
+				writer.close();
+				System.out.println("[INFO]: Secondary to primary id table is written");
+				
+				
+				
 				System.out.println("Start to the creation of the database, might take some time");
 				addEntries(map);
 				}
