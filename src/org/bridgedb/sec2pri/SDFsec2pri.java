@@ -29,9 +29,9 @@ import java.util.List;
  */
 
 public class SDFsec2pri {
-	public static String sourceName = "";
-	public static String sourceIdCode = "";
-	public static String sourceSymbolCode = "";
+	public static String sourceName = ""; //ChEBI
+	public static String sourceIdCode = ""; //Ce
+	public static String sourceSymbolCode = ""; //O
 	public static String DbVersion = "1.0.0";
 	public static String BridgeDbVersion = "3.0.13";
 	private static DataSource dsId;
@@ -72,8 +72,6 @@ public class SDFsec2pri {
 					if(!sec2pri.isEmpty()) listOfsec2pri.add(sec2pri);
 					sec2pri = new ArrayList<>();
 					priId = dataRow;
-					sec2pri.add(priId);
-					sec2pri.add(",");
 					}
 				Xref priId_B2B = new Xref(priId, dsId);
 				map.put(priId_B2B, new HashSet<Xref>());
@@ -89,13 +87,15 @@ public class SDFsec2pri {
 				if (secLine) {//extracting rows with secondary identifiers
 					dataRow = file.readLine();
 					secId = dataRow;
-					sec2pri.add(secId);
 					Xref secId_B2B_1 = new Xref(secId, dsId, false); //the first column is the secondary id so idPrimary = false
 					map.get(priId_B2B).add(secId_B2B_1);
+					sec2pri.add(priId);
+					sec2pri.add(",");
+					sec2pri.add(secId);
+
 					dataRow = file.readLine();
 					while (dataRow.startsWith("CHEBI:")) {
 						secId = dataRow;
-						//System.out.println("secId: " + secId);
 						sec2pri.add("\n");
 						sec2pri.add(priId);
 						sec2pri.add(",");
