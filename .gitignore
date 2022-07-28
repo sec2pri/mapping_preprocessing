@@ -1,0 +1,4 @@
+/target/
+*.xml
+*.sdf
+input/hgnc_all.csv

@@ -18,11 +18,8 @@ package org.bridgedb.sec2pri;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
-//import java.nio.charset.Charset;
-//import java.nio.charset.StandardCharsets;
-//import java.nio.file.Files;
-//import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -30,7 +27,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
 import org.bridgedb.DataSource;
 import org.bridgedb.IDMapperException;
 import org.bridgedb.Xref;
@@ -39,7 +35,8 @@ import org.bridgedb.rdb.construct.DBConnector;
 import org.bridgedb.rdb.construct.DataDerby;
 import org.bridgedb.rdb.construct.GdbConstruct;
 import org.bridgedb.rdb.construct.GdbConstructImpl4;
-//import org.bridgedb.tools.qc.BridgeQC;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -71,17 +68,27 @@ public class TXTsec2pri {
 		outputDir.mkdir();
 		File outputFile = new File(outputDir, sourceName + "_secIds.bridge");
 		createDb(outputFile);
+		//Create output tsv mapping file
+		List<List<String>> listOfsec2pri = new ArrayList<>(); //list of the secondary to primary IDs
+		
 		File inputDir = new File("input");
 		BufferedReader file = new BufferedReader(new FileReader(inputDir + "/" + sourceName + ".csv"));
         String dataRow = file.readLine(); // skip the first line
         dataRow = file.readLine();
 
-        Map<Xref, Set<Xref>> map = new HashMap<Xref, Set<Xref>>();
+    	// creating tsv mapping file
+        List<String> sec2pri= new ArrayList<String>(); 
+		sec2pri.add("primaryID");
+		sec2pri.add(",");
+		sec2pri.add("secondaryID");
+		sec2pri.add("\n");
+
+		Map<Xref, Set<Xref>> map = new HashMap<Xref, Set<Xref>>();
 		int counter = 0;
 		int counter2 = 0;
 		boolean finished = false;
         while (dataRow != null && !finished) {
-        	//the input for separator e.g. '\t'
+        	//the input for separator e.g. '\t' ','
         	String splitChar = args[3]; 
         	String[] fields = dataRow.split(splitChar);
 
@@ -90,12 +97,21 @@ public class TXTsec2pri {
 			map.put(priId, new HashSet<Xref>());
 			
 			if (fields.length > 1) {
-				if (!fields[1].replaceAll("\"", "").contentEquals("NA")) {
+				if (!fields[1].replaceAll("\"", "").contentEquals("NA") & !fields[1].replaceAll("\"", "").isEmpty()) {
 					String secIds = fields[1].replaceAll("\"", "");
 					List<String> ArraySecIds = Arrays.asList(secIds.split("; "));
 					for (String secId:ArraySecIds) { 
 						Xref secIdRef = new Xref(secId, dsId, false); //the first column is the secondary id so idPrimary = false
 						map.get(priId).add(secIdRef);
+
+						sec2pri.add(identifier.replaceAll("\\..*$", ""));
+						sec2pri.add(",");
+						sec2pri.add(secId);
+						//sec2pri.add("\n");
+						// Add the list to list of listfor the secondary to primary id mapping in tsv
+						listOfsec2pri.add(sec2pri);
+						sec2pri = new ArrayList<>();
+
 						}
 					}
 								
@@ -130,6 +146,19 @@ public class TXTsec2pri {
 			}
         
         addEntries(map);
+    	File outputTsv = new File(outputDir, sourceName + "_secIds.tsv");
+		FileWriter writer = new FileWriter(outputTsv); 
+		for (int i = 0; i < listOfsec2pri.stream().count(); i++) {
+			List<String> list = listOfsec2pri.get(i);
+			for (String str:list) {
+				writer.write(str);
+				}
+			writer.write(System.lineSeparator());
+		}
+		writer.close();
+		System.out.println("[INFO]: Secondary to primary id table is written");
+	
+        
 		newDb.finalize();
 		System.out.println("[INFO]: Database finished.");
 		file.close();

@@ -36,7 +36,17 @@
     <artifactId>rdf4j-repository-sparql</artifactId>
     <version>3.1.2</version>
 	</dependency>
-	<dependency>
+  <dependency>
+    <groupId>org.eclipse.rdf4j</groupId>
+    <artifactId>rdf4j-queryresultio-sparqljson</artifactId>
+    <version>3.1.2</version>
+  </dependency>
+<dependency>
+    <groupId>org.eclipse.rdf4j</groupId>
+    <artifactId>rdf4j-repository-api</artifactId>
+    <version>3.1.2</version>
+</dependency>
+<dependency>
       <groupId>org.bridgedb</groupId>
       <artifactId>org.bridgedb</artifactId>
       <version>${bridgedb.version}</version>
