@@ -94,6 +94,7 @@ public class XMLsec2pri  {
 				//create tsv file with all the ChEBI IDs
 		        List<String> pri= new ArrayList<String>(); 
 				pri.add("primaryID");
+				pri.add("\n");
 				//create tsv mapping file for sec2pri ID
 		        List<String> sec2pri= new ArrayList<String>(); 
 				sec2pri.add("primaryID");
