@@ -75,6 +75,8 @@ public class XMLsec2pri  {
 					}
 			
 			//Create output tsv mapping files
+			////primary ID
+			List<List<String>> listOfpri = new ArrayList<>(); //list of primary IDs
 			////Secondary to primary ID
 			List<List<String>> listOfsec2pri = new ArrayList<>(); //list of the secondary to primary IDs
 			////name to synonyms
@@ -89,6 +91,9 @@ public class XMLsec2pri  {
 				Enumeration<? extends ZipEntry> entries
 				= zipfile.entries();
 				
+				//create tsv file with all the ChEBI IDs
+		        List<String> pri= new ArrayList<String>(); 
+				pri.add("primaryID");
 				//create tsv mapping file for sec2pri ID
 		        List<String> sec2pri= new ArrayList<String>(); 
 				sec2pri.add("primaryID");
@@ -131,7 +136,12 @@ public class XMLsec2pri  {
 							
 							Xref priIdRef = new Xref(priId.getTextContent(), dsId);
 							map.put(priIdRef, new HashSet<Xref>());
-																
+							
+							pri.add(priId.getTextContent());
+							//Add the list to list of primary id in tsv
+							listOfpri.add(pri);
+							pri = new ArrayList<>();
+							
 							if (!XMLsec2pri.secIdNodeTag.equalsIgnoreCase("NA")) { //when there is tag for the node
 								for (int itr = 0; itr < secIdList.getLength(); itr++) {
 									Node node = secIdList.item(itr);
@@ -245,6 +255,19 @@ public class XMLsec2pri  {
 							}
 						}
 					}
+				
+				File output_pri_Tsv = new File(outputDir, sourceName + "_primaryIDs.tsv");
+				FileWriter writer_pri = new FileWriter(output_pri_Tsv); 
+				for (int i = 0; i < listOfpri.stream().count(); i++) {
+					List<String> list = listOfpri.get(i);
+					for (String str:list) {
+						writer_pri.write(str);
+						}
+					writer_pri.write(System.lineSeparator());
+				}
+				writer_pri.close();
+				System.out.println("[INFO]: List of primary IDs is written");
+				
 				File outputTsv = new File(outputDir, sourceName + "_secIds.tsv");
 				FileWriter writer = new FileWriter(outputTsv); 
 				for (int i = 0; i < listOfsec2pri.stream().count(); i++) {
@@ -267,7 +290,7 @@ public class XMLsec2pri  {
 					writer_name.write(System.lineSeparator());
 				}
 				writer_name.close();
-				System.out.println("[INFO]: Name to symbols id table is written");
+				System.out.println("[INFO]: Name to symbols table is written");
 				
 				System.out.println("Start to the creation of the database, might take some time");
 				addEntries(map);
