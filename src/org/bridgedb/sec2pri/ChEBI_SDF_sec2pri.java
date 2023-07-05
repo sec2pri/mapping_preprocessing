@@ -41,7 +41,7 @@ public class ChEBI_SDF_sec2pri {
 
 		//Create output bridge mapping file
 		setupDatasources();
-		File outputDir = new File("datasources/processed_mapping_files/");
+		File outputDir = new File("../BridgeDb-Shiny/Docker/app/datasources/processed_mapping_files/");
 		outputDir.mkdir();
 		File outputFile = new File(outputDir, sourceName + "_secID2priID_v" + DbVersion + ".bridge");
 		
@@ -59,7 +59,7 @@ public class ChEBI_SDF_sec2pri {
 		////name to synonyms
 		List<List<String>> listOfname2symbol = new ArrayList<>(); //list of the name to symbol 
 
-		File inputDir = new File("input");
+		File inputDir = new File("../BridgeDb-Shiny/Docker/app/datasources/input_raw_files");
 		
 		try (BufferedReader file = new BufferedReader(new FileReader(inputDir + "/" + sourceName + "/" + "ChEBI_complete_3star.sdf"))) {
 			String dataRow = file.readLine();
@@ -180,7 +180,7 @@ public class ChEBI_SDF_sec2pri {
 					}
 				}
 	
-			File output_pri_Tsv = new File(outputDir, sourceName + "_priIDs_" + DbVersion + ".tsv");
+			File output_pri_Tsv = new File(outputDir, sourceName + "_priIDs_v" + DbVersion + ".tsv");
 			FileWriter writer_pri = new FileWriter(output_pri_Tsv); 
 			for (int i = 0; i < listOfpri.stream().count(); i++) {
 				List<String> list = listOfpri.get(i);
@@ -192,7 +192,7 @@ public class ChEBI_SDF_sec2pri {
 			writer_pri.close();
 			System.out.println("[INFO]: List of primary IDs is written");
 			
-			File output_sec2pri_Tsv = new File(outputDir, sourceName + "_secID2priID_" + DbVersion + ".tsv");
+			File output_sec2pri_Tsv = new File(outputDir, sourceName + "_secID2priID_v" + DbVersion + ".tsv");
 			FileWriter writer = new FileWriter(output_sec2pri_Tsv); 
 			for (int i = 0; i < listOfsec2pri.stream().count(); i++) {
 				List<String> list = listOfsec2pri.get(i);
@@ -204,7 +204,7 @@ public class ChEBI_SDF_sec2pri {
 			writer.close();
 			System.out.println("[INFO]: Secondary to primary id table is written");
 			
-			File output_name_Tsv = new File(outputDir, sourceName + "_name2symbol_" + DbVersion + ".tsv");
+			File output_name_Tsv = new File(outputDir, sourceName + "_name2symbol_v" + DbVersion + ".tsv");
 			FileWriter writer_name = new FileWriter(output_name_Tsv); 
 			for (int i = 0; i < listOfname2symbol.stream().count(); i++) {
 				List<String> list = listOfname2symbol.get(i);

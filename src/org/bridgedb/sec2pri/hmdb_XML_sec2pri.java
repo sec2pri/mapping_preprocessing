@@ -2,7 +2,6 @@ package org.bridgedb.sec2pri;
 
 import javax.xml.parsers.DocumentBuilderFactory;  
 import javax.xml.parsers.DocumentBuilder;
-
 import org.bridgedb.DataSource;
 import org.bridgedb.IDMapperException;
 import org.bridgedb.Xref;
@@ -64,7 +63,7 @@ public class hmdb_XML_sec2pri  {
 			
 			//Create output bridge mapping file
 			setupDatasources();
-			File outputDir = new File("datasources/processed_mapping_files/");
+			File outputDir = new File("../BridgeDb-Shiny/Docker/app/datasources/processed_mapping_files/");
 			outputDir.mkdir();
 			File outputFile = new File(outputDir, sourceName + "_secID2priID_v" + DbVersion + ".bridge");
 
@@ -83,9 +82,8 @@ public class hmdb_XML_sec2pri  {
 			List<List<String>> listOfname2symbol = new ArrayList<>(); //list of the name to symbol 
 			
 			//create a constructor of file class and parsing an XML file
-			//File inputDir = new File("input");
-			//File file = new File(new FileReader(inputDir + "/" + sourceName + ".zip"));
-			File file = new File("input/hmdb_metabolites_split.zip");
+			File inputDir = new File("../BridgeDb-Shiny/Docker/app/datasources/input_raw_files");
+			File file = new File(inputDir + "/" + sourceName + "/hmdb_metabolites_split.zip");
 			try (ZipFile zipfile = new ZipFile(file)) {
 				//get th.e Zip Entries using the entries() function
 				Enumeration<? extends ZipEntry> entries
