@@ -32,7 +32,7 @@ import java.util.Set;
 import java.util.zip.*;
 import java.util.Enumeration;
 
-public class XMLsec2pri  {
+public class hmdb_XML_sec2pri  {
 	public static String sourceName = "hmdb";
 	public static String sourceIdCode = "Ch";
 	public static String sourceSymbolCode = "O"; // for hmdb (in general for metabolites, there is no system code for metabollite name, for now it is considered O
@@ -52,21 +52,21 @@ public class XMLsec2pri  {
 	public static void main(String args[]) throws IOException, IDMapperException, SQLException {
 		try {
 			//Assign the input argument to the corresponding variables
-			XMLsec2pri.sourceName = args[0];
-			XMLsec2pri.sourceIdCode = args[1];
-			XMLsec2pri.sourceSymbolCode = args[2];
-			XMLsec2pri.priIdNode = args[3];
-			XMLsec2pri.secIdNode = args[4];
-			XMLsec2pri.secIdNodeTag = args[5];
-			XMLsec2pri.priSymbolNode = args[6];
-			XMLsec2pri.secSymbolNode = args[7];
-			XMLsec2pri.secSymbolNodeTag = args[8];
+//			XMLsec2pri.sourceName = args[0];
+//			XMLsec2pri.sourceIdCode = args[1];
+//			XMLsec2pri.sourceSymbolCode = args[2];
+//			XMLsec2pri.priIdNode = args[3];
+//			XMLsec2pri.secIdNode = args[4];
+//			XMLsec2pri.secIdNodeTag = args[5];
+//			XMLsec2pri.priSymbolNode = args[6];
+//			XMLsec2pri.secSymbolNode = args[7];
+//			XMLsec2pri.secSymbolNodeTag = args[8];
 			
 			//Create output bridge mapping file
 			setupDatasources();
-			File outputDir = new File("output");
+			File outputDir = new File("datasources/processed_mapping_files/");
 			outputDir.mkdir();
-			File outputFile = new File(outputDir, sourceName + ".bridge");
+			File outputFile = new File(outputDir, sourceName + "_secID2priID_v" + DbVersion + ".bridge");
 
 			try {
 				createDb(outputFile);
@@ -98,7 +98,7 @@ public class XMLsec2pri  {
 				//create tsv mapping file for sec2pri ID
 		        List<String> sec2pri= new ArrayList<String>(); 
 				sec2pri.add("primaryID");
-				sec2pri.add(",");
+				sec2pri.add("\t");
 				sec2pri.add("secondaryID");
 				sec2pri.add("\n");
 				//create tsv mapping file for name2symbols
@@ -129,10 +129,10 @@ public class XMLsec2pri  {
 						document.getDocumentElement().normalize();
 						
 						//Accession primary ID
-						NodeList priIdList = document.getElementsByTagName(XMLsec2pri.priIdNode);
+						NodeList priIdList = document.getElementsByTagName(hmdb_XML_sec2pri.priIdNode);
 						Element priId = (Element) priIdList.item(0); //assumption: there is only one primary id used by the database
 						//Add the secondary IDs if there is any
-						NodeList secIdList = document.getElementsByTagName(XMLsec2pri.secIdNode);
+						NodeList secIdList = document.getElementsByTagName(hmdb_XML_sec2pri.secIdNode);
 						if (priId != null && secIdList.getLength() != 0) {
 							
 							Xref priIdRef = new Xref(priId.getTextContent(), dsId);
@@ -143,19 +143,19 @@ public class XMLsec2pri  {
 							listOfpri.add(pri);
 							pri = new ArrayList<>();
 							
-							if (!XMLsec2pri.secIdNodeTag.equalsIgnoreCase("NA")) { //when there is tag for the node
+							if (!hmdb_XML_sec2pri.secIdNodeTag.equalsIgnoreCase("NA")) { //when there is tag for the node
 								for (int itr = 0; itr < secIdList.getLength(); itr++) {
 									Node node = secIdList.item(itr);
 									if (node.getNodeType() == Node.ELEMENT_NODE) {
 										Element eElement = (Element) node;
-										NodeList secIds = eElement.getElementsByTagName(XMLsec2pri.secIdNodeTag);
+										NodeList secIds = eElement.getElementsByTagName(hmdb_XML_sec2pri.secIdNodeTag);
 										for (int itr2 = 0; itr2 < secIds.getLength(); itr2++) {
 											Element secId = (Element) secIds.item(itr2);
 											Xref secIdRef = new Xref(secId.getTextContent(), dsId, false); //the first column is the secondary id so idPrimary = false
 											map.get(priIdRef).add(secIdRef);
 											
 											sec2pri.add(priId.getTextContent());
-											sec2pri.add(",");
+											sec2pri.add("\t");
 											sec2pri.add(secId.getTextContent());
 
 											//Add the list to list of list for the secondary to primary id mapping in tsv
@@ -170,7 +170,7 @@ public class XMLsec2pri  {
 									map.get(priIdRef).add(secIdRef);
 									
 									sec2pri.add(priId.getTextContent());
-									sec2pri.add(",");
+									sec2pri.add("\t");
 									sec2pri.add(secId.getTextContent());
 
 									//Add the list to list of list for the secondary to primary id mapping in tsv
@@ -178,7 +178,7 @@ public class XMLsec2pri  {
 									sec2pri = new ArrayList<>();
 									}
 							//Add the primary Symbol
-							NodeList priSymbolList = document.getElementsByTagName(XMLsec2pri.priSymbolNode);
+							NodeList priSymbolList = document.getElementsByTagName(hmdb_XML_sec2pri.priSymbolNode);
 							Element priSymbol = (Element) priSymbolList.item(0); //assumption: there is only one primary name used by the database
 							Xref priSymbolRef = new Xref(priSymbol.getTextContent(), dsSymbol);
 							map.get(priIdRef).add(priSymbolRef);
@@ -189,7 +189,7 @@ public class XMLsec2pri  {
 							name2synonym.add("\t");
 							
 							//Add the secondary symbols if there is any
-							NodeList secSymbolList = document.getElementsByTagName(XMLsec2pri.secSymbolNode);
+							NodeList secSymbolList = document.getElementsByTagName(hmdb_XML_sec2pri.secSymbolNode);
 							if (secSymbolList.getLength() == 0) {//Going to the next row if there is no synonym 
 								name2synonym.add("\n");
 								listOfname2symbol.add(name2synonym);
@@ -197,7 +197,7 @@ public class XMLsec2pri  {
 								}
 							
 							if (secSymbolList.getLength() != 0) {
-								if (!XMLsec2pri.secSymbolNodeTag.equalsIgnoreCase("NA")) { //when there is tag for the node
+								if (!hmdb_XML_sec2pri.secSymbolNodeTag.equalsIgnoreCase("NA")) { //when there is tag for the node
 									
 //									for (int itr = 0; itr < secSymbolList.getLength(); itr++) {
 
@@ -205,7 +205,7 @@ public class XMLsec2pri  {
 																		
 									if (node != null && node.getNodeType() == Node.ELEMENT_NODE) {
 										Element eElement = (Element) node;
-										NodeList secSymbols = eElement.getElementsByTagName(XMLsec2pri.secSymbolNodeTag);
+										NodeList secSymbols = eElement.getElementsByTagName(hmdb_XML_sec2pri.secSymbolNodeTag);
 										for (int itr = 0; itr < secSymbols.getLength(); itr++) {
 											Element secSymbol = (Element) secSymbols.item(itr);
 											Xref secSymbolRef = new Xref(secSymbol.getTextContent(), dsSymbol, false); //secondary symbols so idPrimary = false
@@ -257,7 +257,7 @@ public class XMLsec2pri  {
 						}
 					}
 				
-				File output_pri_Tsv = new File(outputDir, sourceName + "_primaryIDs.tsv");
+				File output_pri_Tsv = new File(outputDir, sourceName + "_priIDs_v" + DbVersion + ".tsv");
 				FileWriter writer_pri = new FileWriter(output_pri_Tsv); 
 				for (int i = 0; i < listOfpri.stream().count(); i++) {
 					List<String> list = listOfpri.get(i);
@@ -269,8 +269,8 @@ public class XMLsec2pri  {
 				writer_pri.close();
 				System.out.println("[INFO]: List of primary IDs is written");
 				
-				File outputTsv = new File(outputDir, sourceName + "_secIds.tsv");
-				FileWriter writer = new FileWriter(outputTsv); 
+				File output_sec2pri_Tsv = new File(outputDir, sourceName + "_secID2priID_v" + DbVersion + ".tsv");
+				FileWriter writer = new FileWriter(output_sec2pri_Tsv); 
 				for (int i = 0; i < listOfsec2pri.stream().count(); i++) {
 					List<String> list = listOfsec2pri.get(i);
 					for (String str:list) {
@@ -281,7 +281,7 @@ public class XMLsec2pri  {
 				writer.close();
 				System.out.println("[INFO]: Secondary to primary id table is written");
 				
-				File output_name_Tsv = new File(outputDir, sourceName + "_name2symbols.tsv");
+				File output_name_Tsv = new File(outputDir, sourceName + "_name2symbol_v" + DbVersion + ".tsv");
 				FileWriter writer_name = new FileWriter(output_name_Tsv); 
 				for (int i = 0; i < listOfname2symbol.stream().count(); i++) {
 					List<String> list = listOfname2symbol.get(i);
@@ -308,10 +308,9 @@ public class XMLsec2pri  {
 	
 	private static void setupDatasources() {
 		DataSourceTxt.init();
-		dsId = DataSource.getExistingBySystemCode(XMLsec2pri.sourceIdCode);
-		dsSymbol = DataSource.getExistingBySystemCode(XMLsec2pri.sourceSymbolCode);
+		dsId = DataSource.getExistingBySystemCode(hmdb_XML_sec2pri.sourceIdCode);
+		dsSymbol = DataSource.getExistingBySystemCode(hmdb_XML_sec2pri.sourceSymbolCode);
 		}
-	
 	
 	private static void createDb(File outputFile) throws IDMapperException {
 		
@@ -349,5 +348,5 @@ public class XMLsec2pri  {
 			newDb.commit();
 		}
 	}
-	
-	}  
+	}
+

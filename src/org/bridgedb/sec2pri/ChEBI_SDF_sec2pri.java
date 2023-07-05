@@ -23,10 +23,10 @@ import org.bridgedb.rdb.construct.GdbConstructImpl4;
  * @author tabbassidaloii
  */
 
-public class SDFsec2pri {
-	public static String sourceName = ""; //ChEBI
-	public static String sourceIdCode = ""; //Ce
-	public static String sourceSymbolCode = ""; //O
+public class ChEBI_SDF_sec2pri {
+	public static String sourceName = "ChEBI"; //ChEBI
+	public static String sourceIdCode = "Ce"; //Ce
+	public static String sourceSymbolCode = "O"; //O
 	public static String DbVersion = "1.0.0";
 	public static String BridgeDbVersion = "3.0.13";
 	private static DataSource dsId;
@@ -35,15 +35,15 @@ public class SDFsec2pri {
 	
 	public static void main(String[] args) throws IOException, IDMapperException, SQLException {
 		//Assign the input argument to the corresponding variables
-		SDFsec2pri.sourceName = args[0];  
-		SDFsec2pri.sourceIdCode = args[1];  
-		SDFsec2pri.sourceSymbolCode = args[2];  
+//		SDFsec2pri.sourceName = args[0];  
+//		SDFsec2pri.sourceIdCode = args[1];  
+//		SDFsec2pri.sourceSymbolCode = args[2];  
 
 		//Create output bridge mapping file
 		setupDatasources();
-		File outputDir = new File("output");
+		File outputDir = new File("datasources/processed_mapping_files/");
 		outputDir.mkdir();
-		File outputFile = new File(outputDir, sourceName + "_secIds.bridge");
+		File outputFile = new File(outputDir, sourceName + "_secID2priID_v" + DbVersion + ".bridge");
 		
 		try {
 			createDb(outputFile);
@@ -74,7 +74,7 @@ public class SDFsec2pri {
 			//create tsv mapping file for sec2pri ID
 	        List<String> sec2pri= new ArrayList<String>(); 
 			sec2pri.add("primaryID");
-			sec2pri.add(",");
+			sec2pri.add("\t");
 			sec2pri.add("secondaryID");
 			//create tsv mapping file for name2symbols
 	        List<String> name2synonym= new ArrayList<String>(); 
@@ -122,7 +122,7 @@ public class SDFsec2pri {
 					Xref secId_B2B_1 = new Xref(secId, dsId, false); //the first column is the secondary id so idPrimary = false
 					map.get(priId_B2B).add(secId_B2B_1);
 					sec2pri.add(priId);
-					sec2pri.add(",");
+					sec2pri.add("\t");
 					sec2pri.add(secId);
 
 					dataRow = file.readLine();
@@ -130,7 +130,7 @@ public class SDFsec2pri {
 						secId = dataRow;
 						sec2pri.add("\n");
 						sec2pri.add(priId);
-						sec2pri.add(",");
+						sec2pri.add("\t");
 						sec2pri.add(secId);
 						Xref secId_B2B_2 = new Xref(secId, dsId, false); //the first column is the secondary id so idPrimary = false
 						map.get(priId_B2B).add(secId_B2B_2);
@@ -180,8 +180,7 @@ public class SDFsec2pri {
 					}
 				}
 	
-			
-			File output_pri_Tsv = new File(outputDir, sourceName + "_primaryIDs.tsv");
+			File output_pri_Tsv = new File(outputDir, sourceName + "_priIDs_" + DbVersion + ".tsv");
 			FileWriter writer_pri = new FileWriter(output_pri_Tsv); 
 			for (int i = 0; i < listOfpri.stream().count(); i++) {
 				List<String> list = listOfpri.get(i);
@@ -193,9 +192,8 @@ public class SDFsec2pri {
 			writer_pri.close();
 			System.out.println("[INFO]: List of primary IDs is written");
 			
-			
-			File outputTsv = new File(outputDir, sourceName + "_secIds.tsv");
-			FileWriter writer = new FileWriter(outputTsv); 
+			File output_sec2pri_Tsv = new File(outputDir, sourceName + "_secID2priID_" + DbVersion + ".tsv");
+			FileWriter writer = new FileWriter(output_sec2pri_Tsv); 
 			for (int i = 0; i < listOfsec2pri.stream().count(); i++) {
 				List<String> list = listOfsec2pri.get(i);
 				for (String str:list) {
@@ -206,7 +204,7 @@ public class SDFsec2pri {
 			writer.close();
 			System.out.println("[INFO]: Secondary to primary id table is written");
 			
-			File output_name_Tsv = new File(outputDir, sourceName + "_name2symbols.tsv");
+			File output_name_Tsv = new File(outputDir, sourceName + "_name2symbol_" + DbVersion + ".tsv");
 			FileWriter writer_name = new FileWriter(output_name_Tsv); 
 			for (int i = 0; i < listOfname2symbol.stream().count(); i++) {
 				List<String> list = listOfname2symbol.get(i);
@@ -218,33 +216,33 @@ public class SDFsec2pri {
 			writer_name.close();
 			System.out.println("[INFO]: Name to symbols table is written");
 			
+			System.out.println("Start to the creation of the database, might take some time");
 			addEntries(map);
-			newDb.finalize();
-			System.out.println("[INFO]: Database finished.");
-			file.close();
-	
+			file.close();	
 			}
+		newDb.finalize();
+		System.out.println("[INFO]: Database finished.");
+		System.out.println(new Date());
 		}
+	
 	private static void createDb(File outputFile) throws IDMapperException {
 		newDb = new GdbConstructImpl4(outputFile.getAbsolutePath(),new DataDerby(), DBConnector.PROP_RECREATE);
 		newDb.createGdbTables();
 		newDb.preInsert();
-		
 			
 		String dateStr = new SimpleDateFormat("yyyyMMdd").format(new Date());
 		newDb.setInfo("BUILDDATE", dateStr);
-		newDb.setInfo("DATASOURCENAME", SDFsec2pri.sourceName);
+		newDb.setInfo("DATASOURCENAME", ChEBI_SDF_sec2pri.sourceName);
 		
 		newDb.setInfo("DATASOURCEVERSION", DbVersion);
 		newDb.setInfo("BRIDGEDBVERSION", BridgeDbVersion);
 		newDb.setInfo("DATATYPE", "Identifiers");	
 		}
 	
-	
 	private static void setupDatasources() {
 		DataSourceTxt.init();
-		dsId = DataSource.getExistingBySystemCode(SDFsec2pri.sourceIdCode);
-		dsSymbol = DataSource.getExistingBySystemCode(SDFsec2pri.sourceSymbolCode);
+		dsId = DataSource.getExistingBySystemCode(ChEBI_SDF_sec2pri.sourceIdCode);
+		dsSymbol = DataSource.getExistingBySystemCode(ChEBI_SDF_sec2pri.sourceSymbolCode);
 		}
 	
 	private static void addEntries(Map<Xref, Set<Xref>> dbEntries) throws IDMapperException {
