@@ -11,7 +11,7 @@ DbVersion <- "1"
 inputDir <- "mapping_preprocessing/datasources/"
 
 # Create output directory
-outputDir <- "IDUpdater/Docker/app/processed_mapping_files"
+outputDir <- "IDRefiner/Docker/app/processed_mapping_files"
 dir.create(outputDir, showWarnings = FALSE)
 
 # Download the input files from UniProt
