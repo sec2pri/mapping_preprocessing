@@ -1,4 +1,4 @@
-package org.bridgedb.sec2pri;
+package org.sec2pri;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -26,22 +26,22 @@ import org.bridgedb.rdb.construct.GdbConstructImpl4;
 public class ChEBI_SDF_sec2pri {
 	public static String sourceName = "ChEBI"; //ChEBI
 	public static String sourceIdCode = "Ce"; //Ce
-	public static String sourceSymbolCode = "O"; //O
-	public static String DbVersion = "1.0.0";
-	public static String BridgeDbVersion = "3.0.13";
+	public static String sourceSynonymCode = "O"; //O
+	public static String DbVersion = "1";
+	public static String BridgeDbVersion = "3.0.10";
 	private static DataSource dsId;
-	private static DataSource dsSymbol;
+	private static DataSource dsSynonym;
 	private static GdbConstruct newDb;
 	
 	public static void main(String[] args) throws IOException, IDMapperException, SQLException {
 		//Assign the input argument to the corresponding variables
 //		SDFsec2pri.sourceName = args[0];  
 //		SDFsec2pri.sourceIdCode = args[1];  
-//		SDFsec2pri.sourceSymbolCode = args[2];  
+//		SDFsec2pri.sourceSynonymCode = args[2];  
 
 		//Create output bridge mapping file
 		setupDatasources();
-		File outputDir = new File("../BridgeDb-Shiny/Docker/app/datasources/processed_mapping_files/");
+		File outputDir = new File("../IDUpdater/Docker/app/processed_mapping_files/");
 		outputDir.mkdir();
 		File outputFile = new File(outputDir, sourceName + "_secID2priID_v" + DbVersion + ".bridge");
 		
@@ -57,9 +57,9 @@ public class ChEBI_SDF_sec2pri {
 		////Secondary to primary ID
 		List<List<String>> listOfsec2pri = new ArrayList<>(); //list of the secondary to primary IDs
 		////name to synonyms
-		List<List<String>> listOfname2symbol = new ArrayList<>(); //list of the name to symbol 
+		List<List<String>> listOfname2synonym = new ArrayList<>(); //list of the name to synonym 
 
-		File inputDir = new File("../BridgeDb-Shiny/Docker/app/datasources/input_raw_files");
+		File inputDir = new File("datasources/");
 		
 		try (BufferedReader file = new BufferedReader(new FileReader(inputDir + "/" + sourceName + "/" + "ChEBI_complete_3star.sdf"))) {
 			String dataRow = file.readLine();
@@ -76,7 +76,7 @@ public class ChEBI_SDF_sec2pri {
 			sec2pri.add("primaryID");
 			sec2pri.add("\t");
 			sec2pri.add("secondaryID");
-			//create tsv mapping file for name2symbols
+			//create tsv mapping file for name2synonyms
 	        List<String> name2synonym= new ArrayList<String>(); 
 	        name2synonym.add("primaryID");
 	        name2synonym.add("\t");
@@ -97,7 +97,7 @@ public class ChEBI_SDF_sec2pri {
 					pri = new ArrayList<>();
 					if(!sec2pri.isEmpty()) listOfsec2pri.add(sec2pri);
 					sec2pri = new ArrayList<>();
-					if(!name2synonym.isEmpty()) listOfname2symbol.add(name2synonym);
+					if(!name2synonym.isEmpty()) listOfname2synonym.add(name2synonym);
 					name2synonym = new ArrayList<>();
 					dataRow = file.readLine();
 					priId = dataRow;
@@ -111,8 +111,8 @@ public class ChEBI_SDF_sec2pri {
 					dataRow = file.readLine();//extract row with metabolite name
 					name = dataRow;
 					}
-				Xref Symbol_B2B = new Xref(name, dsSymbol);
-				map.get(priId_B2B).add(Symbol_B2B);
+				Xref Synonym_B2B = new Xref(name, dsSynonym);
+				map.get(priId_B2B).add(Synonym_B2B);
 				
 
 				boolean secLine = dataRow.startsWith("> <Secondary ChEBI ID>");
@@ -204,17 +204,17 @@ public class ChEBI_SDF_sec2pri {
 			writer.close();
 			System.out.println("[INFO]: Secondary to primary id table is written");
 			
-			File output_name_Tsv = new File(outputDir, sourceName + "_name2symbol_v" + DbVersion + ".tsv");
+			File output_name_Tsv = new File(outputDir, sourceName + "_name2synonym_v" + DbVersion + ".tsv");
 			FileWriter writer_name = new FileWriter(output_name_Tsv); 
-			for (int i = 0; i < listOfname2symbol.stream().count(); i++) {
-				List<String> list = listOfname2symbol.get(i);
+			for (int i = 0; i < listOfname2synonym.stream().count(); i++) {
+				List<String> list = listOfname2synonym.get(i);
 				for (String str:list) {
 					writer_name.write(str);
 					}
 				writer_name.write(System.lineSeparator());
 			}
 			writer_name.close();
-			System.out.println("[INFO]: Name to symbols table is written");
+			System.out.println("[INFO]: Name to synonyms table is written");
 			
 			System.out.println("Start to the creation of the database, might take some time");
 			addEntries(map);
@@ -242,7 +242,7 @@ public class ChEBI_SDF_sec2pri {
 	private static void setupDatasources() {
 		DataSourceTxt.init();
 		dsId = DataSource.getExistingBySystemCode(ChEBI_SDF_sec2pri.sourceIdCode);
-		dsSymbol = DataSource.getExistingBySystemCode(ChEBI_SDF_sec2pri.sourceSymbolCode);
+		dsSynonym = DataSource.getExistingBySystemCode(ChEBI_SDF_sec2pri.sourceSynonymCode);
 		}
 	
 	private static void addEntries(Map<Xref, Set<Xref>> dbEntries) throws IDMapperException {

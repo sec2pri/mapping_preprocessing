@@ -1,4 +1,4 @@
-# create-bridgedb-secondary2primary
+# Creating mapping files for IDDefiner tool
 Introduction
 --------
 Many biological databases split/merge or withdraw identifiers. 
