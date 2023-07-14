@@ -47,5 +47,5 @@ zip -r hmdb_metabolites_split.zip hmdb
 ## Processing Scripts
 Both Java and R scripts can be used to process the split XML files and create the prossesed mapping files. Java is recommended for faster processing. Refer to the links below for more information on using Java or R scripts.
 
-- [Java Processing Scripts](https://github.com/tabbassidaloii/create-bridgedb-secondary2primary/blob/main/src/org/bridgedb/sec2pri/hmdb_XML_sec2pri.java), also creates a derby file. The input for this script is the zip file.
-- [R Processing Scripts](https://github.com/tabbassidaloii/BridgeDb-Shiny/blob/main/Docker/app/datasources/hmdb_processing.R), the input for this script is the "hmdb" directory.  
+- [Java Processing Scripts](https://github.com/sec2pri/mapping_preprocessing/blob/main/src/org/sec2pri/hmdb_XML_sec2pri.java), also creates a derby file. The input for this script is the zip file.
+- [R Processing Scripts](https://github.com/sec2pri/mapping_preprocessing/blob/main/scripts/hmdb_processing.R), the input for this script is the "hmdb" directory.  
