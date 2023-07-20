@@ -1,4 +1,4 @@
-# Creating mapping files for IDDefiner tool
+# Creating mapping files for IDRefiner tool
 Introduction
 --------
 Many biological databases split/merge or withdraw identifiers. 
