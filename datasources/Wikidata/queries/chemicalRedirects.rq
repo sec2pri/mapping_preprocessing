@@ -1,25 +1,25 @@
-SELECT ?primary ?secondary WITH {
-SELECT ?primary
+SELECT ?primaryID ?secondaryID WITH {
+SELECT ?primaryID
 WHERE
 {
-{ ?primary p:P31/ps:P31 wd:Q11173 }
+{ ?primaryID p:P31/ps:P31 wd:Q11173 }
 UNION
-{ ?primary p:P31/ps:P31 wd:Q36496 }
+{ ?primaryID p:P31/ps:P31 wd:Q36496 }
  UNION
-{ ?primary p:P31/ps:P31 wd:Q79529 }
+{ ?primaryID p:P31/ps:P31 wd:Q79529 }
 UNION
-{ ?primary p:P31/ps:P31 wd:Q55662747 }
+{ ?primaryID p:P31/ps:P31 wd:Q55662747 }
 UNION
-{ ?primary p:P279/ps:P279 wd:Q11173 }
+{ ?primaryID p:P279/ps:P279 wd:Q11173 }
 UNION
-{ ?primary p:P279/ps:P279 wd:Q36496 }
+{ ?primaryID p:P279/ps:P279 wd:Q36496 }
 UNION
-{ ?primary p:P279/ps:P279 wd:Q79529 }
+{ ?primaryID p:P279/ps:P279 wd:Q79529 }
 UNION
-{ ?primary p:P279/ps:P279 wd:Q55662747 }
+{ ?primaryID p:P279/ps:P279 wd:Q55662747 }
 }
 } AS %RESULTS {
 INCLUDE %RESULTS
 
-        ?secondary owl:sameAs ?primary. 
+        ?secondaryID owl:sameAs ?primaryID. 
 }
