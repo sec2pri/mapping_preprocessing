@@ -1,4 +1,4 @@
-SELECT ?primaryID ?name ?synonym WITH {
+SELECT ?primaryID ?name WITH {
 SELECT ?primaryID
 WHERE
 {
@@ -21,8 +21,7 @@ UNION
 } AS %RESULTS {
 INCLUDE %RESULTS
 
-        ?primaryID rdfs:label ?name. 
-        FILTER(LANG(?name) = "en").
-        ?primaryID skos:altLabel ?synonym .
-        FILTER(LANG(?synonym) = "en").
+        OPTIONAL{?primaryID rdfs:label ?name. 
+        FILTER(LANG(?name) = "en").}
+  
 }
