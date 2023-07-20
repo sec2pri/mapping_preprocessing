@@ -14,4 +14,6 @@ UNION
 INCLUDE %RESULTS
 
         ?secondaryID owl:sameAs ?primaryID. 
+        ?primaryID wdt:P703 wd:Q15978631.
+  
 }
