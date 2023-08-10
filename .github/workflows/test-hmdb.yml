@@ -49,6 +49,7 @@ jobs:
       # Step 3: Commit and push changes
       - name: Commit and Push Changes
         run: |
+          git pull
           # Add the generated zip file
           git add datasources/hmdb/hmdb_metabolites_split.zip
           
