@@ -16,6 +16,7 @@ jobs:
       # step 3: 
       - name: run the script
         run: |
+          sudo apt-get install xml-twig-tools
           cd datasources/hmdb
           ls
           wget http://www.hmdb.ca/system/downloads/current/hmdb_metabolites.zip
