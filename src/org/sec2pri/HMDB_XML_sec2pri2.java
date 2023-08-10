@@ -31,8 +31,8 @@ import java.util.Set;
 import java.util.zip.*;
 import java.util.Enumeration;
 
-public class hmdb_XML_sec2pri  {
-	public static String sourceName = "hmdb";
+public class HMDB_XML_sec2pri2  {
+	public static String sourceName = "HMDB";
 	public static String sourceIdCode = "Ch";
 	public static String sourceSynonymCode = "O"; // for hmdb (in general for metabolites, there is no system code for metabollite name, for now it is considered O
 	public static String priIdNode = "accession";
@@ -63,9 +63,9 @@ public class hmdb_XML_sec2pri  {
 			
 			//Create output bridge mapping file
 			setupDatasources();
-			File outputDir = new File("../IDUpdater/Docker/app/processed_mapping_files/");
+			File outputDir = new File("../IDRefiner/Docker/app/processed_mapping_files/");
 			outputDir.mkdir();
-			File outputFile = new File(outputDir, sourceName + "_secID2priID_v" + DbVersion + ".bridge");
+			File outputFile = new File(outputDir, sourceName + "_secID2priID.bridge");
 
 			try {
 				createDb(outputFile);
@@ -127,10 +127,10 @@ public class hmdb_XML_sec2pri  {
 						document.getDocumentElement().normalize();
 						
 						//Accession primary ID
-						NodeList priIdList = document.getElementsByTagName(hmdb_XML_sec2pri.priIdNode);
+						NodeList priIdList = document.getElementsByTagName(HMDB_XML_sec2pri2.priIdNode);
 						Element priId = (Element) priIdList.item(0); //assumption: there is only one primary id used by the database
 						//Add the secondary IDs if there is any
-						NodeList secIdList = document.getElementsByTagName(hmdb_XML_sec2pri.secIdNode);
+						NodeList secIdList = document.getElementsByTagName(HMDB_XML_sec2pri2.secIdNode);
 						if (priId != null && secIdList.getLength() != 0) {
 							
 							Xref priIdRef = new Xref(priId.getTextContent(), dsId);
@@ -141,12 +141,12 @@ public class hmdb_XML_sec2pri  {
 							listOfpri.add(pri);
 							pri = new ArrayList<>();
 							
-							if (!hmdb_XML_sec2pri.secIdNodeTag.equalsIgnoreCase("NA")) { //when there is tag for the node
+							if (!HMDB_XML_sec2pri2.secIdNodeTag.equalsIgnoreCase("NA")) { //when there is tag for the node
 								for (int itr = 0; itr < secIdList.getLength(); itr++) {
 									Node node = secIdList.item(itr);
 									if (node.getNodeType() == Node.ELEMENT_NODE) {
 										Element eElement = (Element) node;
-										NodeList secIds = eElement.getElementsByTagName(hmdb_XML_sec2pri.secIdNodeTag);
+										NodeList secIds = eElement.getElementsByTagName(HMDB_XML_sec2pri2.secIdNodeTag);
 										for (int itr2 = 0; itr2 < secIds.getLength(); itr2++) {
 											Element secId = (Element) secIds.item(itr2);
 											Xref secIdRef = new Xref(secId.getTextContent(), dsId, false); //the first column is the secondary id so idPrimary = false
@@ -176,7 +176,7 @@ public class hmdb_XML_sec2pri  {
 									sec2pri = new ArrayList<>();
 									}
 							//Add the primary Name
-							NodeList priNameList = document.getElementsByTagName(hmdb_XML_sec2pri.priNameNode);
+							NodeList priNameList = document.getElementsByTagName(HMDB_XML_sec2pri2.priNameNode);
 							Element priName = (Element) priNameList.item(0); //assumption: there is only one primary name used by the database
 							Xref priNameRef = new Xref(priName.getTextContent(), dsName);
 							map.get(priIdRef).add(priNameRef);
@@ -186,16 +186,16 @@ public class hmdb_XML_sec2pri  {
 							name2synonym.add(priName.getTextContent());
 							name2synonym.add("\t");
 							
-							//Add the secondary synonyms if there is any
-							NodeList secSynonymList = document.getElementsByTagName(hmdb_XML_sec2pri.secSynonymNode);
-							if (secSynonymList.getLength() == 0) {//Going to the next row if there is no synonym 
-								name2synonym.add("\n");
+							//Add the synonyms if there is any
+							NodeList secSynonymList = document.getElementsByTagName(HMDB_XML_sec2pri2.secSynonymNode);
+							if (secSynonymList.item(0).toString().equals("[synonyms: null]")) {//Going to the next row if there is no synonym 
+								name2synonym.add("NA");
 								listOfname2synonym.add(name2synonym);
 								name2synonym = new ArrayList<>();
 								}
-							
-							if (secSynonymList.getLength() != 0) {
-								if (!hmdb_XML_sec2pri.secSynonymNodeTag.equalsIgnoreCase("NA")) { //when there is tag for the node
+						
+							if (!secSynonymList.item(0).toString().equals("[synonyms: null]")) {
+								if (!HMDB_XML_sec2pri2.secSynonymNodeTag.equalsIgnoreCase("NA")) { //when there is tag for the node
 									
 //									for (int itr = 0; itr < secSynonymList.getLength(); itr++) {
 
@@ -203,7 +203,7 @@ public class hmdb_XML_sec2pri  {
 																		
 									if (node != null && node.getNodeType() == Node.ELEMENT_NODE) {
 										Element eElement = (Element) node;
-										NodeList secSynonyms = eElement.getElementsByTagName(hmdb_XML_sec2pri.secSynonymNodeTag);
+										NodeList secSynonyms = eElement.getElementsByTagName(HMDB_XML_sec2pri2.secSynonymNodeTag);
 										for (int itr = 0; itr < secSynonyms.getLength(); itr++) {
 											Element secSynonym = (Element) secSynonyms.item(itr);
 											Xref secSynonymRef = new Xref(secSynonym.getTextContent(), dsName, false); //secondary synonyms so idPrimary = false
@@ -211,10 +211,10 @@ public class hmdb_XML_sec2pri  {
 											
 											if(itr == 0) {
 												name2synonym.add(secSynonym.getTextContent());
-												
 												//Add the list to list of list for the secondary to primary id mapping in tsv
 												listOfname2synonym.add(name2synonym);
 												name2synonym = new ArrayList<>();
+
 												} else {
 													name2synonym.add(priId.getTextContent());
 													name2synonym.add("\t");
@@ -224,6 +224,7 @@ public class hmdb_XML_sec2pri  {
 													//Add the list to list of list for the secondary to primary id mapping in tsv
 													listOfname2synonym.add(name2synonym);
 													name2synonym = new ArrayList<>();
+
 													}
 												}
 //											}
@@ -255,7 +256,7 @@ public class hmdb_XML_sec2pri  {
 						}
 					}
 				
-				File output_pri_Tsv = new File(outputDir, sourceName + "_priIDs_v" + DbVersion + ".tsv");
+				File output_pri_Tsv = new File(outputDir, sourceName + "_priIDs.tsv");
 				FileWriter writer_pri = new FileWriter(output_pri_Tsv); 
 				for (int i = 0; i < listOfpri.stream().count(); i++) {
 					List<String> list = listOfpri.get(i);
@@ -267,7 +268,7 @@ public class hmdb_XML_sec2pri  {
 				writer_pri.close();
 				System.out.println("[INFO]: List of primary IDs is written");
 				
-				File output_sec2pri_Tsv = new File(outputDir, sourceName + "_secID2priID_v" + DbVersion + ".tsv");
+				File output_sec2pri_Tsv = new File(outputDir, sourceName + "_secID2priID.tsv");
 				FileWriter writer = new FileWriter(output_sec2pri_Tsv); 
 				for (int i = 0; i < listOfsec2pri.stream().count(); i++) {
 					List<String> list = listOfsec2pri.get(i);
@@ -279,7 +280,7 @@ public class hmdb_XML_sec2pri  {
 				writer.close();
 				System.out.println("[INFO]: Secondary to primary id table is written");
 				
-				File output_name_Tsv = new File(outputDir, sourceName + "_name2synonym_v" + DbVersion + ".tsv");
+				File output_name_Tsv = new File(outputDir, sourceName + "_name2synonym.tsv");
 				FileWriter writer_name = new FileWriter(output_name_Tsv); 
 				for (int i = 0; i < listOfname2synonym.stream().count(); i++) {
 					List<String> list = listOfname2synonym.get(i);
@@ -291,7 +292,7 @@ public class hmdb_XML_sec2pri  {
 				writer_name.close();
 				System.out.println("[INFO]: Name to synonyms table is written");
 				
-				System.out.println("Start to the creation of the database, might take some time");
+				System.out.println("Start to the creation of the derby database, might take some time");
 				addEntries(map);
 				}
 		newDb.finalize();
@@ -306,12 +307,11 @@ public class hmdb_XML_sec2pri  {
 	
 	private static void setupDatasources() {
 		DataSourceTxt.init();
-		dsId = DataSource.getExistingBySystemCode(hmdb_XML_sec2pri.sourceIdCode);
-		dsName = DataSource.getExistingBySystemCode(hmdb_XML_sec2pri.sourceSynonymCode);
+		dsId = DataSource.getExistingBySystemCode(HMDB_XML_sec2pri2.sourceIdCode);
+		dsName = DataSource.getExistingBySystemCode(HMDB_XML_sec2pri2.sourceSynonymCode);
 		}
 	
 	private static void createDb(File outputFile) throws IDMapperException {
-		
 		newDb = new GdbConstructImpl4(outputFile.getAbsolutePath(),new DataDerby(), DBConnector.PROP_RECREATE);
 		newDb.createGdbTables();
 		newDb.preInsert();
@@ -322,7 +322,6 @@ public class hmdb_XML_sec2pri  {
 		newDb.setInfo("DATASOURCEVERSION", DbVersion);
 		newDb.setInfo("BRIDGEDBVERSION", BridgeDbVersion);
 		newDb.setInfo("DATATYPE", "Identifiers");	
-
 	}
 	
 	private static void addEntries(Map<Xref, Set<Xref>> dbEntries) throws IDMapperException {
@@ -330,7 +329,6 @@ public class hmdb_XML_sec2pri  {
 		for (Xref ref : dbEntries.keySet()) {
 			Xref mainXref = ref;
 			//System.out.println("mainXref: " + mainXref.isPrimary());
-
 			if (addedXrefs.add(mainXref)) newDb.addGene(mainXref);
 			newDb.addLink(mainXref, mainXref);
 
@@ -347,4 +345,3 @@ public class hmdb_XML_sec2pri  {
 		}
 	}
 	}
-

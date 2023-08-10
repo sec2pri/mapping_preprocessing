@@ -4,7 +4,6 @@ library(readr)
 
 # Set variables
 sourceName <- "ChEBI"
-DbVersion <- "1"
 inputDir <- "mapping_preprocessing/datasources/"
 
 # Create output directory
@@ -94,12 +93,12 @@ for (i in seq_along(file)) {
 }
 
 # Write output TSV files
-output_pri_Tsv <- file.path(outputDir, paste(sourceName, "_priIDs_v", DbVersion, ".tsv", sep = ""))
+output_pri_Tsv <- file.path(outputDir, paste(sourceName, "_priIDs", ".tsv", sep = ""))
 write.table(listOfpri, output_pri_Tsv, sep = "\t", row.names = FALSE)
 
-output_sec2pri_Tsv <- file.path(outputDir, paste(sourceName, "_secID2priID_v", DbVersion, ".tsv", sep = ""))
+output_sec2pri_Tsv <- file.path(outputDir, paste(sourceName, "_secID2priID", ".tsv", sep = ""))
 write.table(listOfsec2pri, output_sec2pri_Tsv, sep = "\t", row.names = FALSE)
 
-output_name_Tsv <- file.path(outputDir, paste(sourceName, "_name2synonym_v", DbVersion, ".tsv", sep = ""))
+output_name_Tsv <- file.path(outputDir, paste(sourceName, "_name2synonym", ".tsv", sep = ""))
 write.table(listOfname2synonym, output_name_Tsv, sep = "\t", row.names = FALSE)
 

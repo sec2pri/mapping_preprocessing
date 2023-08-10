@@ -43,7 +43,7 @@ public class ChEBI_SDF_sec2pri {
 		setupDatasources();
 		File outputDir = new File("../IDUpdater/Docker/app/processed_mapping_files/");
 		outputDir.mkdir();
-		File outputFile = new File(outputDir, sourceName + "_secID2priID_v" + DbVersion + ".bridge");
+		File outputFile = new File(outputDir, sourceName + "_secID2priID.bridge");
 		
 		try {
 			createDb(outputFile);
@@ -106,7 +106,6 @@ public class ChEBI_SDF_sec2pri {
 				Xref priId_B2B = new Xref(priId, dsId);
 				map.put(priId_B2B, new HashSet<Xref>());
 
-			
 				if (dataRow.startsWith("> <ChEBI Name>")) {
 					dataRow = file.readLine();//extract row with metabolite name
 					name = dataRow;
@@ -180,7 +179,7 @@ public class ChEBI_SDF_sec2pri {
 					}
 				}
 	
-			File output_pri_Tsv = new File(outputDir, sourceName + "_priIDs_v" + DbVersion + ".tsv");
+			File output_pri_Tsv = new File(outputDir, sourceName + "_priIDs.tsv");
 			FileWriter writer_pri = new FileWriter(output_pri_Tsv); 
 			for (int i = 0; i < listOfpri.stream().count(); i++) {
 				List<String> list = listOfpri.get(i);
@@ -192,7 +191,7 @@ public class ChEBI_SDF_sec2pri {
 			writer_pri.close();
 			System.out.println("[INFO]: List of primary IDs is written");
 			
-			File output_sec2pri_Tsv = new File(outputDir, sourceName + "_secID2priID_v" + DbVersion + ".tsv");
+			File output_sec2pri_Tsv = new File(outputDir, sourceName + "_secID2priID.tsv");
 			FileWriter writer = new FileWriter(output_sec2pri_Tsv); 
 			for (int i = 0; i < listOfsec2pri.stream().count(); i++) {
 				List<String> list = listOfsec2pri.get(i);
@@ -204,7 +203,7 @@ public class ChEBI_SDF_sec2pri {
 			writer.close();
 			System.out.println("[INFO]: Secondary to primary id table is written");
 			
-			File output_name_Tsv = new File(outputDir, sourceName + "_name2synonym_v" + DbVersion + ".tsv");
+			File output_name_Tsv = new File(outputDir, sourceName + "_name2synonym.tsv");
 			FileWriter writer_name = new FileWriter(output_name_Tsv); 
 			for (int i = 0; i < listOfname2synonym.stream().count(); i++) {
 				List<String> list = listOfname2synonym.get(i);
@@ -215,8 +214,7 @@ public class ChEBI_SDF_sec2pri {
 			}
 			writer_name.close();
 			System.out.println("[INFO]: Name to synonyms table is written");
-			
-			System.out.println("Start to the creation of the database, might take some time");
+			System.out.println("Start to the creation of the derby database, might take some time");
 			addEntries(map);
 			file.close();	
 			}
@@ -233,7 +231,6 @@ public class ChEBI_SDF_sec2pri {
 		String dateStr = new SimpleDateFormat("yyyyMMdd").format(new Date());
 		newDb.setInfo("BUILDDATE", dateStr);
 		newDb.setInfo("DATASOURCENAME", ChEBI_SDF_sec2pri.sourceName);
-		
 		newDb.setInfo("DATASOURCEVERSION", DbVersion);
 		newDb.setInfo("BRIDGEDBVERSION", BridgeDbVersion);
 		newDb.setInfo("DATATYPE", "Identifiers");	
@@ -261,10 +258,4 @@ public class ChEBI_SDF_sec2pri {
 			newDb.commit();
 			}
 		}
-	}
-
-
-
-
-
-	
+	}	

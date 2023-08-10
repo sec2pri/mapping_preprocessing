@@ -6,7 +6,6 @@ library(dplyr)
 # Set variables
 sourceName <- "HGNC"
 sourceVersion <- "2023-07-01"
-DbVersion <- "1"
 inputDir <- "mapping_preprocessing/datasources/"
 
 # Create output directory
@@ -90,7 +89,7 @@ hgnc_WDN <- hgnc_WDN %>%
   dplyr::select(primaryID, primarySymbol, secondaryID, secondarySymbol, predicateID, mapping_cardinality_sec2pri, comment, source)
 
 # Write output TSV file for secondary to primary ID mapping
-output_sec2pri_Tsv <- file.path(outputDir, paste(sourceName, "_secID2priID_v", DbVersion, ".tsv", sep = ""))
+output_sec2pri_Tsv <- file.path(outputDir, paste(sourceName, "_secID2priID", ".tsv", sep = ""))
 write.table(hgnc_WDN, output_sec2pri_Tsv, sep = "\t", row.names = FALSE, quote = FALSE)
 
 # Read the file that includes the complete set
@@ -150,8 +149,8 @@ hgnc <- rbind(hgnc_Sec, hgnc_noSec)
 hgnc[hgnc$primarySymbol == "A2M",]
 
 # Write output TSV files
-output_pri_Tsv <- file.path(outputDir, paste(sourceName, "_priIDs_v", DbVersion, ".tsv", sep = ""))
+output_pri_Tsv <- file.path(outputDir, paste(sourceName, "_priIDs", ".tsv", sep = ""))
 write.table(hgnc %>% dplyr::select(primaryID, primarySymbol) %>% unique(), output_pri_Tsv, sep = "\t", row.names = FALSE, quote = FALSE)
 
-output_name_Tsv <- file.path(outputDir, paste(sourceName, "_symbol2alia&prev_v", DbVersion, ".tsv", sep = ""))
+output_name_Tsv <- file.path(outputDir, paste(sourceName, "_symbol2alia&prev", ".tsv", sep = ""))
 write.table(hgnc, output_name_Tsv, sep = "\t", row.names = FALSE, quote = FALSE)
