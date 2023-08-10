@@ -18,8 +18,12 @@ jobs:
       # step 2: run the SPARQL queries from the Wikidata query subfolder
       - name: Run the Queries
         run: |
+          ## Download outdated IDs for chemicals
           curl -H "Accept: text/csv" --data-urlencode query@datasources/Wikidata/queries/chemicalRedirects.rq -G https://query.wikidata.org/sparql -o datasources/Wikidata/data/chemicalRedirectsWikidata.csv
-
+          ## Download all primary IDs for chemicals
+          curl -H "Accept: text/csv" --data-urlencode query@datasources/Wikidata/queries/chemicalAllPrimary.rq -G https://query.wikidata.org/sparql -o datasources/Wikidata/data/chemicalAllPrimaryWikidata.csv
+          ## Download alias/synonyms/names for chemicals
+          curl -H "Accept: text/csv" --data-urlencode query@datasources/Wikidata/queries/chemicalPrimarySynonyms.rq -G https://query.wikidata.org/sparql -o datasources/Wikidata/data/chemicalPrimarySynonymsWikidata.csv
       # step 3: save the data from the queries
       - name: Commit and Push Changes
         run: |
@@ -27,5 +31,5 @@ jobs:
           git add .
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git commit -m "Automated test"
+          git commit -m "Updating Wd data"
           git push
