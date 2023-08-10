@@ -23,13 +23,14 @@ jobs:
           unzip hmdb_metabolites.zip
           mkdir hmdb_data
           cd hmdb_data
-          xml_split -v -l 1 ../hmdb_metabolites.xml
+          mv hmdb_metabolites.xml hmbd_data/hmdb_metabolites.xml
+          xml_split -v -l 1 hmdb_metabolites.xml
+          rm hmdb_metabolites.xml
           cd ../
-          rm -f hmdb_metabolites.zip
-          zip -r hmdb_metabolites_split.zip ./hmdb_data
+          zip -r hmdb_metabolites_split.zip hmdb_data
       - name: Commit and Push Changes
         run: |
-          git add datasources/hmdb/*zip
+          git add datasources/hmdb/hmdb_metabolites_split.zip
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git commit -m "Automated test"
