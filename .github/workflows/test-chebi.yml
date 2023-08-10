@@ -1,0 +1,44 @@
+name: test_chebi
+
+on:
+  workflow_dispatch:
+  
+jobs:
+  test_chebi:
+    runs-on: ubuntu-latest
+    name: test
+    permissions:
+      contents: write
+      # step 1: checkout the repository
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.PAT }}   
+      # step2: 
+      - name: run the script
+        run: |
+          mkdir test-chebi
+          cd test-chebi
+          ls
+          wget http://www.hmdb.ca/system/downloads/current/hmdb_metabolites.zip
+          unzip hmdb_metabolites.zip
+          cd hmdb
+          ls
+          cp ../hmdb_metabolites.xml .
+          xml_split -v -l 1 hmdb_metabolites.xml
+          rm hmdb_metabolites.xml
+          cd ..
+          zip -r hmdb_metabolites_split.zip hmdb
+      - name: Commit and Push Changes
+        run: |
+          cd data/
+          git add --all
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git commit -m "Automated test"
+          git push
+          
+          
+          
+      
+      
