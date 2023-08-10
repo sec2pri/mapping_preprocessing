@@ -34,7 +34,8 @@ jobs:
       - name: Commit and Push Changes
         run: |
           git pull
-          git filter-branch --tree-filter 'rm -rf *.csv' HEAD
+          git lfs track "geneproteinHumanRedirectsWikidata.csv"
+          git lfs track "geneproteinHumanAllPrimaryWikidata.csv"
           git add .
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
