@@ -12,8 +12,8 @@ jobs:
       contents: write
       # step 1: checkout the repository
     steps:
-      - name: Download
-      - uses: actions/checkout@v3
+      - name: Download GitHub repo for the queries
+        uses: actions/checkout@v3
 
       # step 2: run the SPARQL queries from the Wikidata query subfolder
       - name: Run the Queries
