@@ -6,37 +6,58 @@ on:
 jobs:
   test_chebi:
     runs-on: ubuntu-latest
-    name: test
+    name: Test HMDB
     permissions:
       contents: write
-      # step 1: checkout the repository
     steps:
-      - uses: actions/checkout@v3
-      # step 2: check metadata for new release date
-      # step 3: 
-      - name: run the script
+      # Step 1: Checkout the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      
+      # Step 2: Install xml-twig-tools and process HMDB data
+      - name: Process HMDB Data
         run: |
+          # Install xml-twig-tools
           sudo apt-get install xml-twig-tools
+          
+          # Navigate to the HMDB directory
           cd datasources/hmdb
+          
+          # List files for debugging purposes
           ls
           
+          # Create a directory to store processed data
           mkdir hmdb_data
           cd hmdb_data
+          
+          # Download and extract HMDB metabolites data
           wget http://www.hmdb.ca/system/downloads/current/hmdb_metabolites.zip
           unzip hmdb_metabolites.zip
+          
+          # Split the XML file into smaller parts
           xml_split -v -l 1 hmdb_metabolites.xml
+          
+          # Remove the original XML file
           rm hmdb_metabolites.xml
+          
+          # Navigate back to the main directory
           cd ../
+          
+          # Create a zip archive of the processed data
           zip -r hmdb_metabolites_split.zip hmdb_data
+          
+      # Step 3: Commit and push changes
       - name: Commit and Push Changes
         run: |
+          # Add the generated zip file
           git add datasources/hmdb/hmdb_metabolites_split.zip
+          
+          # Configure the user for the commit
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
+          
+          # Commit changes
           git commit -m "Automated test"
+          
+          # Push changes
           git push
-          
-          
-          
-      
-      
