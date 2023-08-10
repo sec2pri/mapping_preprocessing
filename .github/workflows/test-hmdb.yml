@@ -20,6 +20,7 @@ jobs:
           ls
           wget http://www.hmdb.ca/system/downloads/current/hmdb_metabolites.zip
           unzip hmdb_metabolites.zip
+          ls
           cd hmdb
           ls
           cp ../hmdb_metabolites.xml .
