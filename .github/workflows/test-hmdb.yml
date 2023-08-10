@@ -20,17 +20,12 @@ jobs:
           ls
           wget http://www.hmdb.ca/system/downloads/current/hmdb_metabolites.zip
           unzip hmdb_metabolites.zip
-          ls
-          cd hmdb
-          ls
-          cp ../hmdb_metabolites.xml .
           xml_split -v -l 1 hmdb_metabolites.xml
           rm hmdb_metabolites.xml
-          cd ..
-          zip -r hmdb_metabolites_split.zip hmdb
+          zip hmdb_metabolites_split.zip *xml
       - name: Commit and Push Changes
         run: |
-          git add --all
+          git add datasources/hmdb/hmdb_metabolites_split.zip
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git commit -m "Automated test"
