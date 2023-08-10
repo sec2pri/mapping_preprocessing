@@ -23,7 +23,7 @@ jobs:
       # step 3: save the data from the queries
       - name: Commit and Push Changes
         run: |
-          git add chemicalRedirectsWikidata.csv
+          git add datasources/Wikidata/data/chemicalRedirectsWikidata.csv
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git commit -m "Automated test"
