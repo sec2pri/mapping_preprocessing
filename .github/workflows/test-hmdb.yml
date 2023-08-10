@@ -1,4 +1,4 @@
-name: test_chebi
+name: test_hmdb
 
 on:
   workflow_dispatch:
@@ -12,13 +12,11 @@ jobs:
       # step 1: checkout the repository
     steps:
       - uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.PAT }}   
+ 
       # step2: 
       - name: run the script
         run: |
-          mkdir test-chebi
-          cd test-chebi
+          cd datasources/hmdb
           ls
           wget http://www.hmdb.ca/system/downloads/current/hmdb_metabolites.zip
           unzip hmdb_metabolites.zip
@@ -31,7 +29,6 @@ jobs:
           zip -r hmdb_metabolites_split.zip hmdb
       - name: Commit and Push Changes
         run: |
-          cd data/
           git add --all
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
