@@ -34,7 +34,7 @@ jobs:
       - name: Commit and Push Changes
         run: |
           git pull
-          git lfs migrate import --include="*.csv"
+          git filter-branch --tree-filter 'rm -rf *.csv' HEAD
           git add .
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
