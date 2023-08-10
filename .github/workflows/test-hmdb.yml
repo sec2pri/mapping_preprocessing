@@ -12,8 +12,8 @@ jobs:
       # step 1: checkout the repository
     steps:
       - uses: actions/checkout@v3
- 
-      # step2: 
+      # step 2: check metadata for new release date
+      # step 3: 
       - name: run the script
         run: |
           cd datasources/hmdb
