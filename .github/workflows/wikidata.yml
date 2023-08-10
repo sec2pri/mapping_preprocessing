@@ -18,7 +18,7 @@ jobs:
       # step 2: run the SPARQL queries from the Wikidata query subfolder
       - name: Run the Queries
         run: |
-          curl -H "Accept: text/csv" --data-urlencode query@datasources/Wikidata/queries/chemicalRedirects.rq -G https://query.wikidata.org/sparql -o ../datasources/Wikidata/data/chemicalRedirectsWikidata.csv
+          curl -H "Accept: text/csv" --data-urlencode query@datasources/Wikidata/queries/chemicalRedirects.rq -G https://query.wikidata.org/sparql -o datasources/Wikidata/data/chemicalRedirectsWikidata.csv
 
       # step 3: save the data from the queries
       - name: Commit and Push Changes
