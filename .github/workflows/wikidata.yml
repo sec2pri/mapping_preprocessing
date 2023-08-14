@@ -32,17 +32,24 @@ jobs:
 
           ##Remove Wikidata IRIs
           cd datasources/Wikidata/data
-          cat *.csv | sed 's/[http://www.wikidata.org/entity/]//g' > *Wikidata.csv
+          prefix=$(Wikidata "$PWD") # To set the prefix
+          for f in * 
+          do
+            #cp -v "$f" "${prefix}_$f" #  
+            cat "$f" | sed 's/[http://www.wikidata.org/entity/]//g' > "${prefix}_$f"
+          done
+          
           cd ../..
       # step 3: save the data from the queries
       - name: Commit and Push Changes
         run: |
           git pull
-          git lfs track "chemicalRedirectsWikidata.csv"
-          git lfs track "chemicalAllPrimaryWikidata.csv"
-          git lfs track "chemicalPrimarySynonymsWikidata.csv"
-          git lfs track "geneproteinHumanRedirectsWikidata.csv"
-          git lfs track "geneproteinHumanAllPrimaryWikidata.csv"
+          ls
+          git lfs track "Wikidata_chemicalRedirects.csv"
+          git lfs track "Wikidata_chemicalAllPrimary.csv"
+          git lfs track "Wikidata_chemicalPrimarySynonyms.csv"
+          git lfs track "Wikidata_geneproteinHumanRedirects.csv"
+          git lfs track "Wikidata_geneproteinHumanAllPrimary.csv"
           git add .
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
