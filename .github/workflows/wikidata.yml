@@ -45,11 +45,11 @@ jobs:
         run: |
           git pull
           ls
-          git lfs track "WikidatachemicalRedirects.csv"
-          git lfs track "WikidatachemicalAllPrimary.csv"
-          git lfs track "WikidatachemicalPrimarySynonyms.csv"
-          git lfs track "WikidatageneproteinHumanRedirects.csv"
-          git lfs track "WikidatageneproteinHumanAllPrimary.csv"
+          #git lfs track "WikidatachemicalRedirects.csv"
+          #git lfs track "WikidatachemicalAllPrimary.csv"
+          #git lfs track "WikidatachemicalPrimarySynonyms.csv"
+          #git lfs track "WikidatageneproteinHumanRedirects.csv"
+          #git lfs track "WikidatageneproteinHumanAllPrimary.csv"
           git add .
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
