@@ -37,6 +37,7 @@ jobs:
           do
             ##Find all files | Remove the IRIs | save the file with new name
             cat "$f" | sed 's/[http://www.wikidata.org/entity/]//g' > "${prefix}$f"
+            rm "$f"
           done
           cd ../..
       # step 3: save the data from the queries
