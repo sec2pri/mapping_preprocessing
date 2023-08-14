@@ -31,12 +31,12 @@ jobs:
           curl -H "Accept: text/csv" --data-urlencode query@datasources/Wikidata/queries/geneproteinHumanAllPrimary.rq -G https://query.wikidata.org/sparql -o datasources/Wikidata/data/geneproteinHumanAllPrimaryWikidata.csv
 
           ##Remove Wikidata IRIs
-          cat datasources/Wikidata/data/chemicalRedirectsWikidata.csv | sed 's/[http://www.wikidata.org/entity/]//g'
+          cat datasources/Wikidata/data/chemicalRedirectsWikidata.csv | sed 's/[http://www.wikidata.org/entity/]//g' > datasources/Wikidata/data/chemicalRedirectsWikidata2.txt
       # step 3: save the data from the queries
       - name: Commit and Push Changes
         run: |
           git pull
-          git lfs track "chemicalRedirectsWikidata.csv"
+          git lfs track "chemicalRedirectsWikidata2.csv"
           git lfs track "chemicalAllPrimaryWikidata.csv"
           git lfs track "chemicalPrimarySynonymsWikidata.csv"
           git lfs track "geneproteinHumanRedirectsWikidata.csv"
