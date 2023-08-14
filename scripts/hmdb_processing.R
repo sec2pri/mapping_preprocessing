@@ -3,8 +3,7 @@ rm(list = ls())
 library(xml2)
 
 # Set variables
-sourceName <- "hmdb"
-DbVersion <- "1"
+sourceName <- "HMDB"
 inputDir <- "mapping_preprocessing/datasources/"
 
 # Create output directory
@@ -85,13 +84,13 @@ for (entry in entries) {
 
   
 # Write output TSV files
-output_pri_Tsv <- file.path(outputDir, paste(sourceName, "_priIDs_v", DbVersion, ".tsv", sep = ""))
+output_pri_Tsv <- file.path(outputDir, paste(sourceName, "_priIDs", ".tsv", sep = ""))
 write.table(do.call(rbind, listOfpri), output_pri_Tsv, sep = "\t", row.names = FALSE)
   
-output_sec2pri_Tsv <- file.path(outputDir, paste(sourceName, "_secID2priID_v", DbVersion, ".tsv", sep = ""))
+output_sec2pri_Tsv <- file.path(outputDir, paste(sourceName, "_secID2priID", ".tsv", sep = ""))
 write.table(do.call(listOfsec2pri), output_sec2pri_Tsv, sep = "\t", row.names = FALSE)
   
-output_name_Tsv <- file.path(outputDir, paste(sourceName, "_name2synonym_v", DbVersion, ".tsv", sep = ""))
+output_name_Tsv <- file.path(outputDir, paste(sourceName, "_name2synonym", ".tsv", sep = ""))
 write.table(do.call(listOfname2synonym), output_name_Tsv, sep = "\t", row.names = FALSE)
   
   

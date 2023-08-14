@@ -7,7 +7,6 @@ library(readr)
 
 # Set variables
 sourceName <- "UniProt"
-DbVersion <- "1"
 inputDir <- "mapping_preprocessing/datasources/"
 
 # Create output directory
@@ -42,7 +41,7 @@ listOfpri <- str_remove_all(listOfpri, "^>.*?\\||\\|$")  # Remove the '>' symbol
 listOfpri <- listOfpri[!is.na(listOfpri)]  # Filter out NAs
 
 # Write output a TSV file for primary IDs
-output_pri_Tsv <- file.path(outputDir, paste(sourceName, "_priIDs_v", DbVersion, ".tsv", sep = ""))
+output_pri_Tsv <- file.path(outputDir, paste(sourceName, "_priIDs", ".tsv", sep = ""))
 write.table(data.frame(primaryID = listOfpri), output_pri_Tsv, sep = "\t", row.names = FALSE, quote = FALSE)
 
 # Read the secondary to primary IDs
@@ -99,5 +98,5 @@ uniport_spDel <- readr::read_table(paste(inputDir, sourceName, "delac_sp_release
 uniport_spDel <- uniport_spDel [1:(nrow(uniport_spDel)-4), ]  # Drop the last four rows
 
 # Write output TSV file for secondary to primary ID mapping
-output_sec2pri_Tsv <- file.path(outputDir, paste(sourceName, "_secID2priID_v", DbVersion, ".tsv", sep = ""))
+output_sec2pri_Tsv <- file.path(outputDir, paste(sourceName, "_secID2priID", ".tsv", sep = ""))
 write.table(rbind(uniportSec, uniport_spDel), output_sec2pri_Tsv, sep = "\t", row.names = FALSE, quote = FALSE)
