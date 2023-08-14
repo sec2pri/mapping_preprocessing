@@ -1,2 +1,5 @@
 geneproteinHumanRedirectsWikidata.csv filter=lfs diff=lfs merge=lfs -text
 geneproteinHumanAllPrimaryWikidata.csv filter=lfs diff=lfs merge=lfs -text
+chemicalRedirectsWikidata.csv filter=lfs diff=lfs merge=lfs -text
+chemicalAllPrimaryWikidata.csv filter=lfs diff=lfs merge=lfs -text
+chemicalPrimarySynonymsWikidata.csv filter=lfs diff=lfs merge=lfs -text
