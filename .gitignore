@@ -2,3 +2,7 @@
 *.xml
 *.sdf
 input/hgnc_all.csv
+datasources/NCBI/gene_info_human_mice_2023-08-14
+datasources/NCBI/gene_history
+datasources/NCBI/gene_history_human_mice_2023-08-14
+datasources/NCBI/gene_info
