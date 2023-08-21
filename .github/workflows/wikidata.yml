@@ -23,18 +23,22 @@ jobs:
           ## Download all primary IDs for chemicals
           curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/Wikidata/queries/chemicalAllPrimary.rq -G https://query.wikidata.org/sparql -o datasources/Wikidata/data/metabolites_priIDs.tsv
           ## Download alias/synonyms/names for chemicals
-          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/Wikidata/queries/chemicalPrimarySynonyms.rq -G https://query.wikidata.org/sparql -o datasources/Wikidata/data/name2synonym.tsv
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/Wikidata/queries/chemicalPrimarySynonyms.rq -G https://query.wikidata.org/sparql -o datasources/Wikidata/data/metabolites_name2synonym.tsv
           
           ## Download outdated IDs for genes and proteins
           curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/Wikidata/queries/geneproteinHumanRedirects.rq -G https://query.wikidata.org/sparql -o datasources/Wikidata/data/geneProtein_secID2priID.tsv
           ## Download all primary IDs for genes and proteins
           curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/Wikidata/queries/geneproteinHumanAllPrimary.rq -G https://query.wikidata.org/sparql -o datasources/Wikidata/data/geneProtein_priIDs.tsv
-
+          ## Download alias/synonyms/names for genes and proteins
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/Wikidata/queries/geneproteinHumanPrimarySynonyms.rq -G https://query.wikidata.org/sparql -o datasources/Wikidata/data/geneProtein_name2synonym.tsv
+          
           ##Remove Wikidata IRIs
           cd datasources/Wikidata/data
           prefix=$(basename "Wikidata") # Set prefix to Wikidata
           for f in *.tsv ##Only for tsv files
           do
+            ##Remove existing files with Wikidata in prefix
+            rm "${prefix}_$f"
             ##Find all files | Remove the IRIs | save the file with new name
             cat "$f" | sed 's/http:\/\/www.wikidata.org\/entity\///g' > "${prefix}_$f"
             rm "$f"
