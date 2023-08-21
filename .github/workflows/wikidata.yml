@@ -34,12 +34,13 @@ jobs:
           
           ##Remove Wikidata IRIs
           cd datasources/Wikidata/data
-          prefix=$(basename "Wikidata") # Set prefix to Wikidata
+          ##Remove previous output files
+          find  . -name 'Wikidata*' -exec rm {} \;
+          ## Set prefix to Wikidata for renaming new data files
+          prefix=$(basename "Wikidata") 
           for f in *.tsv ##Only for tsv files
           do
-            ##Remove existing files with Wikidata in prefix
-            rm "${prefix}_$f"
-            ##Find all files | Remove the IRIs | save the file with new name
+            ##Find all new data files | Remove the IRIs | save the file with new name
             cat "$f" | sed 's/http:\/\/www.wikidata.org\/entity\///g' > "${prefix}_$f"
             rm "$f"
           done
