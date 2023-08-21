@@ -19,24 +19,24 @@ jobs:
       - name: Run the Queries
         run: |
           ## Download outdated IDs for chemicals
-          curl -H "Accept: text/csv" --data-urlencode query@datasources/Wikidata/queries/chemicalRedirects.rq -G https://query.wikidata.org/sparql -o datasources/Wikidata/data/metabolites_secID2priID.tsv
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/Wikidata/queries/chemicalRedirects.rq -G https://query.wikidata.org/sparql -o datasources/Wikidata/data/metabolites_secID2priID.tsv
           ## Download all primary IDs for chemicals
-          curl -H "Accept: text/csv" --data-urlencode query@datasources/Wikidata/queries/chemicalAllPrimary.rq -G https://query.wikidata.org/sparql -o datasources/Wikidata/data/metabolites_priIDs.tsv
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/Wikidata/queries/chemicalAllPrimary.rq -G https://query.wikidata.org/sparql -o datasources/Wikidata/data/metabolites_priIDs.tsv
           ## Download alias/synonyms/names for chemicals
-          curl -H "Accept: text/csv" --data-urlencode query@datasources/Wikidata/queries/chemicalPrimarySynonyms.rq -G https://query.wikidata.org/sparql -o datasources/Wikidata/data/name2synonym.tsv
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/Wikidata/queries/chemicalPrimarySynonyms.rq -G https://query.wikidata.org/sparql -o datasources/Wikidata/data/name2synonym.tsv
           
           ## Download outdated IDs for genes and proteins
-          curl -H "Accept: text/csv" --data-urlencode query@datasources/Wikidata/queries/geneproteinHumanRedirects.rq -G https://query.wikidata.org/sparql -o datasources/Wikidata/data/geneProtein_secID2priID.tsv
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/Wikidata/queries/geneproteinHumanRedirects.rq -G https://query.wikidata.org/sparql -o datasources/Wikidata/data/geneProtein_secID2priID.tsv
           ## Download all primary IDs for genes and proteins
-          curl -H "Accept: text/csv" --data-urlencode query@datasources/Wikidata/queries/geneproteinHumanAllPrimary.rq -G https://query.wikidata.org/sparql -o datasources/Wikidata/data/geneProtein_priIDs.tsv
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/Wikidata/queries/geneproteinHumanAllPrimary.rq -G https://query.wikidata.org/sparql -o datasources/Wikidata/data/geneProtein_priIDs.tsv
 
           ##Remove Wikidata IRIs
           cd datasources/Wikidata/data
           prefix=$(basename "Wikidata") # Set prefix to Wikidata
-          for f in *.csv ##Only for csv files
+          for f in *.tsv ##Only for tsv files
           do
-            ##Find all files | Remove the IRIs | Convert csv to tsv | save the file with new name
-            cat "$f" | sed 's/http:\/\/www.wikidata.org\/entity\///g'| sed 's/,/\t/g' > "${prefix}_$f"
+            ##Find all files | Remove the IRIs | save the file with new name
+            cat "$f" | sed 's/http:\/\/www.wikidata.org\/entity\///g' > "${prefix}_$f"
             rm "$f"
           done
           cd ../..
@@ -45,11 +45,6 @@ jobs:
         run: |
           git pull
           ls
-          #git lfs track "Wikidata_metabolites_secID2priID.tsv"
-          #git lfs track "Wikidata_metabolites_priIDs.tsv"
-          #git lfs track "Wikidata_name2synonym.tsv"
-          #git lfs track "Wikidata_geneProtein_secID2priID.tsv"
-          #git lfs track "Wikidata_geneProtein_priIDs.tsv"
           git add .
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
