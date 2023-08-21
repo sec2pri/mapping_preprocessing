@@ -1,5 +1,4 @@
-SELECT ?primaryID ?name WITH {
-SELECT ?primaryID
+SELECT ?primaryID 
 WHERE
 {
 { ?primaryID p:P31/ps:P31 wd:Q11173 }
@@ -18,10 +17,4 @@ UNION
 UNION
 { ?primaryID p:P279/ps:P279 wd:Q55662747 }
 }
-} AS %RESULTS {
-INCLUDE %RESULTS
 
-        OPTIONAL{?primaryID rdfs:label ?name. 
-        FILTER(LANG(?name) = "en").}
-  
-}
