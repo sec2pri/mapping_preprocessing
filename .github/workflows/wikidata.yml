@@ -41,7 +41,7 @@ jobs:
           for f in *.tsv ##Only for tsv files
           do
             ##Find all new data files | Remove the IRIs | save the file with new name
-            cat "$f" | sed 's/http:\/\/www.wikidata.org\/entity\///g' > "${prefix}_$f"
+            cat "$f" | sed 's/http:\/\/www.wikidata.org\/entity\/<//g' | sed 's/[>]//g' > "${prefix}_$f"
             rm "$f"
           done
           cd ../..
