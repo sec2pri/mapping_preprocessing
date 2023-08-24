@@ -18,6 +18,8 @@ jobs:
       # step 2: run the SPARQL queries from the Wikidata query subfolder
       - name: Run the Queries
         run: |
+          ##Make directory if not existing already
+          mkdir datasources/Wikidata/results
           ## Download outdated IDs for chemicals
           curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/Wikidata/queries/chemicalRedirects.rq -G https://query.wikidata.org/sparql -o datasources/Wikidata/results/metabolites_secID2priID.tsv
           ## Download all primary IDs for chemicals
