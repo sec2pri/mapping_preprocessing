@@ -42,10 +42,7 @@ jobs:
               exit 1
             fi
           done
-          cd ..
           
-          ##Remove Wikidata IRIs in query results
-          cd results
           ##Remove previous output files (if existing)
           ##find  . -name 'Wikidata*' -exec rm {} \;
           ## Set prefix to Wikidata for renaming new data files
@@ -59,7 +56,7 @@ jobs:
           ##Change back to main directory
           cd ../..
           ##Move and overwrite all files from results folder to data folder, to update previous data
-          mv -f datasources/Wikidata/results/* datasources/Wikidata/data/
+          mv -f Wikidata/results/* Wikidata/data/
       # step 3: save the data from the queries
       - name: Commit and Push Changes
         run: |
