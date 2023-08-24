@@ -23,7 +23,7 @@ jobs:
           ## Download outdated IDs for chemicals
           curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/Wikidata/queries/chemicalRedirects.rq -G https://query.wikidata.org/sparql -o datasources/Wikidata/results/metabolites_secID2priID.tsv
           ## Download all primary IDs for chemicals
-          #curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/Wikidata/queries/chemicalAllPrimary.rq -G https://query.wikidata.org/sparql -o datasources/Wikidata/results/metabolites_priIDs.tsv
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/Wikidata/queries/chemicalAllPrimary.rq -G https://query.wikidata.org/sparql -o datasources/Wikidata/results/metabolites_priIDs.tsv
           ## Download alias/synonyms/names for chemicals
           #curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/Wikidata/queries/chemicalPrimarySynonyms.rq -G https://query.wikidata.org/sparql -o datasources/Wikidata/results/metabolites_name2synonym.tsv
           
