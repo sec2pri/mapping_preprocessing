@@ -39,6 +39,7 @@ jobs:
           for File in *.tsv ##Only for tsv files
           do
             if grep -q TimeoutException "$File"; then
+              echo "Query Timeout occurred, Wikidata data will not be updated"
               exit 1
             fi
           done
