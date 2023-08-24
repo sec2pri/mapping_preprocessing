@@ -24,4 +24,6 @@ jobs:
           gunzip ChEBI_complete_3star.sdf.gz
           ls
           ##Print file size
-          echo stat -c%s ChEBI_complete_3star.sdf
+          FILENAME=ChEBI_complete_3star.sdf
+          FILESIZE=$(stat -c%s "$FILENAME")
+          echo "Size of $FILENAME = $FILESIZE bytes."
