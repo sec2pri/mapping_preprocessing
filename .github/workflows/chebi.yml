@@ -1,0 +1,27 @@
+# Workflow for downloading and saving ChEBI secondary2primary mappings
+name: chebi
+
+on:
+  workflow_dispatch:
+  ##TODO: add schedule for deployment (suggestion: once a month in occurence with release schedule from ChEBI)
+  
+jobs:
+  wikidata:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      # step 1: checkout the repository
+    steps:
+      - name: Download GitHub repo for bash script (tba)
+        uses: actions/checkout@v3
+
+      # step 2: run the bash script for ChEBI
+      - name: Run the Queries
+        run: |
+          ##Download ChEBI SDF file
+          wget https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel223/SDF/ChEBI_complete_3star.sdf.gz
+          ##Unzip gz file:
+          gunzip ChEBI_complete_3star.sdf.gz
+          ls
+          ##Print file size
+          echo stat -c%s ChEBI_complete_3star.sdf
