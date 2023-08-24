@@ -37,9 +37,11 @@ jobs:
           ##Check new data, fail job if query timeout has occured
           cd datasources/Wikidata/results
           for File in *.tsv ##Only for tsv files
-          if grep -q TimeoutException "$File"; then
-            exit 1
-          fi
+          do
+            if grep -q TimeoutException "$File"; then
+              exit 1
+            fi
+          done
           cd ..
           
           ##Remove Wikidata IRIs in query results
