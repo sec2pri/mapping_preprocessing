@@ -6,7 +6,7 @@ on:
   ##TODO: add schedule for deployment (suggestion: once a month in occurence with release schedule from ChEBI)
   
 jobs:
-  wikidata:
+  chebi:
     runs-on: ubuntu-latest
     permissions:
       contents: write
