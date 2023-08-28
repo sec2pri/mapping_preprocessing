@@ -4,10 +4,10 @@ library(readr)
 
 # Set variables
 sourceName <- "ChEBI"
-inputDir <- "mapping_preprocessing/datasources/"
+inputDir <- "mapping_preprocessing/datasources/ChEBI/"
 
 # Create output directory
-outputDir <- "IDRefiner/Docker/app/processed_mapping_files"
+outputDir <- "mapping_preprocessing/datasources/ChEBI/data"
 dir.create(outputDir, showWarnings = FALSE)
 
 # Create output tsv mapping files
