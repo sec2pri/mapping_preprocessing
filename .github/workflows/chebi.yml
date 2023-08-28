@@ -37,7 +37,9 @@ jobs:
      # step 3: run the R script for ChEBI preprocessing (to be made into separate job)
       - name: Run R script to process SDF data
         run: |
+          ##Check R version:
+          R. Version()
           ##Running the R script:
-          Rscript scripts/ChEBI_processing.R
+          #Rscript scripts/ChEBI_processing.R
           echo "R preprocessing of ChEBI data is done"
      # step 4: run the Java .jar for ChEBI preprocessing (to be made into separate job)
