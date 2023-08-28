@@ -11,7 +11,7 @@ sourceVersion <- "2023-08-14"
 inputDir <- "mapping_preprocessing/datasources"
 
 # Create output directory
-outputDir <- "IDRefiner/Docker/app/processed_mapping_files"
+outputDir <- paste0 ("mapping_preprocessing/datasources/", sourceName, "/data")
 dir.create(outputDir, showWarnings = FALSE)
 
 ## Download the input files from NCBI (better to download and make a subset for human and mice in bash)
