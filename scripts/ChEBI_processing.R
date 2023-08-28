@@ -8,7 +8,7 @@ sourceName <- "ChEBI"
 inputDir <- "mapping_preprocessing/datasources/"
 
 # Create output directory
-outputDir <- "mapping_preprocessing/datasources/ChEBI/data"
+outputDir <- paste0 ("mapping_preprocessing/datasources/", sourceName, "/data")
 dir.create(outputDir, showWarnings = FALSE)
 
 # Create output tsv mapping files
