@@ -1,8 +1,8 @@
 # Clear environment and load necessary libraries
 rm(list = ls())
-if(!"readr" %in% installed.packages()){install.packages("downloader")}
+if(!"downloader" %in% installed.packages()){install.packages("downloader")}
 require(downloader)
-if(!"readr" %in% installed.packages()){install.packages("dplyr")}
+if(!"dplyr" %in% installed.packages()){install.packages("dplyr")}
 library(dplyr)
 
 # Set variables
