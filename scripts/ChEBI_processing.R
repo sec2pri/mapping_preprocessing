@@ -1,5 +1,6 @@
 # Clear environment and load necessary libraries
 rm(list = ls())
+if(!"readr" %in% installed.packages()){install.packages("readr")}
 library(readr)
 
 # Set variables
