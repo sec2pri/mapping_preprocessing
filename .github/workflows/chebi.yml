@@ -4,14 +4,18 @@ name: chebi
 on:
   workflow_dispatch:
   ##TODO: add schedule for deployment (suggestion: once a month in occurence with release schedule from ChEBI)
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
   
 jobs:
   chebi:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      # step 1: checkout the repository
+    
     steps:
+      # step 1: checkout the repository
       - name: Download GitHub repo for bash script (tba)
         uses: actions/checkout@v3
 
