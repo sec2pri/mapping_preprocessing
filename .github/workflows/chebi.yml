@@ -38,7 +38,7 @@ jobs:
       - name: Run R script to process SDF data
         run: |
           ##Check R version:
-          R. Version()
+          R --version
           ##Running the R script:
           #Rscript scripts/ChEBI_processing.R
           echo "R preprocessing of ChEBI data is done"
