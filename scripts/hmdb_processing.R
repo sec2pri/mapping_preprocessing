@@ -1,6 +1,6 @@
 # Clear environment and load necessary libraries
 rm(list = ls())
-if(!"readr" %in% installed.packages()){install.packages("xml2")}
+if(!"xml2" %in% installed.packages()){install.packages("xml2")}
 library(xml2)
 
 # Set variables
