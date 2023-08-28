@@ -8,7 +8,7 @@ sourceName <- "HMDB"
 inputDir <- "mapping_preprocessing/datasources/"
 
 # Create output directory
-outputDir <- "IDRefiner/Docker/app/processed_mapping_files"
+outputDir <- paste0 ("mapping_preprocessing/datasources/", sourceName, "/data")
 dir.create(outputDir, showWarnings = FALSE)
 
 # Create list to save the mapping data
