@@ -4,7 +4,7 @@ library(readr)
 
 # Set variables
 sourceName <- "ChEBI"
-inputDir <- "mapping_preprocessing/datasources/ChEBI/"
+inputDir <- "mapping_preprocessing/datasources/"
 
 # Create output directory
 outputDir <- "mapping_preprocessing/datasources/ChEBI/data"
