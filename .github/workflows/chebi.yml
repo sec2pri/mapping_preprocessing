@@ -15,15 +15,29 @@ jobs:
       - name: Download GitHub repo for bash script (tba)
         uses: actions/checkout@v3
 
-      # step 2: run the bash script for ChEBI
-      - name: Run the Queries
+      # step 2: run the bash script for ChEBI data Download
+      - name: Download data
         run: |
           ##Download ChEBI SDF file
           wget https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel223/SDF/ChEBI_complete_3star.sdf.gz
           ##Unzip gz file:
           gunzip ChEBI_complete_3star.sdf.gz
+          
+          ##Check file size if available
           ls
           ##Print file size
           FILENAME=ChEBI_complete_3star.sdf
           FILESIZE=$(stat -c%s "$FILENAME")
           echo "Size of $FILENAME = $FILESIZE bytes."
+
+          ##Create temp. folder to store the data in
+          mkdir -p mapping_preprocessing/datasources/ChEBI/data
+          ##Move the SDF file to the expected location
+          mv ChEBI_complete_3star.sdf mapping_preprocessing/datasources/ChEBI/
+     # step 3: run the R script for ChEBI preprocessing (to be made into separate job)
+      - name: Run R script to process SDF data
+        run: |
+          ##Running the R script:
+          Rscript scripts/ChEBI_processing.R
+          echo "R preprocessing of ChEBI data is done"
+     # step 4: run the Java .jar for ChEBI preprocessing (to be made into separate job)
