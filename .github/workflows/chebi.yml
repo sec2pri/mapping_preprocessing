@@ -44,8 +44,8 @@ jobs:
           ##Check R version:
           R --version
           ##Install the readr package:
-          Rscript -e 'install.packages("readr")'
+          #Rscript -e 'install.packages("readr")'
           ##Running the R script:
-          Rscript scripts/ChEBI_processing.R
-          echo "R preprocessing of ChEBI data is done"
+          #Rscript scripts/ChEBI_processing.R
+          #echo "R preprocessing of ChEBI data is done"
      # step 4: run the Java .jar for ChEBI preprocessing (to be made into separate job)
