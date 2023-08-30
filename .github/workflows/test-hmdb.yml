@@ -23,24 +23,22 @@ jobs:
         run: |
           # Install xml-twig-tools
           sudo apt-get install xml-twig-tools
-          
-          # Navigate to the HMDB directory
-          cd datasources/hmdb
-          
-          # List files for debugging purposes
+                    
+          # Create a directory to store processed data
+          mkdir datasources/hmdb/results
           ls
           
-          # Create a directory to store processed data
-          mkdir hmdb_data
-          cd hmdb_data
+          # Navigate to the HMDB directory
+          cd datasources/hmdb/results
           
           # Download and extract HMDB metabolites data
+          URL=$"http://www.hmdb.ca/system/downloads/current/hmdb_metabolites.zip"
           wget_output=$(wget -q "$URL")
           if [ $? -ne 0 ]; then
             echo "HMDB data not downloadable"
             exit 1
           else
-            wget http://www.hmdb.ca/system/downloads/current/hmdb_metabolites.zip
+            wget "$URL"
                   
           unzip hmdb_metabolites.zip
           
