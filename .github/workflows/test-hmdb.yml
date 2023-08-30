@@ -26,10 +26,9 @@ jobs:
                     
           # Create a directory to store processed data
           mkdir -p datasources/hmdb/results
-          ls
           
           # Navigate to the HMDB directory
-          cd datasources/hmdb/results
+          cd datasources/hmdb/results/
           
           # Download and extract HMDB metabolites data
           URL=$"http://www.hmdb.ca/system/downloads/current/hmdb_metabolites.zip"
