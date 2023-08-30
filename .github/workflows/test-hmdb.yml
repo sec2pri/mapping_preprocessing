@@ -1,16 +1,20 @@
-name: test_hmdb
+name: hmdb
 
 on:
   workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
   
 jobs:
-  test_chebi:
+  hmdb:
     runs-on: ubuntu-latest
     name: Test HMDB
-    permissions:
-      contents: write
+
     steps:
-      # Step 1: Checkout the repository
+      # Step 1: Checkout the repository (for bash script (tba))
       - name: Checkout Repository
         uses: actions/checkout@v3
       
@@ -31,7 +35,13 @@ jobs:
           cd hmdb_data
           
           # Download and extract HMDB metabolites data
-          wget http://www.hmdb.ca/system/downloads/current/hmdb_metabolites.zip
+          wget_output=$(wget -q "$URL")
+          if [ $? -ne 0 ]; then
+            echo "HMDB data not downloadable"
+            exit 1
+          else
+            wget http://www.hmdb.ca/system/downloads/current/hmdb_metabolites.zip
+                  
           unzip hmdb_metabolites.zip
           
           # Split the XML file into smaller parts
@@ -45,20 +55,25 @@ jobs:
           
           # Create a zip archive of the processed data
           zip -r hmdb_metabolites_split.zip hmdb_data
-          
-      # Step 3: Commit and push changes
-      - name: Commit and Push Changes
+
+      # Step 3: create and compare logfile (tba)
+      - name: Compare data size 
         run: |
-          git pull
+          echo "HMDB data has been succesfully downloaded"
+          
+      # Step 4: Commit and push logfile
+     # - name: Commit and Push Logfile
+      #  run: |
+       #   git pull
           # Add the generated zip file
-          git add datasources/hmdb/hmdb_metabolites_split.zip
+        #  git add datasources/hmdb/hmdb_metabolites_split.zip
           
           # Configure the user for the commit
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+         # git config --local user.email "action@github.com"
+          #git config --local user.name "GitHub Action"
           
           # Commit changes
-          git commit -m "Automated test"
+          #git commit -m "Automated test"
           
           # Push changes
-          git push
+          #git push
