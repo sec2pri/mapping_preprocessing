@@ -25,7 +25,7 @@ jobs:
           sudo apt-get install xml-twig-tools
                     
           # Create a directory to store processed data
-          mkdir datasources/hmdb/results
+          mkdir -p datasources/hmdb/results
           ls
           
           # Navigate to the HMDB directory
