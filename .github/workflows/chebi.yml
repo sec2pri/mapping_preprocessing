@@ -43,6 +43,8 @@ jobs:
         run: |
           ##Check R version:
           R --version
+          ##Install the readr package:
+          Rscript -e 'install.packages("readr")'
           ##Running the R script:
           Rscript scripts/ChEBI_processing.R
           echo "R preprocessing of ChEBI data is done"
