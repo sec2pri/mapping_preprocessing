@@ -1,2 +1,2 @@
-org/bridgedb/sec2pri/TXTsec2pri.class
-org/bridgedb/sec2pri/XMLse2pri.class
+org/sec2pri/hmdb_xml.class
+org/sec2pri/chebi_sdf.class
