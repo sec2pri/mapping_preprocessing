@@ -54,7 +54,7 @@ jobs:
        with:
         java-version: '11' 
      - name: Run .jar to process SDF data
-      run: |
+       run: |
         inputFile = "mapping_preprocessing/datasources/ChEBI/ChEBI_complete_3star.sdf"
         outputDir = "mapping_preprocessing/datasources/ChEBI/data"
         java -cp target/mapping_prerocessing-0.0.1-SNAPSHOT-jar-with-dependencies.jar org.sec2pri.chebi_sdf $inputFile $outputDir
