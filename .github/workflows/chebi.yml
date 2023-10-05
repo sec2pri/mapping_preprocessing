@@ -49,14 +49,14 @@ jobs:
           #Rscript r/ChEBI_processing.R
           #echo "R preprocessing of ChEBI data is done"
      # step 4: run the Java .jar for ChEBI preprocessing (to be made into separate job)
-     - name: Set up Java
-       uses: actions/setup-java@v2
-       with:
-        java-version: '11' 
-     - name: Run .jar to process SDF data
-       run: |
-        inputFile = "mapping_preprocessing/datasources/ChEBI/ChEBI_complete_3star.sdf"
-        outputDir = "mapping_preprocessing/datasources/ChEBI/data"
-        java -cp target/mapping_prerocessing-0.0.1-SNAPSHOT-jar-with-dependencies.jar org.sec2pri.chebi_sdf $inputFile $outputDir
+      - name: Set up Java
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11' 
+      - name: Run .jar to process SDF data
+        run: |
+          inputFile = "mapping_preprocessing/datasources/ChEBI/ChEBI_complete_3star.sdf"
+          outputDir = "mapping_preprocessing/datasources/ChEBI/data"
+          java -cp target/mapping_prerocessing-0.0.1-SNAPSHOT-jar-with-dependencies.jar org.sec2pri.chebi_sdf $inputFile $outputDir
 
 
