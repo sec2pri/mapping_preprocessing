@@ -6,12 +6,3 @@ datasources/NCBI/gene_info_human_mice_2023-08-14
 datasources/NCBI/gene_history
 datasources/NCBI/gene_history_human_mice_2023-08-14
 datasources/NCBI/gene_info
-*.csv
-*.csv
-*.csv
-datasources/Wikidata/data/wikidatawikidatageneproteinHumanAllPrimary.csv
-datasources/Wikidata/data/wikidatawikidatachemicalRedirects.csv
-datasources/Wikidata/data/wikidatawikidatachemicalPrimarySynonyms.csv
-datasources/Wikidata/data/wikidatawikidatachemicalAllPrimary.csv
-datasources/Wikidata/data/wikidatawikidatachemicalPrimarySynonyms.csv
-datasources/Wikidata/data/wikidatawikidatachemicalRedirects.csv
