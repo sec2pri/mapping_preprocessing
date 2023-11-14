@@ -19,32 +19,32 @@ jobs:
       - name: Run the Queries
         run: |
           ##Make directory if not existing already
-          mkdir datasources/Wikidata/results
+          mkdir datasources/wikidata/results
           ##Define variable to be used in storing and updating output data (to avoid hardcoding for each change) (tba)
           
           ## Download outdated IDs for chemicals
-          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/Wikidata/queries/chemicalRedirects.rq -G https://query.wikidata.org/sparql -o datasources/Wikidata/results/metabolites_secID2priID.tsv
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalRedirects.rq -G https://query.wikidata.org/sparql -o datasources/wikidata/results/metabolites_secID2priID.tsv
           ## Download all primary IDs for chemicals
-          #curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/Wikidata/queries/chemicalAllPrimary.rq -G https://query.wikidata.org/sparql -o datasources/Wikidata/results/metabolites_priIDs.tsv
+          #curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalAllPrimary.rq -G https://query.wikidata.org/sparql -o datasources/wikidata/results/metabolites_priIDs.tsv
           ## Download alias/synonyms/names for chemicals
-          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/Wikidata/queries/chemicalPrimarySynonyms.rq -G https://query.wikidata.org/sparql -o datasources/Wikidata/results/metabolites_name2synonym.tsv
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalPrimarySynonyms.rq -G https://query.wikidata.org/sparql -o datasources/wikidata/results/metabolites_name2synonym.tsv
           
           ## Download outdated IDs for genes (split from proteins to avoid timeouts)
-          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/Wikidata/queries/geneHumanRedirects.rq -G https://query.wikidata.org/sparql -o datasources/Wikidata/results/gene_secID2priID.tsv
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/geneHumanRedirects.rq -G https://query.wikidata.org/sparql -o datasources/wikidata/results/gene_secID2priID.tsv
           ## Download outdated IDs for proteins (split from genes to avoid timeouts)
-          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/Wikidata/queries/proteinHumanRedirects.rq -G https://query.wikidata.org/sparql -o datasources/Wikidata/results/protein_secID2priID.tsv
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/proteinHumanRedirects.rq -G https://query.wikidata.org/sparql -o datasources/wikidata/results/protein_secID2priID.tsv
           ## Download all primary IDs for genes and proteins
-          #curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/Wikidata/queries/geneproteinHumanAllPrimary.rq -G https://query.wikidata.org/sparql -o datasources/Wikidata/results/geneProtein_priIDs.tsv
+          #curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/geneproteinHumanAllPrimary.rq -G https://query.wikidata.org/sparql -o datasources/wikidata/results/geneProtein_priIDs.tsv
           ## Download alias/synonyms/names for genes and proteins
-          #curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/Wikidata/queries/geneproteinHumanPrimarySynonyms.rq -G https://query.wikidata.org/sparql -o datasources/Wikidata/results/geneProtein_name2synonym.tsv
+          #curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/geneproteinHumanPrimarySynonyms.rq -G https://query.wikidata.org/sparql -o datasources/wikidata/results/geneProtein_name2synonym.tsv
 
           ##Concatenate gene and protein outdated ID data
-          head -n 1 datasources/Wikidata/results/gene_secID2priID.tsv > datasources/Wikidata/results/geneProtein_secID2priID.tsv ##Add the header of one file as start
-          tail -n +2 -q datasources/Wikidata/results/gene_secID2priID.tsv >> datasources/Wikidata/results/geneProtein_secID2priID.tsv ##Add gene sec. IDs to the file (not overwrite)
-          tail -n +2 -q datasources/Wikidata/results/protein_secID2priID.tsv >> datasources/Wikidata/results/geneProtein_secID2priID.tsv ##Add protein sec. IDs to the file (not overwrite)
+          head -n 1 datasources/wikidata/results/gene_secID2priID.tsv > datasources/wikidata/results/geneProtein_secID2priID.tsv ##Add the header of one file as start
+          tail -n +2 -q datasources/wikidata/results/gene_secID2priID.tsv >> datasources/wikidata/results/geneProtein_secID2priID.tsv ##Add gene sec. IDs to the file (not overwrite)
+          tail -n +2 -q datasources/wikidata/results/protein_secID2priID.tsv >> datasources/wikidata/results/geneProtein_secID2priID.tsv ##Add protein sec. IDs to the file (not overwrite)
           
           ##Check new data, fail job if query timeout has occured
-          cd datasources/Wikidata/results
+          cd datasources/wikidata/results
           for File in *.tsv ##Only for tsv files
           do
             if grep -q TimeoutException "$File"; then
@@ -58,7 +58,7 @@ jobs:
           done
           
           ##Remove previous output files (if existing)
-          ##find  . -name 'Wikidata*' -exec rm {} \;
+          ##find  . -name 'wikidata*' -exec rm {} \;
           ## Set prefix to Wikidata for renaming new data files
           prefix=$(basename "Wikidata") 
           for f in *.tsv ##Only for tsv files
@@ -70,7 +70,7 @@ jobs:
           ##Change back to main directory
           cd ../..
           ##Move and overwrite all files from results folder to data folder, to update previous data
-          mv -f Wikidata/results/* Wikidata/data/
+          mv -f wikidata/results/* wikidata/data/
       # step 3: save the data from the queries
       - name: Commit and Push Changes
         run: |
