@@ -1,20 +1,32 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.sec2pri</groupId>
   <artifactId>mapping_prerocessing</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <name>Mapping file generator</name>
+  <version>0.0.1</version>
 
   <properties>
     <bridgedb.version>3.0.10</bridgedb.version>
   </properties>
 
   <build>
+    <directory>target</directory>
+		<outputDirectory>target/classes</outputDirectory>
+    <finalName>${project.artifactId}-${project.version}</finalName>
     <sourceDirectory>src</sourceDirectory>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.8.1</version>
         <configuration>
+          <archive>
+            <manifest>
+              <mainClass>org.sec2pri</mainClass>
+            </manifest>
+          </archive>
           <source>1.8</source>
           <target>1.8</target>
         </configuration>
@@ -30,28 +42,29 @@
       </plugin>
     </plugins>
   </build>
+
   <dependencies>
-  <dependency>
-    <groupId>org.eclipse.rdf4j</groupId>
-    <artifactId>rdf4j-repository-sparql</artifactId>
-    <version>3.1.2</version>
-	</dependency>
-  <dependency>
-    <groupId>org.eclipse.rdf4j</groupId>
-    <artifactId>rdf4j-queryresultio-sparqljson</artifactId>
-    <version>3.1.2</version>
-  </dependency>
-<dependency>
-    <groupId>org.eclipse.rdf4j</groupId>
-    <artifactId>rdf4j-repository-api</artifactId>
-    <version>3.1.2</version>
-</dependency>
-<dependency>
+    <dependency>
+      <groupId>org.eclipse.rdf4j</groupId>
+      <artifactId>rdf4j-repository-sparql</artifactId>
+      <version>3.1.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.rdf4j</groupId>
+      <artifactId>rdf4j-queryresultio-sparqljson</artifactId>
+      <version>3.1.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.rdf4j</groupId>
+      <artifactId>rdf4j-repository-api</artifactId>
+      <version>3.1.2</version>
+    </dependency>
+    <dependency>
       <groupId>org.bridgedb</groupId>
       <artifactId>org.bridgedb</artifactId>
       <version>${bridgedb.version}</version>
     </dependency>
-	<dependency>
+    <dependency>
       <groupId>org.bridgedb</groupId>
       <artifactId>org.bridgedb.bio</artifactId>
       <version>${bridgedb.version}</version>
@@ -84,9 +97,9 @@
       <version>10.5.3.0_1</version>
     </dependency>
     <dependency>
-        <groupId>com.googlecode.json-simple</groupId>
-        <artifactId>json-simple</artifactId>
-        <version>1.1.1</version>
+      <groupId>com.googlecode.json-simple</groupId>
+      <artifactId>json-simple</artifactId>
+      <version>1.1.1</version>
     </dependency>
   </dependencies>
 </project>
