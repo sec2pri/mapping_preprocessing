@@ -28,7 +28,7 @@ jobs:
     - name: Build and test Java code
       run: |
         cd java
-        ./mvn clean install assembly:single
+        mvn clean install assembly:single
 
 
 
