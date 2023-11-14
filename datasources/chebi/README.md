@@ -18,4 +18,4 @@ gunzip ChEBI_complete_3star.sdf.gz
 Both Java and R scripts can be used to process the split SDF files and create the prossesed mapping files. Java is recommended for faster processing. Refer to the links below for more information on using Java or R scripts.
 
 - [Java Processing Scripts](https://github.com/sec2pri/mapping_preprocessing/blob/main/java/src/org/sec2pri/chebi_sdf.java), also creates a derby file.
-- [R Processing Scripts](https://github.com/sec2pri/mapping_preprocessing/blob/main/r/chebi_processing.R).  
+- [R Processing Scripts](https://github.com/sec2pri/mapping_preprocessing/blob/main/r/src/chebi.R).  

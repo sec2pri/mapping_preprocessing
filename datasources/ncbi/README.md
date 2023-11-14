@@ -34,4 +34,4 @@ awk 'NR==1 || $1 == "9606" || $1 == "10090"'  gene_history > "gene_history_human
 ## Processing Scripts
 
 R scripts can be used to process the files and create the prossesed mapping files. 
-- [R Processing Scripts](https://github.com/sec2pri/mapping_preprocessing/blob/main/r/ncbi_processing.R), the input for this script is the "NCBI" directory.  
+- [R Processing Scripts](https://github.com/sec2pri/mapping_preprocessing/blob/main/r/src/ncbi.R), the input for this script is the "NCBI" directory.  

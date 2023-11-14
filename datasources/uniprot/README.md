@@ -16,5 +16,5 @@ Release:     28-Jun-2023
 ## Processing Scripts
 To download and process the fasta and txt files and create the processed mapping files, you can use R scripts. For detailed information on using R scripts, please refer to the following link:
 
-- [R Processing Scripts](https://github.com/sec2pri/mapping_preprocessing/blob/main/r/uniprot_processing.R).  
+- [R Processing Scripts](https://github.com/sec2pri/mapping_preprocessing/blob/main/r/src/uniprot.R).  
 
