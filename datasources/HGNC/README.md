@@ -11,7 +11,7 @@ The files used for data extraction are as follows:
 ## Processing Scripts
 To download and process the TSV files and create the processed mapping files, you can use R scripts. For detailed information on using R scripts, please refer to the following link:
 
-- [R Processing Scripts](https://github.com/sec2pri/mapping_preprocessing/blob/main/scripts/HGNC_processing.R).  
+- [R Processing Scripts](https://github.com/sec2pri/mapping_preprocessing/blob/main/r/hgnc_processing.R).  
 
 
 

@@ -37,9 +37,3 @@ git pull
           git commit -m "Updating Wd data"
           git push
 ```
-
-## Processing Scripts
-Both Java and R scripts can be used to process the split SDF files and create the prossesed mapping files. Java is recommended for faster processing. Refer to the links below for more information on using Java or R scripts.
-
-- [Java Processing Scripts](tba), also creates a derby file.
-- [R Processing Scripts](tba).  
