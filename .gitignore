@@ -5,7 +5,8 @@
 .gitattributes
 
 # ignore input files #
-datasources/
+*.zip
+*.sdf
 
 # ignore target files #
 java/target/maven-archiver
