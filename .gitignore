@@ -4,9 +4,10 @@
 .settings/
 .gitattributes
 
-# ignore input files #
+# ignore input and output files #
 *.zip
 *.sdf
+*.tsv
 
 # ignore target files #
 java/target/maven-archiver
