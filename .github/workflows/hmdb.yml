@@ -56,7 +56,7 @@ jobs:
       # Step 3: create and compare logfile (tba)
       - name: Compare data size 
         run: |
-          echo "HMDB data has been succesfully downloaded"
+          echo "HMDB data has been succesfully downloaded."
           
       # Step 4: Commit and push logfile
      # - name: Commit and Push Logfile
