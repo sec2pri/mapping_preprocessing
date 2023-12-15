@@ -71,38 +71,27 @@ jobs:
           ##Move the SDF file to the expected location
           mv ChEBI_complete_3star.sdf mapping_preprocessing/datasources/chebi/data
 
-  run_r_script:
-    needs: download_file
-    name: Run R script to process SDF data
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check R version
-        run: R --version
-
-      - name: Install R package (if needed)
+     # step 3: run the R script for ChEBI preprocessing (to be made into a separate job)
+      - name: Run R script to process SDF data
         run: |
+          ##Check R version:
+          R --version
+          ##Install the readr package:
           #Rscript -e 'install.packages("readr")'
-
-      - name: Run R script
-        run: |
+          ##Running the R script:
           #Rscript r/chebi_processing.R
           #echo "R preprocessing of ChEBI data is done"
-
-  run_java_jar:
-    needs: download_file
-    name: Run Java .jar to process SDF data
-    runs-on: ubuntu-latest
-    steps:
+     # step 4: run the Java .jar for ChEBI preprocessing (to be made into a separate job)
       - name: Set up Java
         uses: actions/setup-java@v2
         with:
           java-version: '11'
           distribution: 'adopt'
 
-      - name: Run Java .jar
+      - name: Run .jar to process SDF data
         run: |
           inputFile="mapping_preprocessing/datasources/chebi/data/ChEBI_complete_3star.sdf"
           outputDir="mapping_preprocessing/datasources/chebi/data"
           java -cp java -cp target/mapping_prerocessing-0.0.1-jar-with-dependencies.jar org.sec2pri.chebi_sdf $inputFile $outputDir
           echo "Java preprocessing of ChEBI data is done."
-# Missing commit step
+# Missing checkout and commit step if we intend on processing and pushing the data from the workflow
