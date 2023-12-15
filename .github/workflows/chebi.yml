@@ -1,32 +1,64 @@
-# Workflow for downloading and saving ChEBI secondary2primary mappings
 name: chebi
 
 on:
   workflow_dispatch:
-  ##TODO: add a schedule for deployment (suggestion: once a month in occurrence with release schedule from ChEBI)
+  schedule:
+    - cron: "0 0 1,15 * *"  # Run the workflow on the 1st and 15th day of each month
 
 permissions:
   contents: write
   pages: write
   id-token: write
-  
+
 jobs:
-  chebi:
+  check_release:
     runs-on: ubuntu-latest
-    
+    name: Check latest release date
+
     steps:
       # step 1: checkout the repository
-      - name: Download GitHub repo for bash script (tba)
+      - name: Download GitHub repo
         uses: actions/checkout@v3
 
-      # step 2: run the bash script for ChEBI data Download
+      # step 2: check the release date for the latest ChEBI release
+      - name: Check date
+        run: |
+          wget https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel223/SDF/
+          ##Extract the string containing pattern 'ChEBI_complete_3star.sdf.gz'
+          string=$(cat index.html | grep ">ChEBI_complete_3star.sdf.gz<")
+          echo $string
+          ##Extract the date from the latest release (up to the day)
+          date_new=$(echo "$string" | grep -oP '<td align="right">\K[0-9-]+\s[0-9:]+(?=\s+</td>)' | awk '{print $1}')
+          echo $date_new
+          ##Extract the date from the ChEBI README file (up to the day)
+          date_old=$(cat datasources/chebi/README.md | grep -oP 'released on \K[0-9-]+' | awk '{print $1}')
+          echo $date_old
+          ##Print the dates
+          echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
+          ##Compare the dates and set GITHUB_ENV variable if date_new is more recent
+          if [[ "$date_new" > "$date_old" ]]; then
+            echo "DOWNLOAD_FILE=true" >>$GITHUB_ENV
+          fi
+
+          ##Clean up
+          rm index.htm*
+
+          ##Download?
+          echo download is ${{ github.DOWNLOAD_FILE }}
+
+  download_file:
+    needs: check_release
+    name: Download release
+    if: github.DOWNLOAD_FILE == 'true'
+    runs-on: ubuntu-latest
+    steps:
       - name: Download data
         run: |
           ##Download ChEBI SDF file
           wget https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel223/SDF/ChEBI_complete_3star.sdf.gz
           ##Unzip gz file:
           gunzip ChEBI_complete_3star.sdf.gz
-          
+
           ##Check file size if available
           ls
           ##Print file size
@@ -38,29 +70,39 @@ jobs:
           mkdir -p mapping_preprocessing/datasources/chebi/data
           ##Move the SDF file to the expected location
           mv ChEBI_complete_3star.sdf mapping_preprocessing/datasources/chebi/data
-     # step 3: run the R script for ChEBI preprocessing (to be made into a separate job)
-      - name: Run R script to process SDF data
+
+  run_r_script:
+    needs: download_file
+    name: Run R script to process SDF data
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check R version
+        run: R --version
+
+      - name: Install R package (if needed)
         run: |
-          ##Check R version:
-          R --version
-          ##Install the readr package:
           #Rscript -e 'install.packages("readr")'
-          ##Running the R script:
+
+      - name: Run R script
+        run: |
           #Rscript r/chebi_processing.R
           #echo "R preprocessing of ChEBI data is done"
-     # step 4: run the Java .jar for ChEBI preprocessing (to be made into a separate job)
+
+  run_java_jar:
+    needs: download_file
+    name: Run Java .jar to process SDF data
+    runs-on: ubuntu-latest
+    steps:
       - name: Set up Java
         uses: actions/setup-java@v2
         with:
           java-version: '11'
           distribution: 'adopt'
 
-      - name: Run .jar to process SDF data
+      - name: Run Java .jar
         run: |
           inputFile="mapping_preprocessing/datasources/chebi/data/ChEBI_complete_3star.sdf"
           outputDir="mapping_preprocessing/datasources/chebi/data"
           java -cp java -cp target/mapping_prerocessing-0.0.1-jar-with-dependencies.jar org.sec2pri.chebi_sdf $inputFile $outputDir
           echo "Java preprocessing of ChEBI data is done."
-
-
-
+# Missing commit step
