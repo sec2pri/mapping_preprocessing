@@ -35,6 +35,7 @@ jobs:
           ##Compare the dates and set GITHUB_ENV variable if date_new is more recent
           if [[ "$date_new" > "$date_old" ]]; then
             echo "DOWNLOAD_FILE=true" >>$GITHUB_ENV
+            echo "NEW_DATE=$date_new" >> $GITHUB_ENV
           fi
 
           ##Clean up
@@ -85,10 +86,31 @@ jobs:
           java-version: '11'
           distribution: 'adopt'
 
-      - name: Run .jar to process SDF data
+      - name: Test SDF processing
         run: |
           inputFile="mapping_preprocessing/datasources/chebi/data/ChEBI_complete_3star.sdf"
           outputDir="mapping_preprocessing/datasources/chebi/data"
           java -cp java -cp target/mapping_prerocessing-0.0.1-jar-with-dependencies.jar org.sec2pri.chebi_sdf $inputFile $outputDir
           echo "Java preprocessing of ChEBI data is done."
-# Missing checkout and commit step if we intend on processing and pushing the data from the workflow
+
+  post-issue:
+    needs: check_release
+    name: Post issue about updating data
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v3
+      - run: |
+          echo "---" >> issue.md
+          echo "title: Update ChEBI - release on ${{ GITHUB.NEW_DATE }}" >> issue.md
+          echo "assignees: tabbassidaloii" >> issue.md
+          echo "---" >> issue.md
+          echo "[New release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel223/SDF/) available from (\${{ GITHUB.NEW_DATE }})." >> issue.md
+      - uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          filename: issue.md
+
