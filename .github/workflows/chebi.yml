@@ -93,7 +93,7 @@ jobs:
           echo "Java preprocessing of ChEBI data is done."
 
   post-issue:
-    needs: check_release
+    needs: download_file
     name: Post issue about updating data
     runs-on: ubuntu-latest
     permissions:
