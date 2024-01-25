@@ -80,11 +80,16 @@ jobs:
         run: |
           git pull
           ls
-          git add .
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git commit -m "Updating Wd data"
-          git push
+          if [[ `git status --porcelain` ]]; then
+            git add .
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Action"
+            git commit -m "Updating Wd data"
+            git push
+          else
+            echo "No changes to commit."
+            exit 0
+          fi
   post-issue: 
        needs: wikidata
        if: github.DOWNLOAD_FILE == 'true' 
