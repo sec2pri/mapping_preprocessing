@@ -75,6 +75,16 @@ jobs:
           cd ../..
           ##Move and overwrite all files from results folder to data folder, to update previous data
           mv -f wikidata/results/* wikidata/data/
+        # step 3: save the data from the queries
+      - name: Commit and Push Changes
+        run: |
+          git pull
+          ls
+          git add .
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git commit -m "Updating Wd data"
+          git push
   post-issue: 
        needs: wikidata
        if: github.DOWNLOAD_FILE == 'true' 
@@ -96,13 +106,4 @@ jobs:
              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
            with: 
              filename: issue.md 
-      # step 4: save the data from the queries
-      - name: Commit and Push Changes
-        run: |
-          git pull
-          ls
-          git add .
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git commit -m "Updating Wd data"
-          git push
+
