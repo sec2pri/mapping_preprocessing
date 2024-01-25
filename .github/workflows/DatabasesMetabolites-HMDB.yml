@@ -1,4 +1,4 @@
-name: DatabasesMetabolites-Wikidata
+name: DatabasesMetabolites-HMDB
 
 on:
   workflow_dispatch:
