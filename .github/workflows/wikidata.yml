@@ -3,8 +3,9 @@ name: wikidata
 
 on:
   workflow_dispatch:
-  ##TODO: add schedule for deployment (suggestion: once a month?)
-  
+  pull_request: # tests whether it is working on PR
+  schedule:
+    - cron: "0 0 1,15 * *"  # Run the workflow on the 1st and 15th day of each month
 jobs:
   wikidata:
     runs-on: ubuntu-latest
@@ -45,18 +46,21 @@ jobs:
           
           ##Check new data, fail job if query timeout has occured
           cd datasources/wikidata/results
+          fail_file=''
           for File in *.tsv ##Only for tsv files
           do
             if grep -q TimeoutException "$File"; then
               echo "Query Timeout occurred for file: " "$File" 
               echo "Wikidata data will not be updated"
               head -n 20 "$File" 
-              exit 1
+              echo "DOWNLOAD_FILE=true" >>$GITHUB_ENV
+              fail_file="${fail_file} $File"
             else
               echo "No Query Timeout detected for file: " "$File" 
             fi
           done
-          
+          # Store value of fail_file in GITHUB_ENV for the issue
+          echo "FAILED=${fail_file}" >> $GITHUB_ENV
           ##Remove previous output files (if existing)
           ##find  . -name 'wikidata*' -exec rm {} \;
           ## Set prefix to Wikidata for renaming new data files
@@ -71,7 +75,7 @@ jobs:
           cd ../..
           ##Move and overwrite all files from results folder to data folder, to update previous data
           mv -f wikidata/results/* wikidata/data/
-      # step 3: save the data from the queries
+        # step 3: save the data from the queries
       - name: Commit and Push Changes
         run: |
           git pull
@@ -81,3 +85,25 @@ jobs:
           git config --local user.name "GitHub Action"
           git commit -m "Updating Wd data"
           git push
+  post-issue: 
+       needs: wikidata
+       if: github.DOWNLOAD_FILE == 'true' 
+       name: Post issue about timeout 
+       runs-on: ubuntu-latest 
+       permissions: 
+         contents: read 
+         issues: write 
+       steps: 
+         - uses: actions/checkout@v3 
+         - run: | 
+             echo "---" >> issue.md 
+             echo "title: Wikidata is timing out>> issue.md 
+             echo "assignees: tabbassidaloii" >> issue.md 
+             echo "---" >> issue.md 
+             echo "Wikidata query timed out for $${{ github.FAILED }}" >> issue.md 
+         - uses: JasonEtco/create-an-issue@v2 
+           env: 
+             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+           with: 
+             filename: issue.md 
+
