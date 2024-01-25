@@ -1,5 +1,5 @@
 release=
-date=August_21_2023
+date=2023-08-21
 url=https://query.wikidata.org/sparql
 file_names=Wikidata_geneProtein_priIDs.tsv,Wikidata_geneProtein_secID2priID.tsv,Wikidata_geneProtein_synonym2name.tsv,Wikidata_metabolites_priIDs.tsv,Wikidata_metabolites_secID2priID.tsv,Wikidata_metabolites_synonym2name.tsv
 to_check_from_zenodo=Wikidata_geneProtein_secID2priID.tsv,Wikidata_metabolites_secID2priID.tsv
