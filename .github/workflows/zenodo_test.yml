@@ -15,11 +15,10 @@ jobs:
       env:
         zenodo_token: ${{ secrets.zenodo }}
       run: |
-        # Replace <ZENODO_FILE_ID> with the ID of the file you want to download from Zenodo
         zenodo_file_id="8348142"       
         file_name="ChEBI_priIDs.tsv"
         
-        # Make a request to Zenodo API to download the file
+        # Request Zenodo API to download the file
         curl -H "Authorization: Bearer $zenodo_token" -LJO https://zenodo.org/api/files/$zenodo_file_id/$file_name
         
         # Verify the downloaded file
