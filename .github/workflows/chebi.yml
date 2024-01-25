@@ -2,6 +2,7 @@ name: chebi
 
 on:
   workflow_dispatch:
+  pull_request: # tests whether it is working on PR
   schedule:
     - cron: "0 0 1,15 * *"  # Run the workflow on the 1st and 15th day of each month
 
@@ -41,8 +42,6 @@ jobs:
           ##Clean up
           rm index.htm*
 
-          ##Download?
-          echo download flag value (skips if empty): ${{ github.DOWNLOAD_FILE }}
 
   download_file:
     needs: check_release
@@ -94,7 +93,7 @@ jobs:
           echo "Java preprocessing of ChEBI data is done."
 
   post-issue:
-    needs: check_release
+    needs: download_file
     name: Post issue about updating data
     runs-on: ubuntu-latest
     permissions:
