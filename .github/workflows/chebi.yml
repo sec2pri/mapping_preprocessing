@@ -17,33 +17,56 @@ jobs:
     name: Check latest release date
 
     steps:
-      # step 1: checkout the repository
+      # checkout the repository
       - name: Download GitHub repo
         uses: actions/checkout@v3
+      # Download current version from Zenodo
+      - name: Download file from Zenodo
+        env:
+          zenodo_token: ${{ secrets.zenodo }}
+        run: |
+          .datasources/chebi/config .
+          zenodo_file_id="8348142"
 
-      # step 2: check the release date for the latest ChEBI release
+          file_name=$to_check_from_zenodo
+          echo ZENODO_FILE_NAME=$file_name >>$GITHUB_ENV
+          # Request Zenodo API to download the file
+          curl -H "Authorization: Bearer $zenodo_token" -LJO https://zenodo.org/api/files/$zenodo_file_id/$file_name
+          
+          # Verify the downloaded file
+          ls -l $FILE_NAME   
+      # check the release date for the latest ChEBI release
       - name: Check date
         run: |
-          wget https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel223/SDF/
-          ##Extract the string containing pattern 'ChEBI_complete_3star.sdf.gz'
-          string=$(cat index.html | grep ">ChEBI_complete_3star.sdf.gz<")
+
+          wget https://ftp.ebi.ac.uk/pub/databases/chebi/archive/
+          ## Read config
+          . datasources/chebi/config .
+          ## Check date for last element in index
+          string=$(tail -4 index.html | head -1)
           ##Extract the date from the latest release (up to the day)
           date_new=$(echo "$string" | grep -oP '<td align="right">\K[0-9-]+\s[0-9:]+(?=\s+</td>)' | awk '{print $1}')
+          echo $date_new
+          release=$(echo "$string" | grep -oP '(?<=a href="rel)\d\d\d')
+          echo New release: $release
+          echo "RELEASE=$release" >>$GITHUB_ENV
           ##Extract the date from the ChEBI README file (up to the day)
-          date_old=$(cat datasources/chebi/README.md | grep -oP 'released on \K[0-9-]+' | awk '{print $1}')
+          date_old=$date
+          echo $date_old
           ##Print the dates
           echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
           ##Compare the dates and set GITHUB_ENV variable if date_new is more recent
           if [[ "$date_new" > "$date_old" ]]; then
             echo "DOWNLOAD_FILE=true" >>$GITHUB_ENV
-            echo "NEW_DATE=$date_new" >> $GITHUB_ENV
           fi
-
+          
           ##Clean up
           rm index.htm*
+          
+          ##Download?
+          echo download is ${{ github.DOWNLOAD_FILE }}
 
-
-  download_file:
+  process_file:
     needs: check_release
     name: Download release
     if: github.DOWNLOAD_FILE == 'true'
@@ -67,7 +90,7 @@ jobs:
           mkdir -p mapping_preprocessing/datasources/chebi/data
           ##Move the SDF file to the expected location
           mv ChEBI_complete_3star.sdf mapping_preprocessing/datasources/chebi/data
-
+          
      # step 3: run the R script for ChEBI preprocessing (to be made into a separate job)
       - name: Run R script to process SDF data
         run: |
@@ -89,13 +112,48 @@ jobs:
         run: |
           inputFile="mapping_preprocessing/datasources/chebi/data/ChEBI_complete_3star.sdf"
           outputDir="mapping_preprocessing/datasources/chebi/data"
-          java -cp java -cp target/mapping_prerocessing-0.0.1-jar-with-dependencies.jar org.sec2pri.chebi_sdf $inputFile $outputDir
-          echo "Java preprocessing of ChEBI data is done."
+          # Run Java program and capture its exit code
+          java -cp target/mapping_prerocessing-0.0.1-jar-with-dependencies.jar org.sec2pri.chebi_sdf "$inputFile" "$outputDir"
 
-  post-issue:
-    needs: download_file
+          # Check the exit status of the Java program
+          if [ $? -eq 0 ]; then
+              # Java program succeeded
+              echo "Java preprocessing of ChEBI data is done."
+              echo "FAILED=false" >>$GITHUB_ENV
+          else
+              # Java program failed
+              echo "Java preprocessing of ChEBI data failed."
+              echo "FAILED=true" >>$GITHUB_ENV
+          fi
+
+      - name: Diff versions
+        run: |
+          old=$github.ZENODO_FILE_NAME
+          new=mapping_preprocessing/datasources/chebi/data/$github.ZENODO_FILE_NAME
+          column_name="secondaryID"
+          # Extract the secondaryID column from both files and sort them
+          ids_old=$(cut -f 2 "$old" | sort | tr -d "\r")
+          ids_new=$(cut -f 2 "$new" | sort | tr -d "\r")
+
+          # Perform a diff between the sorted lists of secondaryIDs
+          diff_output=$(diff -u <(echo "$ids_old") <(echo "$ids_new"))
+
+
+          # Store the output
+          output_file="diff_output.txt"
+          # Additions
+          added=$(grep '^+CHEBI' "$output_file")
+          echo ADDED=$added >>$GITHUB_ENV
+          # Removals
+          removed=$(grep '^-CHEBI' "$output_file")
+
+          echo REMOVED=$removed >>$GITHUB_ENV
+
+  post-issue_update:
+    needs: process_file
     name: Post issue about updating data
     runs-on: ubuntu-latest
+    if: github.DOWNLOAD_FILE == 'true'
     permissions:
       contents: read
       issues: write
@@ -106,7 +164,33 @@ jobs:
           echo "title: Update ChEBI - release on ${{ GITHUB.NEW_DATE }}" >> issue.md
           echo "assignees: tabbassidaloii" >> issue.md
           echo "---" >> issue.md
-          echo "[New release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel223/SDF/) available from (\${{ GITHUB.NEW_DATE }})." >> issue.md
+          echo "[New release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${{ GITHUB.RELEASE }}/SDF/) available from ${{ GITHUB.NEW_DATE }}." >> issue.md
+          echo ## Removed secondary IDs
+          echo $github.REMOVED
+          echo ## Added secondary IDs
+          echo $github.ADDED
+      - uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          filename: issue.md
+
+  post-issue-fail:
+    needs: process_file
+    if: github.FAILED == 'true'
+    name: Post issue about failed processing
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v3
+      - run: |
+          echo "---" >> issue.md
+          echo "title: Failed ChEBI processing for release ${{ GITHUB.RELEASE }}" >> issue.md
+          echo "assignees: tabbassidaloii" >> issue.md
+          echo "---" >> issue.md
+          echo "Processing failed for the [new release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${{ GITHUB.RELEASE }}/SDF/) available from ${{ GITHUB.NEW_DATE }}." >> issue.md
       - uses: JasonEtco/create-an-issue@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
