@@ -23,7 +23,7 @@ jobs:
       # Download current version from Zenodo
       - name: Download file from Zenodo
         env:
-          zenodo_token: ${{ secrets.zenodo }}
+          zenodo_token: ${{ secrets.ZENODO }}
         run: |
           datasources/chebi/config .
           zenodo_file_id="8348142"
