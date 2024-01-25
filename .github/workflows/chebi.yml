@@ -25,7 +25,7 @@ jobs:
         env:
           zenodo_token: ${{ secrets.zenodo }}
         run: |
-          .datasources/chebi/config .
+          datasources/chebi/config .
           zenodo_file_id="8348142"
 
           file_name=$to_check_from_zenodo
