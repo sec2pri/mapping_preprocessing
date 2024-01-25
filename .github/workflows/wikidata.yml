@@ -60,7 +60,7 @@ jobs:
             fi
           done
           # Store value of fail_file in GITHUB_ENV for the issue
-          echo "FAILED=${fail_file}" >>$GITHUB_env
+          echo "FAILED=${fail_file}" >> $GITHUB_ENV
           ##Remove previous output files (if existing)
           ##find  . -name 'wikidata*' -exec rm {} \;
           ## Set prefix to Wikidata for renaming new data files
