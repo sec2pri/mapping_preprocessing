@@ -1,5 +1,5 @@
 # Workflow for downloading and saving Wikidata secondary2primary mappings
-name: wikidata
+name: DatabasesMetabolites-Chebi
 
 on:
   workflow_dispatch:
