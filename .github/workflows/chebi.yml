@@ -7,17 +7,14 @@ on:
      - '.`/workflows/chebi.yml'
   schedule:
     - cron: "0 0 1,15 * *"  # Run the workflow on the 1st and 15th day of each month
-
 permissions:
   contents: write
   pages: write
   id-token: write
-
 jobs:
   check_release:
     runs-on: ubuntu-latest
     name: Check latest release date
-
     steps:
       # checkout the repository
       - name: Checkout
@@ -76,8 +73,6 @@ jobs:
         with:
           name: check_release_vars
           path: check_release_vars
-
-          
 
   process_file:
     name: Download and test latest ChEBI release
