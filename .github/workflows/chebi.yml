@@ -24,7 +24,10 @@ jobs:
         env:
           zenodo_token: ${{ secrets.ZENODO }}
         run: |
-          mkdir artifact_check/check_release_vars
+          mkdir artifact_check
+          cd artifact_check
+          mkdir check_release_vars
+          cd ../
           # Set up variables
           chmod +x datasources/chebi/config
           datasources/chebi/config .
@@ -89,7 +92,10 @@ jobs:
           zenodo_token: ${{ secrets.ZENODO }}
       - name: Download data
         run: |
-          mkdir artifact_process/process_file
+          mkdir artifact_process
+          cd artifact_process
+          mkdir process_file
+          cd ../
           ## Retrieve vars
           chmod +x check_release_vars/config
           check_release_vars/config .
