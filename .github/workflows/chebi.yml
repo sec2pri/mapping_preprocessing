@@ -83,7 +83,7 @@ jobs:
       - name: Download data
         run: |
           ##Download ChEBI SDF file
-          wget https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${{ env.RELEASE }}/SDF/ChEBI_complete_3star.sdf.gz
+          wget https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${{ needs.check_release.RELEASE }}/SDF/ChEBI_complete_3star.sdf.gz
           ##Unzip gz file:
           gunzip ChEBI_complete_3star.sdf.gz
 
