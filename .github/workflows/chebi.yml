@@ -60,15 +60,19 @@ jobs:
           ##Print the dates
           echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
           ##Compare the dates and set GITHUB_ENV variable if date_new is more recent
-          if [[ "$date_new" > "$date_old" ]]; then
-            echo "DOWNLOAD_FILE=true" >>$GITHUB_ENV
+          timestamp1=$(date -d "$date_new" +%s)
+          timestamp2=$(date -d "$date_old" +%s)
+          if [ "$timestamp1" -gt "$timestamp2" ]; then
+            echo "DOWNLOAD_FILE=true" >> $GITHUB_ENV
+          else
+            echo "DOWNLOAD_FILE=false" >> $GITHUB_ENV
           fi
           
           ##Clean up
           rm index.htm*
           
           ##Download?
-          echo download is ${{ github.DOWNLOAD_FILE }}
+          echo download is ${{ GITHUB.DOWNLOAD_FILE }}
 
   process_file:
     needs: check_release
@@ -132,8 +136,8 @@ jobs:
 
       - name: Diff versions
         run: |
-          old=$github.ZENODO_FILE_NAME
-          new=mapping_preprocessing/datasources/chebi/data/$github.ZENODO_FILE_NAME
+          old=$GITHUB.ZENODO_FILE_NAME
+          new=mapping_preprocessing/datasources/chebi/data/$GITHUB.ZENODO_FILE_NAME
           column_name="secondaryID"
           # Extract the secondaryID column from both files and sort them
           ids_old=$(cut -f 2 "$old" | sort | tr -d "\r")
