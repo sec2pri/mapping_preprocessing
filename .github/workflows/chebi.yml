@@ -75,7 +75,7 @@ jobs:
   process_file:
     needs: check_release
     name: Download and test latest ChEBI release
-    if: ${{ github.DOWNLOAD_FILE  == 'true' }}
+    if: github.DOWNLOAD_FILE  == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Download data
@@ -159,7 +159,7 @@ jobs:
     needs: process_file
     name: Post issue about updating data
     runs-on: ubuntu-latest
-    if: ${{ github.DOWNLOAD_FILE == 'true' }}
+    if: github.DOWNLOAD_FILE == 'true'
     permissions:
       contents: read
       issues: write
@@ -183,7 +183,7 @@ jobs:
 
   post-issue-fail:
     needs: process_file
-    if: $ {{ github.FAILED == 'true' }}
+    if: github.FAILED == 'true'
     name: Post issue about failed test
     runs-on: ubuntu-latest
     permissions:
