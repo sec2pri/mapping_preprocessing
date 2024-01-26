@@ -42,7 +42,7 @@ jobs:
       # check the release date for the latest ChEBI release
       - name: Check for new ChEBI release
         run: |
-
+          echo 'Accessing the ChEBI archive'
           wget https://ftp.ebi.ac.uk/pub/databases/chebi/archive/
           ## Read config
           . datasources/chebi/config .
@@ -52,27 +52,30 @@ jobs:
           date_new=$(echo "$string" | grep -oP '<td align="right">\K[0-9-]+\s[0-9:]+(?=\s+</td>)' | awk '{print $1}')
           echo $date_new
           release=$(echo "$string" | grep -oP '(?<=a href="rel)\d\d\d')
-          echo New release: $release
+          
           echo "RELEASE=$release" >>$GITHUB_ENV
           ##Extract the date from the ChEBI README file (up to the day)
           date_old=$date
           echo $date_old
           ##Print the dates
-          echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
+          
           ##Compare the dates and set GITHUB_ENV variable if date_new is more recent
           timestamp1=$(date -d "$date_new" +%s)
           timestamp2=$(date -d "$date_old" +%s)
+          echo $timestamp1
+          echo $timestamp2
           if [ "$timestamp1" -gt "$timestamp2" ]; then
             echo "DOWNLOAD_FILE=true" >> $GITHUB_ENV
+            echo 'New release rel($release) available'
           else
             echo "DOWNLOAD_FILE=false" >> $GITHUB_ENV
+            echo 'No new release available'
           fi
-          
+          echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
           ##Clean up
           rm index.htm*
+
           
-          ##Download?
-          echo download is ${{ GITHUB.DOWNLOAD_FILE }}
 
   process_file:
     needs: check_release
