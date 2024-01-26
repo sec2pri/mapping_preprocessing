@@ -77,7 +77,7 @@ jobs:
   process_file:
     name: Download and test latest ChEBI release
     needs: check_release
-    if: contains(needs.check_release.outputs.DOWNLOAD_FILE, 'true')
+    # if: contains(needs.check_release.outputs.DOWNLOAD_FILE, 'true')
     runs-on: ubuntu-latest
     steps:
       - name: Download data
