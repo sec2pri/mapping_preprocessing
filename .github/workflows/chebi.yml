@@ -32,7 +32,7 @@ jobs:
           echo file name: $file_name
           echo 'Dowloading from: https://zenodo.org/api/files/${zenodo_file_id}/${file_name}'
           mkdir check_release_vars
-          #echo "FILE_NAME=$file_name" >> check_release_vars/config
+          #echo "FILE_NAME=$file_name" >> artifact_check/check_release_vars/config
           
           # Request Zenodo API to download the file
           curl -H "Authorization: Bearer $zenodo_token" -LJO 'https://zenodo.org/api/files/${zenodo_file_id}/${file_name}'          
@@ -51,8 +51,8 @@ jobs:
           ##Extract the date from the latest release (up to the day)
           date_new=$(echo "$string" | grep -oP '<td align="right">\K[0-9-]+\s[0-9:]+(?=\s+</td>)' | awk '{print $1}')
           release=$(echo "$string" | grep -oP '(?<=a href="rel)\d\d\d')
-          echo "RELEASE=$release" >> check_release_vars/config
-          echo "DATE_NEW=$date_new" >> check_release_vars/config
+          echo "RELEASE=$release" >> artifact_check/check_release_vars/config
+          echo "DATE_NEW=$date_new" >> artifact_check/check_release_vars/config
           ##Extract the date from the ChEBI README file 
           date_old=$date
           ##Compare the dates and set variable if date_new is more recent
@@ -60,10 +60,10 @@ jobs:
           timestamp2=$(date -d "$date_old" +%s)
 
           if [ "$timestamp1" -gt "$timestamp2" ]; then
-            echo "DOWNLOAD_FILE=true" >> check_release_vars/config
+            echo "DOWNLOAD_FILE=true" >> artifact_check/check_release_vars/config
             echo 'New release available', "$release"
           else
-            echo "DOWNLOAD_FILE=false" >> check_release_vars/config
+            echo "DOWNLOAD_FILE=false" >> artifact_check/check_release_vars/config
             echo 'No new release available'
           fi
           echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
@@ -73,7 +73,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: check_release_vars
-          path: check_release_vars/config
+          path: artifact_check/*
 
   process_file:
     name: Download and test latest ChEBI release
@@ -137,11 +137,11 @@ jobs:
           if [ $? -eq 0 ]; then
               # Java program succeeded
               echo "Java preprocessing of ChEBI data is done."
-              echo "FAILED=false" >> process_file_vars/config
+              echo "FAILED=false" >> artifact_process/process_file_vars/config
           else
               # Java program failed
               echo "Java preprocessing of ChEBI data failed."
-              echo "FAILED=true" >> process_file_vars/config
+              echo "FAILED=true" >> artifact_process/process_file_vars/config
           fi
 
       - name: Diff versions
@@ -163,15 +163,15 @@ jobs:
           output_file="diff_ENV.txt"
           # Additions
           added=$(grep '^+CHEBI' "$output_file")
-          echo "ADDED=$added" >> process_file_vars/config
+          echo "ADDED=$added" >> artifact_process/process_file_vars/config
           # Removals
           removed=$(grep '^-CHEBI' "$output_file")
-          echo "removed=$REMOVED" >> process_file_vars/config
+          echo "removed=$REMOVED" >> artifact_process/process_file_vars/config
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: process_file_vars
-          path: process_file_vars/config
+          path: artifact_process/*
   post-issue_update:
     needs: process_file
     name: Post issue about updating data
