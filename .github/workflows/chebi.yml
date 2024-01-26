@@ -61,10 +61,10 @@ jobs:
           timestamp2=$(date -d "$date_old" +%s)
 
           if [ "$timestamp1" -gt "$timestamp2" ]; then
-            echo "DOWNLOAD_FILE=true" >> $GITHUB_ENV
-            echo 'New release available', '${ release}'
+            echo "DOWNLOAD_FILE=true" >>$GITHUB_ENV
+            echo 'New release available', '${ release }'
           else
-            echo "DOWNLOAD_FILE=false" >> $GITHUB_ENV
+            echo "DOWNLOAD_FILE=false" >>$GITHUB_ENV
             echo 'No new release available'
           fi
           echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
