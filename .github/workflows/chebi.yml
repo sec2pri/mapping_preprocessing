@@ -77,7 +77,7 @@ jobs:
   process_file:
     name: Download and test latest ChEBI release
     needs: check_release
-    if: needs.check_download.outputs.DOWNLOAD_FILE
+    if: contains(needs.check_release.outputs.DOWNLOAD_FILE, 'true')
     runs-on: ubuntu-latest
     steps:
       - name: Download data
@@ -161,7 +161,7 @@ jobs:
     needs: process_file
     name: Post issue about updating data
     runs-on: ubuntu-latest
-    if: needs.check_download.outputs.DOWNLOAD_FILE
+    if: contains(needs.check_release.outputs.DOWNLOAD_FILE, 'true')
     permissions:
       contents: read
       issues: write
@@ -185,7 +185,7 @@ jobs:
 
   post-issue-fail:
     needs: process_file
-    if: env.FAILED
+    if: contains(needs.process_file.outputs.FAILED, 'true')
     name: Post issue about failed test
     runs-on: ubuntu-latest
     permissions:
