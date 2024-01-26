@@ -75,8 +75,8 @@ jobs:
 
   process_file:
     name: Download and test latest ChEBI release
-    #needs: check_release
-    if: github.DOWNLOAD_FILE  == 'true'
+    needs: check_release
+    if: env.DOWNLOAD_FILE
     runs-on: ubuntu-latest
     steps:
       - name: Download data
@@ -157,10 +157,10 @@ jobs:
           echo REMOVED=$removed >>$GITHUB_ENV
 
   post-issue_update:
-    #needs: process_file
+    needs: process_file
     name: Post issue about updating data
     runs-on: ubuntu-latest
-    if: github.DOWNLOAD_FILE == 'true'
+    if: env.DOWNLOAD_FILE
     permissions:
       contents: read
       issues: write
@@ -183,8 +183,8 @@ jobs:
           filename: issue.md
 
   post-issue-fail:
-    #needs: process_file
-    if: github.FAILED == 'true'
+    needs: process_file
+    if: env.FAILED
     name: Post issue about failed test
     runs-on: ubuntu-latest
     permissions:
