@@ -60,12 +60,12 @@ jobs:
 
           if [ "$timestamp1" -gt "$timestamp2" ]; then
             echo "DOWNLOAD_FILE=true" >> $GITHUB_ENV
-            echo 'New release (rel${release}) available'
+            echo 'New release available', '${ release}
           else
             echo "DOWNLOAD_FILE=false" >> $GITHUB_ENV
             echo 'No new release available'
           fi
-          echo "Date of latest release: $date_new", "Date of release of the current version: $date_old", "Download: ${{ github.DOWNLOAD_FILE }}"
+          echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
           ##Clean up
           rm index.htm*
 
@@ -133,8 +133,8 @@ jobs:
 
       - name: Diff versions
         run: |
-          old=$GITHUB.ZENODO_FILE_NAME
-          new=mapping_preprocessing/datasources/chebi/data/$GITHUB.ZENODO_FILE_NAME
+          old=$env.ZENODO_FILE_NAME
+          new=mapping_preprocessing/datasources/chebi/data/$env.ZENODO_FILE_NAME
           column_name="secondaryID"
           # Extract the secondaryID column from both files and sort them
           ids_old=$(cut -f 2 "$old" | sort | tr -d "\r")
@@ -166,14 +166,14 @@ jobs:
       - uses: actions/checkout@v3
       - run: |
           echo "---" >> issue.md
-          echo "title: Update ChEBI - release on ${{ GITHUB.NEW_DATE }}" >> issue.md
+          echo "title: Update ChEBI - release on ${{ env.NEW_DATE }}" >> issue.md
           echo "assignees: tabbassidaloii" >> issue.md
           echo "---" >> issue.md
-          echo "[New release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${{ GITHUB.RELEASE }}/SDF/) available from ${{ GITHUB.NEW_DATE }}." >> issue.md
+          echo "[New release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${{ env.RELEASE }}/SDF/) available from ${{ env.NEW_DATE }}." >> issue.md
           echo ## Removed secondary IDs
-          echo $github.REMOVED
+          echo $env.REMOVED
           echo ## Added secondary IDs
-          echo $github.ADDED
+          echo $env.ADDED
       - uses: JasonEtco/create-an-issue@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -192,10 +192,10 @@ jobs:
       - uses: actions/checkout@v3
       - run: |
           echo "---" >> issue.md
-          echo "title: Failed ChEBI processing for release ${{ GITHUB.RELEASE }}" >> issue.md
+          echo "title: Failed ChEBI processing for release ${{ env.RELEASE }}" >> issue.md
           echo "assignees: tabbassidaloii" >> issue.md
           echo "---" >> issue.md
-          echo "Processing failed for the [new release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${{ GITHUB.RELEASE }}/SDF/) available from ${{ GITHUB.NEW_DATE }}." >> issue.md
+          echo "Processing failed for the [new release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${{ env.RELEASE }}/SDF/) available from ${{ env.NEW_DATE }}." >> issue.md
       - uses: JasonEtco/create-an-issue@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
