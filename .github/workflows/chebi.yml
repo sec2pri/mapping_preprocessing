@@ -161,7 +161,7 @@ jobs:
     needs: process_file
     name: Post issue about updating data
     runs-on: ubuntu-latest
-    if: if: contains(github.DOWNLOAD_FILE, 'true')
+    if: contains(github.DOWNLOAD_FILE, 'true')
     permissions:
       contents: read
       issues: write
@@ -185,7 +185,7 @@ jobs:
 
   post-issue-fail:
     needs: process_file
-    if: if: contains(github.FAILED, 'true')
+    if: contains(github.FAILED, 'true')
     name: Post issue about failed test
     runs-on: ubuntu-latest
     permissions:
