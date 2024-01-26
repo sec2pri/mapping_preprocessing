@@ -31,11 +31,11 @@ jobs:
           zenodo_file_id="8348142"
           file_name=$to_check_from_zenodo
           echo file name: $file_name
-          echo 'Dowloading from: https://zenodo.org/api/files/${zenodo_file_id}/${file_name}'
+          echo "Dowloading from: https://zenodo.org/api/files/${zenodo_file_id}/${file_name}"
           echo ZENODO_FILE_NAME=$file_name >>$GITHUB_ENV
           
           # Request Zenodo API to download the file
-          curl -H "Authorization: Bearer $zenodo_token" -LJO 'https://zenodo.org/api/files/${zenodo_file_id}/${file_name}'
+          curl -H "Authorization: Bearer $zenodo_token" -LJO "https://zenodo.org/api/files/${zenodo_file_id}/${file_name}"
           
           # Verify the downloaded file
           ls -l $FILE_NAME   
@@ -52,6 +52,7 @@ jobs:
           date_new=$(echo "$string" | grep -oP '<td align="right">\K[0-9-]+\s[0-9:]+(?=\s+</td>)' | awk '{print $1}')
           release=$(echo "$string" | grep -oP '(?<=a href="rel)\d\d\d')
           echo "RELEASE=$release" >>$GITHUB_ENV
+          echo "DATE_NEW=$date_new" >> $GITHUB_ENV
           ##Extract the date from the ChEBI README file 
           date_old=$date
           ##Compare the dates and set GITHUB_ENV variable if date_new is more recent
@@ -74,7 +75,7 @@ jobs:
   process_file:
     needs: check_release
     name: Download and test latest ChEBI release
-    if: github.DOWNLOAD_FILE == 'true'
+    if: ${{ github.DOWNLOAD_FILE }} == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Download data
@@ -166,10 +167,10 @@ jobs:
       - uses: actions/checkout@v3
       - run: |
           echo "---" >> issue.md
-          echo "title: Update ChEBI - release on ${{ env.NEW_DATE }}" >> issue.md
+          echo "title: Update ChEBI - release on ${{ env.DATE_NEW }}" >> issue.md
           echo "assignees: tabbassidaloii" >> issue.md
           echo "---" >> issue.md
-          echo "[New release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${{ env.RELEASE }}/SDF/) available from ${{ env.NEW_DATE }}." >> issue.md
+          echo "[New release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${{ env.RELEASE }}/SDF/) available from ${{ env.DATE_NEW }}." >> issue.md
           echo ## Removed secondary IDs
           echo $env.REMOVED
           echo ## Added secondary IDs
@@ -182,7 +183,7 @@ jobs:
 
   post-issue-fail:
     needs: process_file
-    if: github.FAILED == 'true'
+    if: $ {{ github.FAILED == 'true' }}
     name: Post issue about failed test
     runs-on: ubuntu-latest
     permissions:
@@ -195,7 +196,7 @@ jobs:
           echo "title: Failed ChEBI processing for release ${{ env.RELEASE }}" >> issue.md
           echo "assignees: tabbassidaloii" >> issue.md
           echo "---" >> issue.md
-          echo "Processing failed for the [new release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${{ env.RELEASE }}/SDF/) available from ${{ env.NEW_DATE }}." >> issue.md
+          echo "Processing failed for the [new release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${{ env.RELEASE }}/SDF/) available from ${{ env.DATE_NEW }}." >> issue.md
       - uses: JasonEtco/create-an-issue@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
