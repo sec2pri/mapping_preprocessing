@@ -25,7 +25,7 @@ jobs:
       # Download current version from Zenodo
       - name: Download file from Zenodo
         env:
-          zenodo_token: secrets.ZENODO }}
+          zenodo_token: ${{ secrets.ZENODO }}
         run: |
           # Set up variables
           chmod +x datasources/chebi/config
@@ -76,13 +76,13 @@ jobs:
   process_file:
     name: Download and test latest ChEBI release
     needs: check_release
-    if: github.DOWNLOAD_FILE  == 'true'
+    if: env.DOWNLOAD_FILE  == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Download data
         run: |
           ##Download ChEBI SDF file
-          wget https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel223/SDF/ChEBI_complete_3star.sdf.gz
+          wget https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${{ env.RELEASE }}/SDF/ChEBI_complete_3star.sdf.gz
           ##Unzip gz file:
           gunzip ChEBI_complete_3star.sdf.gz
 
@@ -160,7 +160,7 @@ jobs:
     needs: process_file
     name: Post issue about updating data
     runs-on: ubuntu-latest
-    if: github.DOWNLOAD_FILE == 'true'
+    if: env.DOWNLOAD_FILE == 'true'
     permissions:
       contents: read
       issues: write
@@ -184,7 +184,7 @@ jobs:
 
   post-issue-fail:
     needs: process_file
-    if: github.FAILED == 'true'
+    if: env.FAILED == 'true'
     name: Post issue about failed test
     runs-on: ubuntu-latest
     permissions:
