@@ -18,28 +18,25 @@ jobs:
 
     steps:
       # checkout the repository
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Download GitHub repo
+        uses: actions/checkout@v3
       # Download current version from Zenodo
       - name: Download file from Zenodo
         env:
           zenodo_token: ${{ secrets.ZENODO }}
         run: |
-          # Set up variables
-          chmod +x datasources/chebi/config
           datasources/chebi/config .
           zenodo_file_id="8348142"
+
           file_name=$to_check_from_zenodo
-          echo 'Dowloading from: https://zenodo.org/api/files/$zenodo_file_id/$file_name'
           echo ZENODO_FILE_NAME=$file_name >>$GITHUB_ENV
-          
           # Request Zenodo API to download the file
           curl -H "Authorization: Bearer $zenodo_token" -LJO https://zenodo.org/api/files/$zenodo_file_id/$file_name
           
           # Verify the downloaded file
           ls -l $FILE_NAME   
       # check the release date for the latest ChEBI release
-      - name: Check for new ChEBI release
+      - name: Check date
         run: |
 
           wget https://ftp.ebi.ac.uk/pub/databases/chebi/archive/
@@ -71,7 +68,7 @@ jobs:
 
   process_file:
     needs: check_release
-    name: Download and test latest ChEBI release
+    name: Download release
     if: github.DOWNLOAD_FILE == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -181,7 +178,7 @@ jobs:
   post-issue-fail:
     needs: process_file
     if: github.FAILED == 'true'
-    name: Post issue about failed test
+    name: Post issue about failed processing
     runs-on: ubuntu-latest
     permissions:
       contents: read
