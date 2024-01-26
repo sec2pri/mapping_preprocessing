@@ -31,14 +31,13 @@ jobs:
           zenodo_file_id="8348142"
           file_name=$to_check_from_zenodo
           echo file name: $file_name
-          echo "Dowloading from: https://zenodo.org/api/files/${zenodo_file_id}/${file_name}"
+          echo 'Dowloading from: https://zenodo.org/api/files/${zenodo_file_id}/${file_name}'
           echo ZENODO_FILE_NAME=$file_name >>$GITHUB_ENV
           
           # Request Zenodo API to download the file
-          curl -H "Authorization: Bearer $zenodo_token" -LJO "https://zenodo.org/api/files/$zenodo_file_id/$file_name"
-          
+          curl -H "Authorization: Bearer $zenodo_token" -LJO 'https://zenodo.org/api/files/${zenodo_file_id}/${file_name}'          
           # Verify the downloaded file
-          ls -l $FILE_NAME   
+          ls -l $file_name   
       # check the release date for the latest ChEBI release
       - name: Check for new ChEBI release
         run: |
