@@ -66,12 +66,12 @@ jobs:
           echo $timestamp2
           if [ "$timestamp1" -gt "$timestamp2" ]; then
             echo "DOWNLOAD_FILE=true" >> $GITHUB_ENV
-            echo 'New release rel($release) available'
+            echo 'New release (rel${release}) available'
           else
             echo "DOWNLOAD_FILE=false" >> $GITHUB_ENV
             echo 'No new release available'
           fi
-          echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
+          echo "Date of latest release: $date_new", "Date of release of the current version: $date_old", "Download: ${{ github.DOWNLOAD_FILE }}
           ##Clean up
           rm index.htm*
 
