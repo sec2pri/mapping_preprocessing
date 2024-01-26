@@ -34,7 +34,7 @@ jobs:
           file_name=$to_check_from_zenodo
           echo file name: $file_name
           echo 'Dowloading from: https://zenodo.org/api/files/${zenodo_file_id}/${file_name}'
-          echo ZENODO_FILE_NAME=$file_name >>$GITHUB_OUTPUT
+          echo ZENODO_FILE_NAME=$file_name >>$GITHUB_ENV
           
           # Request Zenodo API to download the file
           curl -H "Authorization: Bearer $zenodo_token" -LJO 'https://zenodo.org/api/files/${zenodo_file_id}/${file_name}'          
@@ -53,19 +53,19 @@ jobs:
           ##Extract the date from the latest release (up to the day)
           date_new=$(echo "$string" | grep -oP '<td align="right">\K[0-9-]+\s[0-9:]+(?=\s+</td>)' | awk '{print $1}')
           release=$(echo "$string" | grep -oP '(?<=a href="rel)\d\d\d')
-          echo "RELEASE=$release" >>$GITHUB_OUTPUT
-          echo "DATE_NEW=$date_new" >> $GITHUB_OUTPUT
+          echo "RELEASE=$release" >>$GITHUB_ENV
+          echo "DATE_NEW=$date_new" >> $GITHUB_ENV
           ##Extract the date from the ChEBI README file 
           date_old=$date
-          ##Compare the dates and set GITHUB_OUTPUT variable if date_new is more recent
+          ##Compare the dates and set GITHUB_ENV variable if date_new is more recent
           timestamp1=$(date -d "$date_new" +%s)
           timestamp2=$(date -d "$date_old" +%s)
 
           if [ "$timestamp1" -gt "$timestamp2" ]; then
-            echo "DOWNLOAD_FILE=true" >>$GITHUB_OUTPUT
+            echo "DOWNLOAD_FILE=true" >>$GITHUB_ENV
             echo 'New release available', "$release"
           else
-            echo "DOWNLOAD_FILE=false" >>$GITHUB_OUTPUT
+            echo "DOWNLOAD_FILE=false" >>$GITHUB_ENV
             echo 'No new release available'
           fi
           echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
@@ -77,13 +77,13 @@ jobs:
   process_file:
     name: Download and test latest ChEBI release
     needs: check_release
-    # if: contains(needs.check_release.outputs.DOWNLOAD_FILE, 'true')
+    # if: contains(github.DOWNLOAD_FILE, 'true')
     runs-on: ubuntu-latest
     steps:
       - name: Download data
         run: |
           ##Download ChEBI SDF file
-          wget https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${{ needs.check_release.RELEASE }}/SDF/ChEBI_complete_3star.sdf.gz
+          wget https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${{ env.RELEASE }}/SDF/ChEBI_complete_3star.sdf.gz
           ##Unzip gz file:
           gunzip ChEBI_complete_3star.sdf.gz
 
@@ -127,11 +127,11 @@ jobs:
           if [ $? -eq 0 ]; then
               # Java program succeeded
               echo "Java preprocessing of ChEBI data is done."
-              echo "FAILED=false" >>$GITHUB_OUTPUT
+              echo "FAILED=false" >>$GITHUB_ENV
           else
               # Java program failed
               echo "Java preprocessing of ChEBI data failed."
-              echo "FAILED=true" >>$GITHUB_OUTPUT
+              echo "FAILED=true" >>$GITHUB_ENV
           fi
 
       - name: Diff versions
@@ -144,24 +144,24 @@ jobs:
           ids_new=$(cut -f 2 "$new" | sort | tr -d "\r")
 
           # Perform a diff between the sorted lists of secondaryIDs
-          diff_output=$(diff -u <(echo "$ids_old") <(echo "$ids_new"))
+          diff_ENV=$(diff -u <(echo "$ids_old") <(echo "$ids_new"))
 
 
           # Store the output
-          output_file="diff_output.txt"
+          output_file="diff_ENV.txt"
           # Additions
           added=$(grep '^+CHEBI' "$output_file")
-          echo ADDED=$added >>$GITHUB_OUTPUT
+          echo ADDED=$added >>$GITHUB_ENV
           # Removals
           removed=$(grep '^-CHEBI' "$output_file")
 
-          echo REMOVED=$removed >>$GITHUB_OUTPUT
+          echo REMOVED=$removed >>$GITHUB_ENV
 
   post-issue_update:
     needs: process_file
     name: Post issue about updating data
     runs-on: ubuntu-latest
-    if: contains(needs.check_release.outputs.DOWNLOAD_FILE, 'true')
+    if: if: contains(github.DOWNLOAD_FILE, 'true')
     permissions:
       contents: read
       issues: write
@@ -185,7 +185,7 @@ jobs:
 
   post-issue-fail:
     needs: process_file
-    if: contains(needs.process_file.outputs.FAILED, 'true')
+    if: if: contains(github.FAILED, 'true')
     name: Post issue about failed test
     runs-on: ubuntu-latest
     permissions:
