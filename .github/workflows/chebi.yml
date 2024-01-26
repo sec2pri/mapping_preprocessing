@@ -60,7 +60,7 @@ jobs:
 
           if [ "$timestamp1" -gt "$timestamp2" ]; then
             echo "DOWNLOAD_FILE=true" >> $GITHUB_ENV
-            echo 'New release available', '${ release}
+            echo 'New release available', '${ release}'
           else
             echo "DOWNLOAD_FILE=false" >> $GITHUB_ENV
             echo 'No new release available'
