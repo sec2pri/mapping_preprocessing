@@ -30,6 +30,7 @@ jobs:
           datasources/chebi/config .
           zenodo_file_id="8348142"
           file_name=$to_check_from_zenodo
+          echo 'Dowloading from: https://zenodo.org/api/files/$zenodo_file_id/$file_name'
           echo ZENODO_FILE_NAME=$file_name >>$GITHUB_ENV
           
           # Request Zenodo API to download the file
