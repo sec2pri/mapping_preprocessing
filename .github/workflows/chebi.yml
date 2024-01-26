@@ -83,7 +83,7 @@ jobs:
       - name: Download data
         run: |
           ##Download ChEBI SDF file
-          wget https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${{ env.RELEASE }}/SDF/ChEBI_complete_3star.sdf.gz
+          wget https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${{ github.RELEASE }}/SDF/ChEBI_complete_3star.sdf.gz
           ##Unzip gz file:
           gunzip ChEBI_complete_3star.sdf.gz
 
@@ -136,8 +136,8 @@ jobs:
 
       - name: Diff versions
         run: |
-          old=${{ env.ZENODO_FILE_NAME }}
-          new=mapping_preprocessing/datasources/chebi/data/${{ env.ZENODO_FILE_NAME }}
+          old=${{ github.ZENODO_FILE_NAME }}
+          new=mapping_preprocessing/datasources/chebi/data/${{ github.ZENODO_FILE_NAME }}
           column_name="secondaryID"
           # Extract the secondaryID column from both files and sort them
           ids_old=$(cut -f 2 "$old" | sort | tr -d "\r")
@@ -172,11 +172,11 @@ jobs:
           echo "title: Update ChEBI - release on github.DATE_NEW }}" >> issue.md
           echo "assignees: tabbassidaloii" >> issue.md
           echo "---" >> issue.md
-          echo "[New release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${{ env.RELEASE }}/SDF/) available from ${{ env.DATE_NEW }}." >> issue.md
+          echo "[New release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${{ github.RELEASE }}/SDF/) available from ${{ github.DATE_NEW }}." >> issue.md
           echo ## Removed secondary IDs
-          echo ${{ env.REMOVED }}
+          echo ${{ github.REMOVED }}
           echo ## Added secondary IDs
-          echo ${{ env.ADDED }}
+          echo ${{ github.ADDED }}
       - uses: JasonEtco/create-an-issue@v2
         env:
           GITHUB_TOKEN: secrets.GITHUB_TOKEN }}
@@ -195,10 +195,10 @@ jobs:
       - uses: actions/checkout@v3
       - run: |
           echo "---" >> issue.md
-          echo "title: Failed ChEBI processing for release ${{ env.RELEASE }}" >> issue.md
+          echo "title: Failed ChEBI processing for release ${{ github.RELEASE }}" >> issue.md
           echo "assignees: tabbassidaloii" >> issue.md
           echo "---" >> issue.md
-          echo "Processing failed for the [new release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${{ env.RELEASE }}/SDF/) available from github.DATE_NEW }}." >> issue.md
+          echo "Processing failed for the [new release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${{ github.RELEASE }}/SDF/) available from github.DATE_NEW }}." >> issue.md
       - uses: JasonEtco/create-an-issue@v2
         env:
           GITHUB_TOKEN: secrets.GITHUB_TOKEN }}
