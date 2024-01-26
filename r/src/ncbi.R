@@ -9,10 +9,15 @@ if(!"dplyr" %in% installed.packages()) {
 }
 library(dplyr)
 
+# Retrieve command-line arguments
+args <- commandArgs(trailingOnly = TRUE)
+
 # Set variables
-sourceName <- "ncbi"
-sourceVersion <- "2023-08-14"
-inputDir <- "mapping_preprocessing/datasources"
+sourceName = "ncbi"
+sourceVersion = args[1]
+gene_history = args[2]
+gene_info = args[3]
+inputDir = "mapping_preprocessing/datasources"
 
 # Create output directory
 outputDir <- paste0("mapping_preprocessing/datasources/", sourceName, "/data")
@@ -26,7 +31,7 @@ dir.create(outputDir, showWarnings = FALSE)
 # download(fileUrl, paste(inputDir, sourceName, "gene_info.gz", sep = "/"), mode = "wb")
 
 # Read the file that includes the withdrawn ids
-ncbiWDN <- data.table::fread(paste(inputDir, sourceName, paste0("gene_history_human_mice_", sourceVersion), sep = "/"), sep = "\t") %>% 
+ncbiWDN <- data.table::fread(paste(inputDir, sourceName, gene_history, sep = "/"), sep = "\t") %>% 
   dplyr::filter(`#tax_id` == 9606) %>% #focusing on human
   dplyr::rename(primaryID = GeneID,
                 secondaryID	= Discontinued_GeneID,
@@ -73,13 +78,13 @@ ncbiWDN <- ncbiWDN %>%
                                  " Release: ", sourceVersion, "."))
 
 # Read the file that includes the gene info
-ncbi <- data.table::fread(paste(inputDir, sourceName, paste0("gene_info_human_mice_", sourceVersion), sep = "/"), sep = "\t") %>%
+ncbi <- data.table::fread(paste(inputDir, sourceName, gene_info, sep = "/"), sep = "\t") %>%
   dplyr::filter(`#tax_id` == 9606) %>% #focusing on human
   dplyr::mutate(Symbol_from_nomenclature_authority = ifelse(Symbol_from_nomenclature_authority == Symbol, "-", Symbol_from_nomenclature_authority),
                 Symbol = ifelse(Symbol_from_nomenclature_authority == "-", Symbol, paste0(Symbol, "|", Symbol_from_nomenclature_authority))) %>%
   dplyr::rename(primaryID = GeneID, primarySymbol = Symbol, secondarySymbol = Synonyms)
 
-# Genes with diffrent symbols in HGNC
+# Genes with different symbols in HGNC
 nomenclature_symbol <- setdiff(unique(ncbi$Symbol_from_nomenclature_authority), "-")
 
 ncbi <- ncbi %>%
