@@ -100,7 +100,7 @@ jobs:
           chmod +x check_release_vars/config
           check_release_vars/config .
           ##Download ChEBI SDF file
-          wget https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel"${{ RELEASE }}"/SDF/ChEBI_complete_3star.sdf.gz
+          wget https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel"$RELEASE"/SDF/ChEBI_complete_3star.sdf.gz
           ##Unzip gz file:
           gunzip ChEBI_complete_3star.sdf.gz
 
