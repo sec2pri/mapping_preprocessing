@@ -11,96 +11,66 @@ permissions:
   contents: write
   pages: write
   id-token: write
+
+
 jobs:
-  check_release:
+  check_new_release:
     runs-on: ubuntu-latest
     name: Check latest release date
+    outputs:
+      release_number: ${{ steps.check_download.outputs.release_number }}
+      new_release: ${{ steps.check_download.outputs.new_release }}
     steps:
       # checkout the repository
       - name: Checkout
         uses: actions/checkout@v4
-      # Download current version from Zenodo
-      - name: Download file from Zenodo
-        env:
-          zenodo_token: ${{ secrets.ZENODO }}
-        run: |
-          mkdir artifact_check
-          cd artifact_check
-          mkdir check_release_vars
-          cd ../
-          # Set up variables
-          chmod +x datasources/chebi/config
-          datasources/chebi/config .
-          zenodo_file_id="8348142"
-          file_name=$to_check_from_zenodo
-          echo file name: $file_name
-          echo 'Dowloading from: https://zenodo.org/api/files/${zenodo_file_id}/${file_name}'
-          mkdir check_release_vars
-          #echo "FILE_NAME=$file_name" >> artifact_check/check_release_vars/config
-          
-          # Request Zenodo API to download the file
-          curl -H "Authorization: Bearer $zenodo_token" -LJO 'https://zenodo.org/api/files/${zenodo_file_id}/${file_name}'          
-          # Verify the downloaded file
-          ls -l $file_name   
       # check the release date for the latest ChEBI release
       - name: Check for new ChEBI release
         id: check_download
         run: |
-          echo 'Accessing the ChEBI archive'
-          wget https://ftp.ebi.ac.uk/pub/databases/chebi/archive/
           ## Read config
           . datasources/chebi/config .
+          echo 'Accessing the ChEBI archive'
+          wget https://ftp.ebi.ac.uk/pub/databases/chebi/archive/
           ## Check date for last element in index
-          string=$(tail -4 index.html | head -1)
           ##Extract the date from the latest release (up to the day)
-          date_new=$(echo "$string" | grep -oP '<td align="right">\K[0-9-]+\s[0-9:]+(?=\s+</td>)' | awk '{print $1}')
-          release=$(echo "$string" | grep -oP '(?<=a href="rel)\d\d\d')
-          echo "RELEASE=$release" >> artifact_check/check_release_vars/config
-          echo "DATE_NEW=$date_new" >> artifact_check/check_release_vars/config
+          date_new=$(tail -4 chebi_index.html | head -1 | grep -oP '<td align="right">\K[0-9-]+\s[0-9:]+(?=\s+</td>)' | awk '{print $1}')
+          release=$(tail -4 chebi_index.html | head -1 | grep -oP '(?<=a href="rel)\d\d\d')
+          echo "release=$release" >> "$GITHUB_OUTPUT"
           ##Extract the date from the ChEBI README file 
           date_old=$date
           ##Compare the dates and set variable if date_new is more recent
           timestamp1=$(date -d "$date_new" +%s)
           timestamp2=$(date -d "$date_old" +%s)
-
           if [ "$timestamp1" -gt "$timestamp2" ]; then
-            echo "DOWNLOAD_FILE=true" >> artifact_check/check_release_vars/config
             echo 'New release available', "$release"
+            echo "new_release=true" > "$GITHUB_OUTPUT"
           else
-            echo "DOWNLOAD_FILE=false" >> artifact_check/check_release_vars/config
             echo 'No new release available'
+            echo "new_release=false" > "$GITHUB_OUTPUT"
           fi
           echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
           ##Clean up
           rm index.htm*
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: check_release_vars
-          path: artifact_check/*
+      
 
-  process_file:
-    name: Download and test latest ChEBI release
-    needs: check_release
+  test_sdf_processing:
+    name: Download and test SDF processing for the latest release
+    needs: check_new_release
+    outputs:
+      release_number: ${{ steps.sdf_process.outputs.failed_processing }}
     runs-on: ubuntu-latest
+    #https://stackoverflow.com/a/77876572
+    if: contains(needs.check_new_release.outputs.new_release, 'true') 
     steps:
-      - name: Download check_release_vars artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: check_release_vars
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Download SDF for new release
         env:
-          zenodo_token: ${{ secrets.ZENODO }}
-      - name: Download data
+          release_number: ${{ needs.check_new_release.outputs.release_number }}
         run: |
-          mkdir artifact_process
-          cd artifact_process
-          mkdir process_file
-          cd ../
-          ## Retrieve vars
-          chmod +x check_release_vars/config
-          check_release_vars/config .
           ##Download ChEBI SDF file
-          wget https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel"$RELEASE"/SDF/ChEBI_complete_3star.sdf.gz
+          wget https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel"$release_number"/SDF/ChEBI_complete_3star.sdf.gz
           ##Unzip gz file:
           gunzip ChEBI_complete_3star.sdf.gz
 
@@ -115,73 +85,75 @@ jobs:
           mkdir -p mapping_preprocessing/datasources/chebi/data
           ##Move the SDF file to the expected location
           mv ChEBI_complete_3star.sdf mapping_preprocessing/datasources/chebi/data
-          
-     # step 3: run the R script for ChEBI preprocessing (to be made into a separate job)
-      - name: Run R script to process SDF data
-        run: |
-          ##Check R version:
-          R --version
-          ##Install the readr package:
-          #Rscript -e 'install.packages("readr")'
-          ##Running the R script:
-          #Rscript r/chebi_processing.R
-          #echo "R preprocessing of ChEBI data is done"
-     # step 4: run the Java .jar for ChEBI preprocessing (to be made into a separate job)
+
+     # step 4: run the Java .jar for ChEBI preprocessing 
       - name: Set up Java
         uses: actions/setup-java@v2
         with:
           java-version: '11'
           distribution: 'adopt'
-
+      # Download current version from Zenodo
+      - name: Download current mapping file from Zenodo
+        id: download
+        env:
+          zenodo_token: ${{ secrets.ZENODO }}
+        run: |
+          # Set up zenodo_file_id and file_name variables from config file
+          chmod +x datasources/chebi/config
+          datasources/chebi/config .
+          file_name=$to_check_from_zenodo
+          echo file name: $file_name
+          echo 'Dowloading from: https://zenodo.org/api/files/${zenodo_file_id}/${file_name}'
+          # Request Zenodo API to download the file
+          curl -H "Authorization: Bearer $zenodo_token" -LJO 'https://zenodo.org/api/files/${zenodo_file_id}/${file_name}'   
+          mv $file_name mapping_preprocessing/datasources/chebi/data/       
       - name: Test SDF processing
+        id: sdf_process
         run: |
           inputFile="mapping_preprocessing/datasources/chebi/data/ChEBI_complete_3star.sdf"
-          outputDir="mapping_preprocessing/datasources/chebi/data"
+          outputDir="mapping_preprocessing/datasources/chebi/data/"
           # Run Java program and capture its exit code
           java -cp target/mapping_prerocessing-0.0.1-jar-with-dependencies.jar org.sec2pri.chebi_sdf "$inputFile" "$outputDir"
-
           # Check the exit status of the Java program
           if [ $? -eq 0 ]; then
               # Java program succeeded
               echo "Java preprocessing of ChEBI data is done."
-              echo "FAILED=false" >> artifact_process/process_file_vars/config
+              echo "failed_processing=false" >> "$GITHUB_OUTPUT"
+              #TODO echo "FAILED=false" to job output
           else
               # Java program failed
               echo "Java preprocessing of ChEBI data failed."
-              echo "FAILED=true" >> artifact_process/process_file_vars/config
+              echo "failed_processing=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Diff versions
         run: |
-          chmod +x check_release_vars/config
-          check_release_vars/config .
-          old=$FILE_NAME
-          new=mapping_preprocessing/datasources/chebi/data/$FILE_NAME
+          TODO old=mapping_preprocessing/datasources/chebi/data/ChEBI_secID2priID.tsv"
+          new="mapping_preprocessing/datasources/chebi/data/new/ChEBI_secID2priID.tsv"
           column_name="secondaryID"
           # Extract the secondaryID column from both files and sort them
           ids_old=$(cut -f 2 "$old" | sort | tr -d "\r")
           ids_new=$(cut -f 2 "$new" | sort | tr -d "\r")
-
           # Perform a diff between the sorted lists of secondaryIDs
           diff_ENV=$(diff -u <(echo "$ids_old") <(echo "$ids_new"))
-
-
           # Store the output
           output_file="diff_ENV.txt"
           # Additions
-          added=$(grep '^+CHEBI' "$output_file")
-          echo "ADDED=$added" >> artifact_process/process_file_vars/config
+          ADDED=$(grep '^+CHEBI' "$output_file")
+          #TODO echo "added=$ADDED" to job output
           # Removals
-          removed=$(grep '^-CHEBI' "$output_file")
-          echo "removed=$REMOVED" >> artifact_process/process_file_vars/config
+          REMOVED=$(grep '^-CHEBI' "$output_file")
+          #TODO echo "removed=$REMOVED" to job output
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: process_file_vars
+          name: test_sdf_processing_vars
           path: artifact_process/*
+
   post-issue_update:
-    needs: process_file
+    needs: [test_sdf_processing, check_new_release]
     name: Post issue about updating data
+    if: contains(needs.check_new_release.outputs.new_release, 'true') 
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -191,21 +163,23 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: check_release_vars
-      - name: Download process_file_vars artifact
+      - name: Download test_sdf_processing_vars artifact
         uses: actions/download-artifact@v4
         with:
-          name: process_file_vars
+          name: test_sdf_processing_vars
       - uses: actions/checkout@v4
       - run: |
           ## Retrieve vars
           chmod +x check_release_vars/config
           check_release_vars/config .
-          chmod +x process_file_vars/config
-          process_file_vars/config .
+          #TODO retrieve output from last job
+          # RELEASE=
+          chmod +x test_sdf_processing_vars/config
+          test_sdf_processing_vars/config .
           if [ "$DOWNLOAD_FILE" = true ]; then
             echo "---" >> issue.md
             echo "title: Update ChEBI - release on $DATE_NEW }}" >> issue.md
-            echo "assignees: tabbassidaloii" >> issue.md
+            echo "assignees: @tabbassidaloii" >> issue.md
             echo "---" >> issue.md
             echo "[New release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel$RELEASE/SDF/) available from $DATE_NEW." >> issue.md
             echo ## Removed secondary IDs
@@ -220,7 +194,8 @@ jobs:
           filename: issue.md
 
   post-issue-fail:
-    needs: process_file
+    needs: test_sdf_processing
+    if: contains(needs.test_sdf_processing.outputs.failed_processing, 'true') 
     name: Post issue about failed test
     runs-on: ubuntu-latest
     permissions:
@@ -232,23 +207,20 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: check_release_vars
-      - name: Download process_file_vars artifact
+      - name: Download test_sdf_processing_vars artifact
         uses: actions/download-artifact@v4
         with:
-          name: process_file_vars
-      - name: Set environment variables
+          name: test_sdf_processing_vars
+      - name: Create issue
+        env:
+          release_number: ${{ needs.check_new_release.outputs.release_number }}
         run: |
-          ## Retrieve vars
-          chmod +x check_release_vars/config
-          check_release_vars/config .
-          chmod +x process_file_vars/config
-          process_file_vars/config .
           if [ "$FAILED" = true ]; then
             echo "---" >> issue.md
             echo "title: Failed ChEBI processing for release $RELEASE" >> issue.md
-            echo "assignees: tabbassidaloii" >> issue.md
+            echo "assignees: @tabbassidaloii" >> issue.md
             echo "---" >> issue.md
-            echo "Processing failed for the [new release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel$RELEASE/SDF/) available from $DATE_NEW }}." >> issue.md
+            echo "Processing failed for the [new release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel$release_number/SDF/) available." >> issue.md
           fi
       - uses: JasonEtco/create-an-issue@v2
         env:
