@@ -51,7 +51,7 @@ jobs:
           fi
           echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
           ##Clean up
-          rm index.htm*
+          rm chebi_index.html
       
 
   test_sdf_processing:
