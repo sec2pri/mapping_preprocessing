@@ -70,7 +70,7 @@ jobs:
           echo $RELEASE_NUMBER
           wget "https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${RELEASE_NUMBER}/SDF/ChEBI_complete_3star.sdf.gz"
           ##Unzip gz file:
-          gunzip ChEBI_complete_3star.sdf.gz
+          gunzip ChEBI_complete_3star.sdf.gz #TODO replace by config var
 
           ##Check file size if available
           ls
@@ -81,8 +81,6 @@ jobs:
 
           ##Create temp. folder to store the data in
           mkdir -p mapping_preprocessing/datasources/chebi/data
-          ##Move the SDF file to the expected location
-          mv ChEBI_complete_3star.sdf mapping_preprocessing/datasources/chebi/data/ChEBI_complete_3star.sdf
 
      # step 4: run the Java .jar for ChEBI preprocessing 
       - name: Set up Java
@@ -108,7 +106,7 @@ jobs:
       - name: Test SDF processing
         id: sdf_process
         run: |
-          inputFile="mapping_preprocessing/datasources/chebi/data/ChEBI_complete_3star.sdf"
+          inputFile="ChEBI_complete_3star.sdf" #TODO replace by config var
           outputDir="mapping_preprocessing/datasources/chebi/data/"
           # Run Java program and capture its exit code
           java -cp target/mapping_prerocessing-0.0.1-jar-with-dependencies.jar org.sec2pri.chebi_sdf "$inputFile" "$outputDir"
