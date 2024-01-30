@@ -108,7 +108,7 @@ jobs:
           inputFile="ChEBI_complete_3star.sdf" 
           outputDir="new/ChEBI_complete_3star.sdf"
           # Run Java program and capture its exit code
-          java -cp target/mapping_prerocessing-0.0.1-jar-with-dependencies.jar org.sec2pri.chebi_sdf "$inputFile" "$outputDir"
+          java -cp java/target/mapping_prerocessing-0.0.1-jar-with-dependencies.jar org.sec2pri.chebi_sdf "$inputFile" "$outputDir"
           # Check the exit status of the Java program
           if [ $? -eq 0 ]; then
               # Java program succeeded
