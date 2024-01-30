@@ -51,16 +51,18 @@ jobs:
           echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
           ##Clean up
           rm chebi_index.html
+          $GITHUB_OUTPUT > test_output.txt
+          cat test_output.txt
           
 
 
   test_sdf_processing:
     name: Test release
+    if: needs.check_new_release.outputs.NEW_RELEASE
     needs: check_new_release
     env:
       RELEASE_NUMBER: ${{ needs.check_new_release.outputs.RELEASE_NUMBER }}
     runs-on: ubuntu-latest
-    if: needs.check_new_release.outputs.NEW_RELEASE == true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
