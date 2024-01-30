@@ -82,7 +82,7 @@ jobs:
           ##Create temp. folder to store the data in
           mkdir -p mapping_preprocessing/datasources/chebi/data
           ##Move the SDF file to the expected location
-          mv ChEBI_complete_3star.sdf mapping_preprocessing/datasources/chebi/data
+          mv ChEBI_complete_3star.sdf mapping_preprocessing/datasources/chebi/data/ChEBI_complete_3star.sdf
 
      # step 4: run the Java .jar for ChEBI preprocessing 
       - name: Set up Java
