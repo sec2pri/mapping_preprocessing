@@ -36,7 +36,8 @@ jobs:
           ##Extract the date from the latest release (up to the day)
           date_new=$(tail -4 chebi_index.html | head -1 | grep -oP '<td align="right">\K[0-9-]+\s[0-9:]+(?=\s+</td>)' | awk '{print $1}')
           release=$(tail -4 chebi_index.html | head -1 | grep -oP '(?<=a href="rel)\d\d\d')
-          echo "release=$release" >> "$GITHUB_OUTPUT"
+          echo "release_number=$release" >> "$GITHUB_OUTPUT"
+          echo "::set-output name=release_number::${{ env.release_number }}"
           ##Extract the date from the ChEBI README file 
           date_old=$date
           ##Compare the dates and set variable if date_new is more recent
@@ -70,7 +71,6 @@ jobs:
           release_number: ${{ needs.check_new_release.outputs.release_number }}
         run: |
           ##Download ChEBI SDF file
-          release_number="${{ needs.check_new_release.outputs.release_number }}"
           echo $release_number
           wget "https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${release_number}/SDF/ChEBI_complete_3star.sdf.gz"
           ##Unzip gz file:
