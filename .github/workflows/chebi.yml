@@ -168,7 +168,7 @@ jobs:
         with:
           filename: issue.md    
       - name: Create issue about failing test
-        if: FAILED
+        if: $FAILED
         env:
           RELEASE_NUMBER: ${{ needs.check_new_release.outputs.RELEASE_NUMBER }}
         run: |
