@@ -44,7 +44,7 @@ jobs:
           timestamp2=$(date -d "$date_old" +%s)
           if [ "$timestamp1" -gt "$timestamp2" ]; then
             echo 'New release available', "$release"
-            echo "new_release=true" >> $GITHUB_OUTPUT
+            echo "NEW_RELEASE=true" >> $GITHUB_OUTPUT
           else
             echo 'No new release available'
           fi
@@ -60,7 +60,7 @@ jobs:
     env:
       RELEASE_NUMBER: ${{ needs.check_new_release.outputs.RELEASE_NUMBER }}
     runs-on: ubuntu-latest
-    if: needs.check_new_release.outputs.new_release 
+    if: needs.check_new_release.outputs.NEW_RELEASE 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -116,6 +116,7 @@ jobs:
           if [ $? -eq 0 ]; then
               # Java program succeeded
               echo "Java preprocessing of ChEBI data is done."
+              echo "FAILED=false" >> $GITHUB_ENV
           else
               # Java program failed
               echo "Java preprocessing of ChEBI data failed."
@@ -123,6 +124,8 @@ jobs:
           fi
 
       - name: Diff versions
+        if:
+          env.FAILED == "false"
         run: |
           old=mapping_preprocessing/datasources/chebi/data/ChEBI_secID2priID.tsv"
           new="mapping_preprocessing/datasources/chebi/data/new/ChEBI_secID2priID.tsv"
