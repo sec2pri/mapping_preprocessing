@@ -148,7 +148,7 @@ jobs:
 
             echo "---" >> issue.md
             echo "title: Update ChEBI - release on $DATE_NEW }}" >> issue.md
-            echo "assignees: @tabbassidaloii" >> issue.md
+            echo "assignees: tabbassidaloii" >> issue.md
             echo "---" >> issue.md
             echo "[New release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel$RELEASE/SDF/) available from $DATE_NEW." >> issue.md
             echo ## Removed secondary IDs
@@ -172,7 +172,7 @@ jobs:
         run: |
             echo "---" >> issue.md
             echo "title: Failed ChEBI processing for release $RELEASE" >> issue.md
-            echo "assignees: @tabbassidaloii" >> issue.md
+            echo "assignees: tabbassidaloii" >> issue.md
             echo "---" >> issue.md
             echo "Processing failed for the [new release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel$RELEASE_NUMBER/SDF/) available." >> issue.md
       - uses: JasonEtco/create-an-issue@v2
