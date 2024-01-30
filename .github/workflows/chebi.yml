@@ -60,7 +60,7 @@ jobs:
     env:
       RELEASE_NUMBER: ${{ needs.check_new_release.outputs.RELEASE_NUMBER }}
     runs-on: ubuntu-latest
-    if: needs.check_new_release.outputs.NEW_RELEASE 
+    if: needs.check_new_release.outputs.NEW_RELEASE == true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
