@@ -18,8 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Check latest release date
     outputs:
-      release_number: ${{ steps.check_download.outputs.release_number }}
-      new_release: ${{ steps.check_download.outputs.new_release }}
+      RELEASE_NUMBER: ${{ steps.check_download.outputs.RELEASE_NUMBER }}
     steps:
       # checkout the repository
       - name: Checkout
@@ -36,8 +35,8 @@ jobs:
           ##Extract the date from the latest release (up to the day)
           date_new=$(tail -4 chebi_index.html | head -1 | grep -oP '<td align="right">\K[0-9-]+\s[0-9:]+(?=\s+</td>)' | awk '{print $1}')
           release=$(tail -4 chebi_index.html | head -1 | grep -oP '(?<=a href="rel)\d\d\d')
-          echo "release_number=$release" >> "$GITHUB_OUTPUT"
-          echo "::set-output name=release_number::${{ env.release_number }}"
+          #https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-an-output-parameter
+          echo "RELEASE_NUMBER=$release" >> $GITHUB_OUTPUT
           ##Extract the date from the ChEBI README file 
           date_old=$date
           ##Compare the dates and set variable if date_new is more recent
@@ -45,34 +44,34 @@ jobs:
           timestamp2=$(date -d "$date_old" +%s)
           if [ "$timestamp1" -gt "$timestamp2" ]; then
             echo 'New release available', "$release"
-            echo "new_release=true" > "$GITHUB_OUTPUT"
+            echo "new_release=true" >> $GITHUB_ENV
           else
             echo 'No new release available'
-            echo "new_release=false" > "$GITHUB_OUTPUT"
+            echo "new_release=false" >> $GITHUB_ENV
           fi
           echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
           ##Clean up
           rm chebi_index.html
-      
+          
+
 
   test_sdf_processing:
     name: Download and test SDF processing for the latest release
     needs: check_new_release
     outputs:
-      release_number: ${{ steps.sdf_process.outputs.failed_processing }}
+      FAILED: ${{ steps.sdf_process.outputs.FAILED }}
+    env:
+      RELEASE_NUMBER: ${{ needs.check_new_release.outputs.RELEASE_NUMBER }}
     runs-on: ubuntu-latest
-    #https://stackoverflow.com/a/77876572
     if: contains(needs.check_new_release.outputs.new_release, 'true') 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Download SDF for new release
-        env:
-          release_number: ${{ needs.check_new_release.outputs.release_number }}
         run: |
           ##Download ChEBI SDF file
-          echo $release_number
-          wget "https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${release_number}/SDF/ChEBI_complete_3star.sdf.gz"
+          echo $RELEASE_NUMBER
+          wget "https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${RELEASE_NUMBER}/SDF/ChEBI_complete_3star.sdf.gz"
           ##Unzip gz file:
           gunzip ChEBI_complete_3star.sdf.gz
 
@@ -120,17 +119,15 @@ jobs:
           if [ $? -eq 0 ]; then
               # Java program succeeded
               echo "Java preprocessing of ChEBI data is done."
-              echo "failed_processing=false" >> "$GITHUB_OUTPUT"
-              #TODO echo "FAILED=false" to job output
           else
               # Java program failed
               echo "Java preprocessing of ChEBI data failed."
-              echo "failed_processing=true" >> "$GITHUB_OUTPUT"
+              echo "FAILED=true" >> $GITHUB_ENV
           fi
 
       - name: Diff versions
         run: |
-          TODO old=mapping_preprocessing/datasources/chebi/data/ChEBI_secID2priID.tsv"
+          old=mapping_preprocessing/datasources/chebi/data/ChEBI_secID2priID.tsv"
           new="mapping_preprocessing/datasources/chebi/data/new/ChEBI_secID2priID.tsv"
           column_name="secondaryID"
           # Extract the secondaryID column from both files and sort them
@@ -145,85 +142,41 @@ jobs:
           #TODO echo "added=$ADDED" to job output
           # Removals
           REMOVED=$(grep '^-CHEBI' "$output_file")
-          #TODO echo "removed=$REMOVED" to job output
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: test_sdf_processing_vars
-          path: artifact_process/*
-
-  post-issue_update:
-    needs: [test_sdf_processing, check_new_release]
-    name: Post issue about updating data
-    if: contains(needs.check_new_release.outputs.new_release, 'true') 
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      issues: write
-    steps:
-      - name: Download check_release_vars artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: check_release_vars
-      - name: Download test_sdf_processing_vars artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: test_sdf_processing_vars
-      - uses: actions/checkout@v4
-      - run: |
-          ## Retrieve vars
-          chmod +x check_release_vars/config
-          check_release_vars/config .
-          #TODO retrieve output from last job
-          # RELEASE=
-          chmod +x test_sdf_processing_vars/config
-          test_sdf_processing_vars/config .
-          if [ "$DOWNLOAD_FILE" = true ]; then
+          echo $REMOVED > removed.txt
+          echo $ADDED > added.txt
+      - id: post_issue_new
+        name: Post issue for new release availability
+        run: |
+         if [ "$new_release" = true ]; then
             echo "---" >> issue.md
             echo "title: Update ChEBI - release on $DATE_NEW }}" >> issue.md
             echo "assignees: @tabbassidaloii" >> issue.md
             echo "---" >> issue.md
             echo "[New release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel$RELEASE/SDF/) available from $DATE_NEW." >> issue.md
             echo ## Removed secondary IDs
-            echo $REMOVED
+            echo "```"
+            cat removed.txt
+            echo "```"
             echo ## Added secondary IDs
-            echo $ADDED
+            echo "```"
+            cat added.txt
+            echo "```"
           fi
       - uses: JasonEtco/create-an-issue@v2
         env:
           GITHUB_TOKEN: secrets.GITHUB_TOKEN }}
         with:
-          filename: issue.md
-
-  post-issue-fail:
-    needs: test_sdf_processing
-    if: contains(needs.test_sdf_processing.outputs.failed_processing, 'true') 
-    name: Post issue about failed test
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      issues: write
-    steps:
-      - uses: actions/checkout@v4
-      - name: Download check_release_vars artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: check_release_vars
-      - name: Download test_sdf_processing_vars artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: test_sdf_processing_vars
-      - name: Create issue
+          filename: issue.md    
+      - name: Create issue about failing test
+        if: FAILED
         env:
-          release_number: ${{ needs.check_new_release.outputs.release_number }}
+          RELEASE_NUMBER: ${{ needs.check_new_release.outputs.RELEASE_NUMBER }}
         run: |
-          if [ "$FAILED" = true ]; then
             echo "---" >> issue.md
             echo "title: Failed ChEBI processing for release $RELEASE" >> issue.md
             echo "assignees: @tabbassidaloii" >> issue.md
             echo "---" >> issue.md
-            echo "Processing failed for the [new release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel$release_number/SDF/) available." >> issue.md
-          fi
+            echo "Processing failed for the [new release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel$RELEASE_NUMBER/SDF/) available." >> issue.md
       - uses: JasonEtco/create-an-issue@v2
         env:
           GITHUB_TOKEN: secrets.GITHUB_TOKEN }}
