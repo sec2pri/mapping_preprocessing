@@ -58,8 +58,6 @@ jobs:
   test_sdf_processing:
     name: Download and test SDF processing for the latest release
     needs: check_new_release
-    outputs:
-      FAILED: ${{ steps.sdf_process.outputs.FAILED }}
     env:
       RELEASE_NUMBER: ${{ needs.check_new_release.outputs.RELEASE_NUMBER }}
     runs-on: ubuntu-latest
@@ -168,7 +166,7 @@ jobs:
         with:
           filename: issue.md    
       - name: Create issue about failing test
-        if: $FAILED
+        if: $FAILED == true
         env:
           RELEASE_NUMBER: ${{ needs.check_new_release.outputs.RELEASE_NUMBER }}
         run: |
