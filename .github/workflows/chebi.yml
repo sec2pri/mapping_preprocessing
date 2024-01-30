@@ -125,7 +125,7 @@ jobs:
 
       - name: Diff versions
         if:
-          env.FAILED == "false"
+          env.FAILED == false
         run: |
           old=mapping_preprocessing/datasources/chebi/data/ChEBI_secID2priID.tsv"
           new="mapping_preprocessing/datasources/chebi/data/new/ChEBI_secID2priID.tsv"
