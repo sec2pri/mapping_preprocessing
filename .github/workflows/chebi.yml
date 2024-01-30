@@ -78,9 +78,6 @@ jobs:
           # Set up zenodo_file_id and file_name variables from config file
           chmod +x datasources/chebi/config
           datasources/chebi/config .
-          FILENAME=$to_check_from_zenodo
-          FILESIZE=$(stat -c%s "$FILENAME")
-          echo "Size of $FILENAME = $FILESIZE bytes."
 
           ##Create temp. folder to store the data in
           mkdir -p mapping_preprocessing/datasources/chebi/data
