@@ -102,12 +102,11 @@ jobs:
           echo 'Dowloading from: https://zenodo.org/api/files/${zenodo_file_id}/${file_name}'
           # Request Zenodo API to download the file
           curl -H "Authorization: Bearer $zenodo_token" -LJO 'https://zenodo.org/api/files/${zenodo_file_id}/${file_name}'   
-          mv $file_name mapping_preprocessing/datasources/chebi/data/       
       - name: Test SDF processing
         id: sdf_process
         run: |
           inputFile="ChEBI_complete_3star.sdf" #TODO replace by config var
-          outputDir="mapping_preprocessing/datasources/chebi/data/"
+          outputDir="new/"
           # Run Java program and capture its exit code
           java -cp target/mapping_prerocessing-0.0.1-jar-with-dependencies.jar org.sec2pri.chebi_sdf "$inputFile" "$outputDir"
           # Check the exit status of the Java program
@@ -125,8 +124,8 @@ jobs:
         if:
           env.FAILED == false
         run: |
-          old=mapping_preprocessing/datasources/chebi/data/ChEBI_secID2priID.tsv"
-          new="mapping_preprocessing/datasources/chebi/data/new/ChEBI_secID2priID.tsv"
+          old=$filename"
+          new="new/$filename"
           column_name="secondaryID"
           # Extract the secondaryID column from both files and sort them
           ids_old=$(cut -f 2 "$old" | sort | tr -d "\r")
