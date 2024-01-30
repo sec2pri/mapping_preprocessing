@@ -44,10 +44,9 @@ jobs:
           timestamp2=$(date -d "$date_old" +%s)
           if [ "$timestamp1" -gt "$timestamp2" ]; then
             echo 'New release available', "$release"
-            echo "new_release=true" >> $GITHUB_ENV
+            echo "new_release=true" >> $GITHUB_OUTPUT
           else
             echo 'No new release available'
-            echo "new_release=false" >> $GITHUB_ENV
           fi
           echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
           ##Clean up
@@ -56,12 +55,12 @@ jobs:
 
 
   test_sdf_processing:
-    name: Download and test SDF processing for the latest release
+    name: Test release
     needs: check_new_release
     env:
       RELEASE_NUMBER: ${{ needs.check_new_release.outputs.RELEASE_NUMBER }}
     runs-on: ubuntu-latest
-    if: contains(needs.check_new_release.outputs.new_release, 'true') 
+    if: needs.check_new_release.outputs.new_release 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -145,7 +144,7 @@ jobs:
       - id: post_issue_new
         name: Post issue for new release availability
         run: |
-         if [ "$new_release" = true ]; then
+
             echo "---" >> issue.md
             echo "title: Update ChEBI - release on $DATE_NEW }}" >> issue.md
             echo "assignees: @tabbassidaloii" >> issue.md
@@ -159,7 +158,7 @@ jobs:
             echo "```"
             cat added.txt
             echo "```"
-          fi
+
       - uses: JasonEtco/create-an-issue@v2
         env:
           GITHUB_TOKEN: secrets.GITHUB_TOKEN }}
