@@ -19,6 +19,7 @@ jobs:
     name: Check latest release date
     outputs:
       RELEASE_NUMBER: ${{ steps.check_download.outputs.RELEASE_NUMBER }}
+      NEW_RELEASE: ${{ steps.check_download.outputs.NEW_RELEASE }}
     steps:
       # checkout the repository
       - name: Checkout
