@@ -3,7 +3,7 @@ title: Update {{ env.SOURCE }} to release {{ env.RELEASE_NUMBER }}
 assignees: tabbassidaloii
 labels: enhancement
 ---
-[New release for {{ env.SOURCE }}]({{ env.URL_RELEASE }}) available from {{ env.DATE_NEW }}.
+[New release for {{ env.SOURCE }}]({{ env.URL_RELEASE }}) available.
 
 # What's changed
 ## ID pairs changed or removed from current data version ({{ env.RELEASE_NUMBER }} -1)
