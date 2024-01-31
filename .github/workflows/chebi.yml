@@ -97,17 +97,17 @@ jobs:
           java-version: '11'
           distribution: 'adopt'
       # Download current version from Zenodo
-      - name: Download current mapping file from Zenodo
-        id: download_current_zenodo
-        env:
-          zenodo_token: ${{ secrets.ZENODO }}
-        run: |
-          # Set up vars from config file
-          chmod +x datasources/chebi/config
-          . datasources/chebi/config .
-          echo "file name: $to_check_from_zenodo"
-          # Request Zenodo API to download the file
-          curl -H "Authorization: Bearer $zenodo_token" -LJO https://zenodo.org/api/record/$zenodo_file_id/$to_check_from_zenodo
+      #- name: Download current mapping file from Zenodo
+      #  id: download_current_zenodo
+      #  env:
+      #    zenodo_token: ${{ secrets.ZENODO }}
+      #  run: |
+      #    # Set up vars from config file
+      #    chmod +x datasources/chebi/config
+      #    . datasources/chebi/config .
+      #    echo "file name: $to_check_from_zenodo"
+      #    # Request Zenodo API to download the file
+      #    curl -H "Authorization: Bearer $zenodo_token" -LJO https://zenodo.org/api/record/$zenodo_file_id/$to_check_from_zenodo
       - name: Test SDF processing
         id: sdf_process
         run: |
@@ -135,7 +135,7 @@ jobs:
           ls datasources/chebi/config
           chmod +x datasources/chebi/config
           . datasources/chebi/config .
-          old="$to_check_from_zenodo"
+          old="datasources/chebi/data/$to_check_from_zenodo"
           new="new/$to_check_from_zenodo"
           column_name="secondaryID"
           echo $column_name
