@@ -155,26 +155,23 @@ jobs:
           output_file=diff.txt
           diff -u ids_old.txt ids_new.txt > $output_file || true
           # new
-          after=$(grep '^+CHEBI' "$output_file" | sed 's/ +/\n/g') || true
+          after=$(grep '^+CHEBI' "$output_file" | sed 's/ \+/\n\+/g') || true
           # old
-          before=$(grep '^-CHEBI' "$output_file" | sed 's/ -/\n/g') || true
-          printf "$before" > before.txt
-          printf "$after" > after.txt
+          before=$(grep '^-CHEBI' "$output_file" | sed 's/ \-/\n\-/g') || true
+          printf "$before" 
+          printf "$after" 
           {
             echo 'BEFORE<<\n'
-            cat before.txt
+            printf $before
             echo \n
           } >> "$GITHUB_ENV"
 
           {
             echo 'AFTER<<\n'
-            cat after.txt
+            printf $after
             echo \n
           } >> "$GITHUB_ENV"
-          echo before, after:
-          echo $before
-          echo _____________________________________
-          echo $after
+
 
       - uses: JasonEtco/create-an-issue@v2
         name: Post issue about update availability
