@@ -163,13 +163,13 @@ jobs:
           {
             echo 'BEFORE<<\n'
             printf $before
-            echo \n
+            echo
           } >> "$GITHUB_ENV"
 
           {
             echo 'AFTER<<\n'
             printf $after
-            echo \n
+            echo
           } >> "$GITHUB_ENV"
 
 
