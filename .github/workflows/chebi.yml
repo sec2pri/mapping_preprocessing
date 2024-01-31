@@ -76,6 +76,9 @@ jobs:
         run: |
           ##Download ChEBI SDF file
           echo $RELEASE_NUMBER
+          echo "RELEASE_NUMBER=$RELEASE_NUMBER" >> $GITHUB_ENV
+          url_release="https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel$RELEASE_NUMBER/SDF/"
+          echo "URL_RELEASE=$url_release" >> $GITHUB_ENV
           wget "https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${RELEASE_NUMBER}/SDF/ChEBI_complete_3star.sdf.gz"
           ##Unzip gz file:
           gunzip ChEBI_complete_3star.sdf.gz #TODO replace by config var
@@ -147,48 +150,30 @@ jobs:
           output_file=diff.txt
           diff -u ids_old.txt ids_new.txt > $output_file || true
           # new
-          after=$(grep '^+CHEBI' "$output_file") || true
+          after=$(grep '^+CHEBI' "$output_file" | sed 's/+/|/g) || true
           # old
-          before=$(grep '^-CHEBI' "$output_file") || true
-          echo "$before" > before.txt
-          printf "$after" > after.txt
-      - id: create_issue_new
-        name: Create issue for new release availability
-        run: |
-
-            echo "---" > issue.md
-            echo "title: Update ChEBI - release on $DATE_NEW" >> issue.md
-            echo "assignees: tabbassidaloii" >> issue.md
-            echo "---" >> issue.md
-            echo "[New release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel$RELEASE_NUMBER/SDF/) available from $DATE_NEW." >> issue.md
-            echo "## Primary, secondary ID pairs changed or removed from current version (($RELEASE_NUMBER -1)" >> issue.md
-            echo "```" >> issue.md
-            cat before.txt >> issue.md
-            echo "```" >> issue.md
-            echo "## Primary, secondary ID pairs added in new release ($RELEASE_NUMBER)" >> issue.md
-            echo "```" >> issue.md
-            cat after.txt >> issue.md
-            echo "```" >> issue.md
+          before=$(grep '^-CHEBI' "$output_file" | sed 's/-/|/g) || true
+          #echo "$before" > before.txt
+          #printf "$after" > after.txt
+          echo "BEFORE=$before" >> $GITHUB_ENV
+          echo "AFTER=$after" >> $GITHUB_ENV
+          echo before, after:
+          echo $before
+          echo _____________________________________
+          echo $after
 
       - uses: JasonEtco/create-an-issue@v2
-        name: Post issue about release availability
+        name: Post issue about update availability
         env:
-          GITHUB_TOKEN: secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE: chebi
         with:
-          filename: issue.md    
-      - name: Create issue about failing test
-        if: ${{ env.FAILED == 'true' }}
-        env:
-          RELEASE_NUMBER: ${{ needs.check_new_release.outputs.RELEASE_NUMBER }}
-        run: |
-            echo "---" > issue.md
-            echo "title: Failed ChEBI processing for release $RELEASE" >> issue.md
-            echo "assignees: tabbassidaloii" >> issue.md
-            echo "---" >> issue.md
-            echo "Processing failed for the [new release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel$RELEASE_NUMBER/SDF/)." >> issue.md
+          filename: .github/ISSUE_UPDATE.md    
+       
       - uses: JasonEtco/create-an-issue@v2
         name: Post issue about failing test
+        if: ${{ env.FAILED == 'true' }}
         env:
-          GITHUB_TOKEN: secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          filename: issue.md
+          filename: .github/ISSUE_FAIL.md
