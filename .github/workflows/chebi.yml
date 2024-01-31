@@ -20,6 +20,7 @@ jobs:
     name: Check latest release date
     outputs:
       RELEASE_NUMBER: ${{ steps.check_download.outputs.RELEASE_NUMBER }}
+      CURRENT_RELEASE_NUMBER: ${{ steps.check_download.outputs.CURRENT_RELEASE_NUMBER }}
       NEW_RELEASE: ${{ steps.check_download.outputs.NEW_RELEASE }}
       DATE_NEW: ${{ steps.check_download.outputs.DATE_NEW }}
       DATE_OLD: ${{ steps.check_download.outputs.DATE_OLD }}
@@ -35,6 +36,7 @@ jobs:
           . datasources/chebi/config .
           echo 'Accessing the ChEBI archive'
           wget https://ftp.ebi.ac.uk/pub/databases/chebi/archive/ -O chebi_index.html
+          echo "CURRENT_RELEASE_NUMBER=$release" >> $GITHUB_OUTPUT
           ## Check date for last element in index
           ##Extract the date from the latest release (up to the day)
           date_new=$(tail -4 chebi_index.html | head -1 | grep -oP '<td align="right">\K[0-9-]+\s[0-9:]+(?=\s+</td>)' | awk '{print $1}')
@@ -68,6 +70,7 @@ jobs:
       RELEASE_NUMBER: ${{ needs.check_new_release.outputs.RELEASE_NUMBER }}
       DATE_OLD: ${{ needs.check_new_release.outputs.DATE_OLD }}
       DATE_NEW: ${{ needs.check_new_release.outputs.DATE_NEW }}
+      CURRENT_RELEASE_NUMBER: ${{ needs.check_new_release.outputs.CURRENT_RELEASE_NUMBER }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -76,7 +79,9 @@ jobs:
         run: |
           ##Download ChEBI SDF file
           echo $RELEASE_NUMBER
+          # Store outputs from previous job in environment variables
           echo "RELEASE_NUMBER=$RELEASE_NUMBER" >> $GITHUB_ENV
+          echo "CURRENT_RELEASE_NUMBER=$CURRENT_RELEASE_NUMBER" >> $GITHUB_ENV
           url_release="https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel$RELEASE_NUMBER/SDF/"
           echo "URL_RELEASE=$url_release" >> $GITHUB_ENV
           wget "https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${RELEASE_NUMBER}/SDF/ChEBI_complete_3star.sdf.gz"
