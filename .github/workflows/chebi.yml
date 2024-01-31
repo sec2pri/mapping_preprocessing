@@ -163,18 +163,14 @@ jobs:
           echo "BEFORE= " >> GITHUB_ENV
           echo "AFTER= " >> GITHUB_ENV
           if [ -n "$before" ]; then
-            {
-              echo 'BEFORE<<\n'
-              printf $before
-              echo \n
-            } >> "$GITHUB_ENV"
+              echo "BEFORE<<EOF" >> $GITHUB_ENV
+              printf "$before" >> $GITHUB_ENV
+              echo "EOF" >> $GITHUB_ENV
           fi
           if [ -n "$after" ]; then
-            {
-              echo 'AFTER<<\n'
-              printf $after
-              echo \n
-            } >> "$GITHUB_ENV"
+              echo "AFTER<<EOF" >> $GITHUB_ENV
+              printf "$after" >> $GITHUB_ENV
+              echo "EOF" >> $GITHUB_ENV
           fi
 
       - uses: JasonEtco/create-an-issue@v2
