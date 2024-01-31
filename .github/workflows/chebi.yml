@@ -141,19 +141,18 @@ jobs:
           column_name="secondaryID"
           echo $column_name
           # Extract the secondaryID column from both files and sort them
-          ids_old=$(cut -f 2 "$old" | sort | tr -d "\r")
-          ids_new=$(cut -f 2 "$new" | sort | tr -d "\r")
+          ids_old=$(cat "$old" | sort | tr -d "\r")
+          ids_new=$(cat "$new" | sort | tr -d "\r")
           # Perform a diff between the sorted lists of secondaryIDs
-          diff_ENV=$(diff -u <(echo "$ids_old") <(echo "$ids_new"))
-          # Store the output
-          output_file="diff_ENV.txt"
-          # Additions
-          ADDED=$(grep '^+CHEBI' "$output_file")
-          #TODO echo "added=$ADDED" to job output
-          # Removals
-          REMOVED=$(grep '^-CHEBI' "$output_file")
-          echo $REMOVED > removed.txt
-          echo $ADDED > added.txt
+          output_file=diff.txt
+          diff -u <(echo "$ids_old") <(echo "$ids_new") > $output_file
+
+          # new
+          after=$(grep '^+CHEBI' "$output_file")
+          # old
+          before=$(grep '^-CHEBI' "$output_file")
+          echo "$before" > before.txt
+          printf "$after" > after.txt
       - id: create_issue_new
         name: Create issue for new release availability
         run: |
@@ -163,13 +162,13 @@ jobs:
             echo "assignees: tabbassidaloii" >> issue.md
             echo "---" >> issue.md
             echo "[New release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel$RELEASE_NUMBER/SDF/) available from $DATE_NEW." >> issue.md
-            echo "## Removed secondary IDs" >> issue.md
+            echo "## Primary, secondary ID pairs changed or removed from current version (($RELEASE_NUMBER -1)" >> issue.md
             echo "```" >> issue.md
-            cat removed.txt >> issue.md
+            cat before.txt >> issue.md
             echo "```" >> issue.md
-            echo "## Added secondary IDs" >> issue.md
+            echo "## Primary, secondary ID pairs added in new release ($RELEASE_NUMBER)" >> issue.md
             echo "```" >> issue.md
-            cat added.txt >> issue.md
+            cat after.txt >> issue.md
             echo "```" >> issue.md
 
       - uses: JasonEtco/create-an-issue@v2
