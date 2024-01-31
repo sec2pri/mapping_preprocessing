@@ -121,17 +121,17 @@ jobs:
           # Check the exit status of the Java program
           if [ $? -eq 0 ]; then
               # Java program succeeded
-              echo "Java preprocessing of ChEBI data is done."
+              echo "Successful preprocessing of ChEBI data."
               echo "FAILED=false" >> $GITHUB_ENV
           else
               # Java program failed
-              echo "Java preprocessing of ChEBI data failed."
+              echo "Failed preprocessing of ChEBI data."
               echo "FAILED=true" >> $GITHUB_ENV
           fi
 
       - name: Diff versions
         if:
-          env.FAILED == false
+          $ {{ env.FAILED == 'false' }}
         run: |
           old=$filename"
           new="new/$filename"
@@ -169,12 +169,13 @@ jobs:
             echo "```" >> issue.md
 
       - uses: JasonEtco/create-an-issue@v2
+        name: Post issue about release availability
         env:
           GITHUB_TOKEN: secrets.GITHUB_TOKEN }}
         with:
           filename: issue.md    
       - name: Create issue about failing test
-        if: env.FAILED == true
+        if: ${{ env.FAILED == 'true' }}
         env:
           RELEASE_NUMBER: ${{ needs.check_new_release.outputs.RELEASE_NUMBER }}
         run: |
@@ -184,6 +185,7 @@ jobs:
             echo "---" >> issue.md
             echo "Processing failed for the [new release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel$RELEASE_NUMBER/SDF/)." >> issue.md
       - uses: JasonEtco/create-an-issue@v2
+        name: Post issue about failing test
         env:
           GITHUB_TOKEN: secrets.GITHUB_TOKEN }}
         with:
