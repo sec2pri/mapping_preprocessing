@@ -107,6 +107,7 @@ jobs:
           datasources/chebi/config .
           file_name=$to_check_from_zenodo
           echo file name: $file_name
+          echo "file_name=$file_name" >> $GITHUB_ENV
           echo 'Dowloading from: https://zenodo.org/api/files/${zenodo_file_id}/${file_name}'
           # Request Zenodo API to download the file
           curl -H "Authorization: Bearer $zenodo_token" -LJO 'https://zenodo.org/api/files/${zenodo_file_id}/${file_name}'   
@@ -128,15 +129,15 @@ jobs:
               echo "Failed preprocessing of ChEBI data."
               echo "FAILED=true" >> $GITHUB_ENV
           fi
+          ls
+          cd new
+          ls
 
       - name: Diff versions
         if:
           ${{ env.FAILED == 'false' }}
         run: |
-          # Set up zenodo_file_id and file_name variables from config file
-          chmod +x datasources/chebi/config
-          datasources/chebi/config .
-          file_name="ChEBI_secID2priID.tsv" #to_check_from_zenodo not working
+          $file_name = env.file_name
           old="$file_name"
           new="new/$file_name"
           column_name="secondaryID"
