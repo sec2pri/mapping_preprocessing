@@ -105,8 +105,8 @@ jobs:
           # Set up vars from config file
           chmod +x datasources/chebi/config
           . datasources/chebi/config .
-          echo file name: $to_check_from_zenodo
-          echo 'Dowloading from: https://zenodo.org/api/files/${zenodo_file_id}/${to_check_from_zenodo}'
+          echo "file name: $to_check_from_zenodo"
+          echo "Dowloading from: https://zenodo.org/api/files/${zenodo_file_id}/${to_check_from_zenodo}"
           # Request Zenodo API to download the file
           curl -H "Authorization: Bearer $zenodo_token" -LJO "https://zenodo.org/api/files/${zenodo_file_id}/${to_check_from_zenodo}"   
       - name: Test SDF processing
@@ -135,6 +135,11 @@ jobs:
         if:
           ${{ env.FAILED == 'false' }}
         run: |
+          echo old
+          ls
+          cd new
+          echo new
+          ls
           # Set up vars from config file
           chmod +x datasources/chebi/config
           . datasources/chebi/config .
