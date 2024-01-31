@@ -150,21 +150,21 @@ jobs:
           REMOVED=$(grep '^-CHEBI' "$output_file")
           echo $REMOVED > removed.txt
           echo $ADDED > added.txt
-      - id: post_issue_new
-        name: Post issue for new release availability
+      - id: create_issue_new
+        name: Create issue for new release availability
         run: |
 
-            echo "---" >> issue.md
+            echo "---" > issue.md
             echo "title: Update ChEBI - release on $DATE_NEW" >> issue.md
-            echo "assignees: @tabbassidaloii" >> issue.md
+            echo "assignees: tabbassidaloii" >> issue.md
             echo "---" >> issue.md
             echo "[New release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel$RELEASE_NUMBER/SDF/) available from $DATE_NEW." >> issue.md
-            echo ## Removed secondary IDs >> issue.md
+            echo "## Removed secondary IDs" >> issue.md
             echo "```" >> issue.md
             cat removed.txt >> issue.md
-            echo "```"
-            echo ## Added secondary IDs >> issue.md
-            echo "```"
+            echo "```" >> issue.md
+            echo "## Added secondary IDs" >> issue.md
+            echo "```" >> issue.md
             cat added.txt >> issue.md
             echo "```" >> issue.md
 
@@ -178,9 +178,9 @@ jobs:
         env:
           RELEASE_NUMBER: ${{ needs.check_new_release.outputs.RELEASE_NUMBER }}
         run: |
-            echo "---" >> issue.md
+            echo "---" > issue.md
             echo "title: Failed ChEBI processing for release $RELEASE" >> issue.md
-            echo "assignees: @tabbassidaloii" >> issue.md
+            echo "assignees: tabbassidaloii" >> issue.md
             echo "---" >> issue.md
             echo "Processing failed for the [new release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel$RELEASE_NUMBER/SDF/)." >> issue.md
       - uses: JasonEtco/create-an-issue@v2
