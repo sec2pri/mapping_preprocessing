@@ -145,11 +145,11 @@ jobs:
           echo "Performing diff between the sorted lists of IDs"
           # Perform a diff between the sorted lists of IDs
           output_file=diff.txt
-          diff -u ids_old.txt ids_new.txt > $output_file
+          diff -u ids_old.txt ids_new.txt > $output_file || true
           # new
-          after=$(grep '^+CHEBI' "$output_file")
+          after=$(grep '^+CHEBI' "$output_file") || true
           # old
-          before=$(grep '^-CHEBI' "$output_file")
+          before=$(grep '^-CHEBI' "$output_file") || true
           echo "$before" > before.txt
           printf "$after" > after.txt
       - id: create_issue_new
