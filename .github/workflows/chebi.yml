@@ -131,7 +131,7 @@ jobs:
 
       - name: Diff versions
         if:
-          $ {{ env.FAILED == 'false' }}
+          ${{ env.FAILED == 'false' }}
         run: |
           old=$filename"
           new="new/$filename"
