@@ -103,9 +103,9 @@ jobs:
           zenodo_token: ${{ secrets.ZENODO }}
         run: |
           # Set up zenodo_file_id and file_name variables from config file
-          chmod +x datasources/chebi/config
-          datasources/chebi/config .
-          file_name=$to_check_from_zenodo
+          #chmod +x datasources/chebi/config
+          #datasources/chebi/config .
+          file_name="ChEBI_secID2priID.tsv"
           echo file name: $file_name
           echo "file_name=$file_name" >> $GITHUB_ENV
           echo 'Dowloading from: https://zenodo.org/api/files/${zenodo_file_id}/${file_name}'
