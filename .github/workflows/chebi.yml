@@ -160,18 +160,22 @@ jobs:
           before=$(grep '^-CHEBI' "$output_file" | sed 's/ \-/\n\-/g') || true
           printf "$before" 
           printf "$after" 
-          {
-            echo 'BEFORE<<\n'
-            printf $before
-            echo
-          } >> "$GITHUB_ENV"
-
-          {
-            echo 'AFTER<<\n'
-            printf $after
-            echo
-          } >> "$GITHUB_ENV"
-
+          echo "BEFORE= " >> GITHUB_ENV
+          echo "AFTER= " >> GITHUB_ENV
+          if [ -n "$before" ]; then
+            {
+              echo 'BEFORE<<\n'
+              printf $before
+              echo \n
+            } >> "$GITHUB_ENV"
+          fi
+          if [ -n "$after" ]; then
+            {
+              echo 'AFTER<<\n'
+              printf $after
+              echo \n
+            } >> "$GITHUB_ENV"
+          fi
 
       - uses: JasonEtco/create-an-issue@v2
         name: Post issue about update availability
