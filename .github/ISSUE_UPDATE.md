@@ -6,7 +6,7 @@ labels: enhancement
 [New release for {{ env.SOURCE }}]({{ env.URL_RELEASE }}) available.
 
 # What's changed
-## ID pairs changed or removed from current data version ({{ env.RELEASE_NUMBER }} -1)
+## ID pairs changed or removed from current data version ({{ env.CURRENT_RELEASE_NUMBER }})
 
 
 {{ env.BEFORE }}
