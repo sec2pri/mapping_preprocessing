@@ -159,14 +159,14 @@ jobs:
             echo "assignees: tabbassidaloii" >> issue.md
             echo "---" >> issue.md
             echo "[New release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel$RELEASE_NUMBER/SDF/) available from $DATE_NEW." >> issue.md
-            echo ## Removed secondary IDs
+            echo ## Removed secondary IDs >> issue.md
+            echo "```" >> issue.md
+            cat removed.txt >> issue.md
             echo "```"
-            cat removed.txt
+            echo ## Added secondary IDs >> issue.md
             echo "```"
-            echo ## Added secondary IDs
-            echo "```"
-            cat added.txt
-            echo "```"
+            cat added.txt >> issue.md
+            echo "```" >> issue.md
 
       - uses: JasonEtco/create-an-issue@v2
         env:
