@@ -160,7 +160,7 @@ jobs:
           before=$(grep '^-CHEBI' "$output_file") || true
           printf "$before"
           printf "$after"
-          echo '"BEFORE=$before" >> $GITHUB_ENV
+          echo "BEFORE=$before" >> $GITHUB_ENV
           echo "AFTER=$after" >> $GITHUB_ENV
           
 
