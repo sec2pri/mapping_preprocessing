@@ -106,9 +106,8 @@ jobs:
           chmod +x datasources/chebi/config
           . datasources/chebi/config .
           echo "file name: $to_check_from_zenodo"
-          echo "Dowloading from: https://zenodo.org/api/record/$zenodo_file_id/$to_check_from_zenodo?access_token=zenodo_token"
           # Request Zenodo API to download the file
-          curl -i https://zenodo.org/api/record/$zenodo_file_id/$to_check_from_zenodo?access_token=$zenodo_token
+          curl -H "Authorization: Bearer $zenodo_token" -LJO https://zenodo.org/api/record/$zenodo_file_id/$to_check_from_zenodo
       - name: Test SDF processing
         id: sdf_process
         run: |
