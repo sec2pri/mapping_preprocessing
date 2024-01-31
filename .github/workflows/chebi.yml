@@ -137,7 +137,6 @@ jobs:
         if:
           ${{ env.FAILED == 'false' }}
         run: |
-          $file_name=env.file_name
           old="$file_name"
           new="new/$file_name"
           column_name="secondaryID"
