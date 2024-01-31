@@ -11,6 +11,7 @@ permissions:
   contents: write
   pages: write
   id-token: write
+  issues: write
 
 
 jobs:
@@ -20,6 +21,8 @@ jobs:
     outputs:
       RELEASE_NUMBER: ${{ steps.check_download.outputs.RELEASE_NUMBER }}
       NEW_RELEASE: ${{ steps.check_download.outputs.NEW_RELEASE }}
+      DATE_NEW: ${{ steps.check_download.outputs.DATE_NEW }}
+      DATE_OLD: ${{ steps.check_download.outputs.DATE_OLD }}
     steps:
       # checkout the repository
       - name: Checkout
@@ -40,6 +43,9 @@ jobs:
           echo "RELEASE_NUMBER=$release" >> $GITHUB_OUTPUT
           ##Extract the date from the ChEBI README file 
           date_old=$date
+          #Store dates to output
+          echo "DATE_OLD=$date_old" >> $GITHUB_OUTPUT
+          echo "DATE_NEW=$date_new" >> $GITHUB_OUTPUT
           ##Compare the dates and set variable if date_new is more recent
           timestamp1=$(date -d "$date_new" +%s)
           timestamp2=$(date -d "$date_old" +%s)
@@ -60,6 +66,8 @@ jobs:
     needs: check_new_release
     env:
       RELEASE_NUMBER: ${{ needs.check_new_release.outputs.RELEASE_NUMBER }}
+      DATE_OLD: ${{ needs.check_new_release.outputs.DATE_OLD }}
+      DATE_NEW: ${{ needs.check_new_release.outputs.DATE_NEW }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -147,10 +155,10 @@ jobs:
         run: |
 
             echo "---" >> issue.md
-            echo "title: Update ChEBI - release on $DATE_NEW }}" >> issue.md
+            echo "title: Update ChEBI - release on $DATE_NEW" >> issue.md
             echo "assignees: tabbassidaloii" >> issue.md
             echo "---" >> issue.md
-            echo "[New release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel$RELEASE/SDF/) available from $DATE_NEW." >> issue.md
+            echo "[New release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel$RELEASE_NUMBER/SDF/) available from $DATE_NEW." >> issue.md
             echo ## Removed secondary IDs
             echo "```"
             cat removed.txt
@@ -174,7 +182,7 @@ jobs:
             echo "title: Failed ChEBI processing for release $RELEASE" >> issue.md
             echo "assignees: tabbassidaloii" >> issue.md
             echo "---" >> issue.md
-            echo "Processing failed for the [new release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel$RELEASE_NUMBER/SDF/) available." >> issue.md
+            echo "Processing failed for the [new release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel$RELEASE_NUMBER/SDF/)." >> issue.md
       - uses: JasonEtco/create-an-issue@v2
         env:
           GITHUB_TOKEN: secrets.GITHUB_TOKEN }}
