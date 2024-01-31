@@ -127,9 +127,6 @@ jobs:
               echo "Failed preprocessing of ChEBI data."
               echo "FAILED=true" >> $GITHUB_ENV
           fi
-          ls
-          cd new
-          ls
 
       - name: Diff versions
         if:
@@ -140,6 +137,7 @@ jobs:
           cd new
           echo new
           ls
+          cd ../
           # Set up vars from config file
           chmod +x datasources/chebi/config
           . datasources/chebi/config .
