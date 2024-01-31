@@ -108,7 +108,7 @@ jobs:
           echo "file name: $to_check_from_zenodo"
           echo "Dowloading from: https://zenodo.org/api/files/${zenodo_file_id}/${to_check_from_zenodo}"
           # Request Zenodo API to download the file
-          curl -H "Authorization: Bearer $zenodo_token" -LJO "https://zenodo.org/api/files/${zenodo_file_id}/${to_check_from_zenodo}"   
+          curl -H "Authorization: Bearer $zenodo_token" -LJO https://zenodo.org/api/files/$zenodo_file_id/$to_check_from_zenodo
       - name: Test SDF processing
         id: sdf_process
         run: |
@@ -132,18 +132,14 @@ jobs:
         if:
           ${{ env.FAILED == 'false' }}
         run: |
-          echo old
-          ls
-          cd new
-          echo new
-          ls
-          cd ../
           # Set up vars from config file
+          ls datasources/chebi/config
           chmod +x datasources/chebi/config
           . datasources/chebi/config .
           old="$to_check_from_zenodo"
           new="new/$to_check_from_zenodo"
           column_name="secondaryID"
+          echo $column_name
           # Extract the secondaryID column from both files and sort them
           ids_old=$(cut -f 2 "$old" | sort | tr -d "\r")
           ids_new=$(cut -f 2 "$new" | sort | tr -d "\r")
