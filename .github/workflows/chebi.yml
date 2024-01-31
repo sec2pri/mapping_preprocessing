@@ -158,10 +158,19 @@ jobs:
           after=$(grep '^+CHEBI' "$output_file" | sed 's/\n/|/g') || true
           # old
           before=$(grep '^-CHEBI' "$output_file" | sed 's/\n/|/g') || true
-          #echo "$before" > before.txt
-          #printf "$after" > after.txt
-          echo "BEFORE=$before" >> $GITHUB_ENV
-          echo "AFTER=$after" >> $GITHUB_ENV
+          echo "$before" > before.txt
+          printf "$after" > after.txt
+          {
+            echo 'BEFORE<<\n'
+            cat before.txt
+            echo \n
+          } >> "$GITHUB_ENV"
+
+          {
+            echo 'AFTER<<\n'
+            cat after.txt
+            echo \n
+          } >> "$GITHUB_ENV"
           echo before, after:
           echo $before
           echo _____________________________________
