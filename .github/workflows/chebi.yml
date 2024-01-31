@@ -150,9 +150,9 @@ jobs:
           output_file=diff.txt
           diff -u ids_old.txt ids_new.txt > $output_file || true
           # new
-          after=$(grep '^+CHEBI' "$output_file" | sed 's/+/|/g) || true
+          after=$(grep '^+CHEBI' "$output_file" | sed 's/+/|/g') || true
           # old
-          before=$(grep '^-CHEBI' "$output_file" | sed 's/-/|/g) || true
+          before=$(grep '^-CHEBI' "$output_file" | sed 's/-/|/g') || true
           #echo "$before" > before.txt
           #printf "$after" > after.txt
           echo "BEFORE=$before" >> $GITHUB_ENV
