@@ -136,7 +136,7 @@ jobs:
           # Set up zenodo_file_id and file_name variables from config file
           chmod +x datasources/chebi/config
           datasources/chebi/config .
-          file_name="ChEBI_complete_3star.sdf" #to_check_from_zenodo not working
+          file_name="ChEBI_secID2priID.tsv" #to_check_from_zenodo not working
           old="$file_name"
           new="new/$file_name"
           column_name="secondaryID"
