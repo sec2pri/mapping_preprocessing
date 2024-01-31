@@ -133,8 +133,12 @@ jobs:
         if:
           ${{ env.FAILED == 'false' }}
         run: |
-          old=$filename"
-          new="new/$filename"
+          # Set up zenodo_file_id and file_name variables from config file
+          chmod +x datasources/chebi/config
+          datasources/chebi/config .
+          file_name=$to_check_from_zenodo
+          old="$file_name"
+          new="new/$file_name"
           column_name="secondaryID"
           # Extract the secondaryID column from both files and sort them
           ids_old=$(cut -f 2 "$old" | sort | tr -d "\r")
