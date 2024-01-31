@@ -83,9 +83,9 @@ jobs:
           ##Check file size if available
           ls
           ##Print file size
-          # Set up zenodo_file_id and file_name variables from config file
+          # Set up vars from config file
           chmod +x datasources/chebi/config
-          datasources/chebi/config .
+          . datasources/chebi/config .
 
           ##Create temp. folder to store the data in
           mkdir -p mapping_preprocessing/datasources/chebi/data
@@ -98,19 +98,17 @@ jobs:
           distribution: 'adopt'
       # Download current version from Zenodo
       - name: Download current mapping file from Zenodo
-        id: download
+        id: download_current_zenodo
         env:
           zenodo_token: ${{ secrets.ZENODO }}
         run: |
-          # Set up zenodo_file_id and file_name variables from config file
-          #chmod +x datasources/chebi/config
-          #datasources/chebi/config .
-          file_name="ChEBI_secID2priID.tsv"
-          echo file name: $file_name
-          echo "file_name=$file_name" >> $GITHUB_ENV
-          echo 'Dowloading from: https://zenodo.org/api/files/${zenodo_file_id}/${file_name}'
+          # Set up vars from config file
+          chmod +x datasources/chebi/config
+          . datasources/chebi/config .
+          echo file name: $to_check_from_zenodo
+          echo 'Dowloading from: https://zenodo.org/api/files/${zenodo_file_id}/${to_check_from_zenodo}'
           # Request Zenodo API to download the file
-          curl -H "Authorization: Bearer $zenodo_token" -LJO 'https://zenodo.org/api/files/${zenodo_file_id}/${file_name}'   
+          curl -H "Authorization: Bearer $zenodo_token" -LJO 'https://zenodo.org/api/files/${zenodo_file_id}/${to_check_from_zenodo}'   
       - name: Test SDF processing
         id: sdf_process
         run: |
@@ -137,8 +135,11 @@ jobs:
         if:
           ${{ env.FAILED == 'false' }}
         run: |
-          old="$file_name"
-          new="new/$file_name"
+          # Set up vars from config file
+          chmod +x datasources/chebi/config
+          . datasources/chebi/config .
+          old="$to_check_from_zenodo"
+          new="new/$to_check_from_zenodo"
           column_name="secondaryID"
           # Extract the secondaryID column from both files and sort them
           ids_old=$(cut -f 2 "$old" | sort | tr -d "\r")
