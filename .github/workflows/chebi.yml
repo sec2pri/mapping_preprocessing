@@ -144,13 +144,10 @@ jobs:
           ls datasources/chebi/config
           chmod +x datasources/chebi/config
           . datasources/chebi/config .
-          old="datasources/chebi/data/$to_check_from_zenodo"
-          new="new/$to_check_from_zenodo"
+          ids_old="datasources/chebi/data/$to_check_from_zenodo"
+          ids_new="new/$to_check_from_zenodo"
           column_name="secondaryID"
           echo $column_name
-          # Extract the secondaryID column from both files and sort them
-          cat "$old" | sort | tr -d "\r" > ids_old.txt
-          cat "$new" | sort | tr -d "\r" > ids_new.txt
           echo "Performing diff between the sorted lists of IDs"
           # Perform a diff between the sorted lists of IDs
           output_file=diff.txt
