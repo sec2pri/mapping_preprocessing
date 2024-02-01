@@ -146,20 +146,21 @@ jobs:
           . datasources/chebi/config .
           old="datasources/chebi/data/$to_check_from_zenodo"
           new="new/$to_check_from_zenodo"
+          column_name="secondaryID"
+          echo $column_name
           # Extract the secondaryID column from both files and sort them
-          ids_old=$(cat "$old" | sort | tr -d "\r") || true
-          ids_new=$(cat "$new" | sort | tr -d "\r") || true
-          # Perform a diff between the sorted lists of secondaryIDs
+          cat "$old" | sort | tr -d "\r" > ids_old.txt
+          cat "$new" | sort | tr -d "\r" > ids_new.txt
+          echo "Performing diff between the sorted lists of IDs"
+          # Perform a diff between the sorted lists of IDs
           output_file=diff.txt
-          diff -u <(echo "$ids_old") <(echo "$ids_new") > $output_file
+          diff -u ids_old.txt ids_new.txt > $output_file || true
           # new
-          added=$(grep '^+CHEBI' "$output_file")
+          added=$(grep '^+CHEBI' "$output_file") || true
           # old
-          removed=$(grep '^-CHEBI' "$output_file")
-          echo Removed lines:
-          echo "$removed"
-          echo Added lines:
-          printf "$added"
+          removed=$(grep '^-CHEBI' "$output_file") || true
+          printf "$removed" 
+          printf "$added" 
           count_removed=$(echo "$removed" | wc -l)
           count_added=$(echo "$added" | wc -l)
           echo Removed lines: $count_removed
