@@ -29,16 +29,14 @@ jobs:
       - name: Check for new ncbi files
         id: check_download
         run: |
-          ## Read config
-          source datasources/ncbi/config
-          echo 'Accessing the NCBI data'
+          ##Extract the date from the ncbi config file 
+          date_old=$(grep -E '^date=' "$datasources/ncbi/config" | cut -d'=' -f2)
+          echo 'Accessing the ncbi data'
           last_modified=$(curl -sI https://ftp.ncbi.nih.gov/gene/DATA/gene_history.gz | grep -i Last-Modified)
           ##Extract the date from the latest changes (up to the day)
           date_new=$(echo $last_modified | cut -d':' -f2- | xargs -I {} date -d "{}" +%Y-%m-%d)
-          ##Extract the date from the NCBI config file 
-          # date_old=$date
           #Store dates to output
           echo "DATE_OLD=$date_old" >> $GITHUB_OUTPUT
           echo "DATE_NEW=$date_new" >> $GITHUB_OUTPUT
-          echo "Date of the latest release: $date_new", "Date of release of the current version: $date_old"
-          echo "Date of the latest release: $date_new"
+          echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
+
