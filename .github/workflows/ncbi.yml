@@ -20,7 +20,7 @@ jobs:
     name: Check the latest release date
     outputs:
       DATE_NEW: ${{ steps.check_download.outputs.DATE_NEW }}
-      DATE_OLD: ${{ steps.check_download.outputs.DATE_OLD }}
+      # DATE_OLD: ${{ steps.check_download.outputs.DATE_OLD }}
     steps:
       # checkout the repository
       - name: Checkout
@@ -30,14 +30,15 @@ jobs:
         id: check_download
         run: |
           ## Read config
-          . datasources/ncbi/config .
+          # . datasources/ncbi/config .
           echo 'Accessing the NCBI data'
           last_modified=$(curl -sI https://ftp.ncbi.nih.gov/gene/DATA/gene_history.gz | grep -i Last-Modified)
           ##Extract the date from the latest changes (up to the day)
           date_new=$(echo $last_modified | cut -d':' -f2- | xargs -I {} date -d "{}" +%Y-%m-%d)
           ##Extract the date from the NCBI config file 
-          date_old=$date
+          # date_old=$date
           #Store dates to output
-          echo "DATE_OLD=$date_old" >> $GITHUB_OUTPUT
+          # echo "DATE_OLD=$date_old" >> $GITHUB_OUTPUT
           echo "DATE_NEW=$date_new" >> $GITHUB_OUTPUT
-          echo "Date of the latest release: $date_new", "Date of release of the current version: $date_old"
+          # echo "Date of the latest release: $date_new", "Date of release of the current version: $date_old"
+          echo "Date of the latest release: $date_new"
