@@ -77,6 +77,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Download SDF for new release
         run: |
+          echo "$DATE_NEW=$DATE_NEW" >> $GITHUB_ENV
           ##Download ChEBI SDF file
           echo $RELEASE_NUMBER
           # Store outputs from previous job in environment variables
