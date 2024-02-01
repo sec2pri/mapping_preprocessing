@@ -3,3 +3,4 @@ date=2023-07-01
 url=https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel223/SDF/ChEBI_complete_3star.sdf.gz
 file_names=ChEBI_priIDs.tsv,ChEBI_secID2priID.tsv,ChEBI_synonym2name.tsv
 to_check_from_zenodo=ChEBI_secID2priID.tsv
+zenodo_file_id=8348142

@@ -4,6 +4,8 @@ name: wikidata
 on:
   workflow_dispatch:
   pull_request: # tests whether it is working on PR
+   paths:
+   - '.github/workflows/wikidata.yml'
   schedule:
     - cron: "0 0 1,15 * *"  # Run the workflow on the 1st and 15th day of each month
 jobs:

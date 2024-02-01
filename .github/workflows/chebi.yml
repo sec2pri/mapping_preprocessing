@@ -1,202 +1,193 @@
-name: chebi
+name: Check and test ChEBI updates
 
 on:
   workflow_dispatch:
   pull_request: # tests whether it is working on PR
+     paths:
+     - '.`/workflows/chebi.yml'
   schedule:
     - cron: "0 0 1,15 * *"  # Run the workflow on the 1st and 15th day of each month
-
 permissions:
   contents: write
   pages: write
   id-token: write
+  issues: write
+
 
 jobs:
-  check_release:
+  check_new_release:
     runs-on: ubuntu-latest
     name: Check latest release date
-
+    outputs:
+      RELEASE_NUMBER: ${{ steps.check_download.outputs.RELEASE_NUMBER }}
+      CURRENT_RELEASE_NUMBER: ${{ steps.check_download.outputs.CURRENT_RELEASE_NUMBER }}
+      NEW_RELEASE: ${{ steps.check_download.outputs.NEW_RELEASE }}
+      DATE_NEW: ${{ steps.check_download.outputs.DATE_NEW }}
+      DATE_OLD: ${{ steps.check_download.outputs.DATE_OLD }}
     steps:
       # checkout the repository
       - name: Checkout
         uses: actions/checkout@v4
-      # Download current version from Zenodo
-      - name: Download file from Zenodo
-        env:
-          zenodo_token: ${{ secrets.ZENODO }}
-        run: |
-          # Set up variables
-          chmod +x datasources/chebi/config
-          datasources/chebi/config .
-          zenodo_file_id="8348142"
-          file_name=$to_check_from_zenodo
-          echo 'Dowloading from: https://zenodo.org/api/files/$zenodo_file_id/$file_name'
-          echo ZENODO_FILE_NAME=$file_name >>$GITHUB_ENV
-          
-          # Request Zenodo API to download the file
-          curl -H "Authorization: Bearer $zenodo_token" -LJO https://zenodo.org/api/files/$zenodo_file_id/$file_name
-          
-          # Verify the downloaded file
-          ls -l $FILE_NAME   
       # check the release date for the latest ChEBI release
       - name: Check for new ChEBI release
+        id: check_download
         run: |
-
-          wget https://ftp.ebi.ac.uk/pub/databases/chebi/archive/
           ## Read config
           . datasources/chebi/config .
+          echo 'Accessing the ChEBI archive'
+          wget https://ftp.ebi.ac.uk/pub/databases/chebi/archive/ -O chebi_index.html
+          echo "CURRENT_RELEASE_NUMBER=$release" >> $GITHUB_OUTPUT
           ## Check date for last element in index
-          string=$(tail -4 index.html | head -1)
           ##Extract the date from the latest release (up to the day)
-          date_new=$(echo "$string" | grep -oP '<td align="right">\K[0-9-]+\s[0-9:]+(?=\s+</td>)' | awk '{print $1}')
-          echo $date_new
-          release=$(echo "$string" | grep -oP '(?<=a href="rel)\d\d\d')
-          echo New release: $release
-          echo "RELEASE=$release" >>$GITHUB_ENV
-          ##Extract the date from the ChEBI README file (up to the day)
+          date_new=$(tail -4 chebi_index.html | head -1 | grep -oP '<td align="right">\K[0-9-]+\s[0-9:]+(?=\s+</td>)' | awk '{print $1}')
+          release=$(tail -4 chebi_index.html | head -1 | grep -oP '(?<=a href="rel)\d\d\d')
+          #https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-an-output-parameter
+          echo "RELEASE_NUMBER=$release" >> $GITHUB_OUTPUT
+          ##Extract the date from the ChEBI README file 
           date_old=$date
-          echo $date_old
-          ##Print the dates
-          echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
-          ##Compare the dates and set GITHUB_ENV variable if date_new is more recent
-          if [[ "$date_new" > "$date_old" ]]; then
-            echo "DOWNLOAD_FILE=true" >>$GITHUB_ENV
+          #Store dates to output
+          echo "DATE_OLD=$date_old" >> $GITHUB_OUTPUT
+          echo "DATE_NEW=$date_new" >> $GITHUB_OUTPUT
+          ##Compare the dates and set variable if date_new is more recent
+          timestamp1=$(date -d "$date_new" +%s)
+          timestamp2=$(date -d "$date_old" +%s)
+          if [ "$timestamp1" -gt "$timestamp2" ]; then
+            echo 'New release available', "$release"
+            echo "NEW_RELEASE=true" >> $GITHUB_OUTPUT
+          else
+            echo 'No new release available'
           fi
-          
+          echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
           ##Clean up
-          rm index.htm*
-          
-          ##Download?
-          echo download is ${{ github.DOWNLOAD_FILE }}
-
-  process_file:
-    needs: check_release
-    name: Download and test latest ChEBI release
-    if: github.DOWNLOAD_FILE == 'true'
+          rm chebi_index.html
+  
+  test_sdf_processing:
+    name: Test release
+    if: needs.check_new_release.outputs.NEW_RELEASE
+    needs: check_new_release
+    env:
+      RELEASE_NUMBER: ${{ needs.check_new_release.outputs.RELEASE_NUMBER }}
+      DATE_OLD: ${{ needs.check_new_release.outputs.DATE_OLD }}
+      DATE_NEW: ${{ needs.check_new_release.outputs.DATE_NEW }}
+      CURRENT_RELEASE_NUMBER: ${{ needs.check_new_release.outputs.CURRENT_RELEASE_NUMBER }}
     runs-on: ubuntu-latest
     steps:
-      - name: Download data
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Download SDF for new release
         run: |
+          echo "$DATE_NEW=$DATE_NEW" >> $GITHUB_ENV
           ##Download ChEBI SDF file
-          wget https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel223/SDF/ChEBI_complete_3star.sdf.gz
+          echo $RELEASE_NUMBER
+          # Store outputs from previous job in environment variables
+          echo "RELEASE_NUMBER=$RELEASE_NUMBER" >> $GITHUB_ENV
+          echo "CURRENT_RELEASE_NUMBER=$CURRENT_RELEASE_NUMBER" >> $GITHUB_ENV
+          url_release="https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel$RELEASE_NUMBER/SDF/"
+          echo "URL_RELEASE=$url_release" >> $GITHUB_ENV
+          wget "https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${RELEASE_NUMBER}/SDF/ChEBI_complete_3star.sdf.gz"
           ##Unzip gz file:
-          gunzip ChEBI_complete_3star.sdf.gz
-
+          gunzip ChEBI_complete_3star.sdf.gz #TODO replace by config var
           ##Check file size if available
           ls
           ##Print file size
-          FILENAME=ChEBI_complete_3star.sdf
-          FILESIZE=$(stat -c%s "$FILENAME")
-          echo "Size of $FILENAME = $FILESIZE bytes."
-
+          # Set up vars from config file
+          chmod +x datasources/chebi/config
+          . datasources/chebi/config .
           ##Create temp. folder to store the data in
           mkdir -p mapping_preprocessing/datasources/chebi/data
-          ##Move the SDF file to the expected location
-          mv ChEBI_complete_3star.sdf mapping_preprocessing/datasources/chebi/data
-          
-     # step 3: run the R script for ChEBI preprocessing (to be made into a separate job)
-      - name: Run R script to process SDF data
-        run: |
-          ##Check R version:
-          R --version
-          ##Install the readr package:
-          #Rscript -e 'install.packages("readr")'
-          ##Running the R script:
-          #Rscript r/chebi_processing.R
-          #echo "R preprocessing of ChEBI data is done"
-     # step 4: run the Java .jar for ChEBI preprocessing (to be made into a separate job)
+     # step 4: run the Java .jar for ChEBI preprocessing 
       - name: Set up Java
         uses: actions/setup-java@v2
         with:
           java-version: '11'
           distribution: 'adopt'
-
+      # Download current version from Zenodo
+      #- name: Download current mapping file from Zenodo
+      #  id: download_current_zenodo
+      #  env:
+      #    zenodo_token: ${{ secrets.ZENODO }}
+      #  run: |
+      #    # Set up vars from config file
+      #    chmod +x datasources/chebi/config
+      #    . datasources/chebi/config .
+      #    echo "file name: $to_check_from_zenodo"
+      #    # Request Zenodo API to download the file
+      #    curl -H "Authorization: Bearer $zenodo_token" -LJO https://zenodo.org/api/record/$zenodo_file_id/$to_check_from_zenodo
       - name: Test SDF processing
+        id: sdf_process
         run: |
-          inputFile="mapping_preprocessing/datasources/chebi/data/ChEBI_complete_3star.sdf"
-          outputDir="mapping_preprocessing/datasources/chebi/data"
+          inputFile="ChEBI_complete_3star.sdf" 
+          mkdir new
+          outputDir="new/"
           # Run Java program and capture its exit code
-          java -cp target/mapping_prerocessing-0.0.1-jar-with-dependencies.jar org.sec2pri.chebi_sdf "$inputFile" "$outputDir"
-
+          java -cp java/target/mapping_prerocessing-0.0.1-jar-with-dependencies.jar org.sec2pri.chebi_sdf "$inputFile" "$outputDir"
           # Check the exit status of the Java program
           if [ $? -eq 0 ]; then
               # Java program succeeded
-              echo "Java preprocessing of ChEBI data is done."
-              echo "FAILED=false" >>$GITHUB_ENV
+              echo "Successful preprocessing of ChEBI data."
+              echo "FAILED=false" >> $GITHUB_ENV
           else
               # Java program failed
-              echo "Java preprocessing of ChEBI data failed."
-              echo "FAILED=true" >>$GITHUB_ENV
+              echo "Failed preprocessing of ChEBI data."
+              echo "FAILED=true" >> $GITHUB_ENV
           fi
-
       - name: Diff versions
+        if:
+          ${{ env.FAILED == 'false' }}
         run: |
-          old=$github.ZENODO_FILE_NAME
-          new=mapping_preprocessing/datasources/chebi/data/$github.ZENODO_FILE_NAME
+          # Set up vars from config file
+          ls datasources/chebi/config
+          chmod +x datasources/chebi/config
+          . datasources/chebi/config .
+          old="datasources/chebi/data/$to_check_from_zenodo"
+          new="new/$to_check_from_zenodo"
           column_name="secondaryID"
+          echo $column_name
           # Extract the secondaryID column from both files and sort them
-          ids_old=$(cut -f 2 "$old" | sort | tr -d "\r")
-          ids_new=$(cut -f 2 "$new" | sort | tr -d "\r")
-
-          # Perform a diff between the sorted lists of secondaryIDs
-          diff_output=$(diff -u <(echo "$ids_old") <(echo "$ids_new"))
-
-
-          # Store the output
-          output_file="diff_output.txt"
-          # Additions
-          added=$(grep '^+CHEBI' "$output_file")
-          echo ADDED=$added >>$GITHUB_ENV
-          # Removals
-          removed=$(grep '^-CHEBI' "$output_file")
-
-          echo REMOVED=$removed >>$GITHUB_ENV
-
-  post-issue_update:
-    needs: process_file
-    name: Post issue about updating data
-    runs-on: ubuntu-latest
-    if: github.DOWNLOAD_FILE == 'true'
-    permissions:
-      contents: read
-      issues: write
-    steps:
-      - uses: actions/checkout@v3
-      - run: |
-          echo "---" >> issue.md
-          echo "title: Update ChEBI - release on ${{ GITHUB.NEW_DATE }}" >> issue.md
-          echo "assignees: tabbassidaloii" >> issue.md
-          echo "---" >> issue.md
-          echo "[New release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${{ GITHUB.RELEASE }}/SDF/) available from ${{ GITHUB.NEW_DATE }}." >> issue.md
-          echo ## Removed secondary IDs
-          echo $github.REMOVED
-          echo ## Added secondary IDs
-          echo $github.ADDED
+          cat "$old" | sort | tr -d "\r" > ids_old.txt
+          cat "$new" | sort | tr -d "\r" > ids_new.txt
+          echo "Performing diff between the sorted lists of IDs"
+          # Perform a diff between the sorted lists of IDs
+          output_file=diff.txt
+          diff -u ids_old.txt ids_new.txt > $output_file || true
+          # retrieve new lines
+          echo Counting added lines...
+          added=$(grep '^+CHEBI' "$output_file") || true
+          # retrieve removed lines
+          echo Counting removed lines...
+          removed=$(grep '^-CHEBI' "$output_file") || true
+          # count them
+          echo Counting differences:
+          count_removed=$(echo "$removed" | wc -l) || true
+          count_added=$(echo "$added" | wc -l) || true
+          # make sure we are not counting empty lines
+          if [ -z "$removed" ]; then
+           count_removed=$(expr $count_removed - 1) || true
+          fi
+          if [ -z "$added" ]; then
+           count_added=$(expr $count_added - 1) || true
+          fi
+          echo "$removed"
+          echo "$added"
+          echo Added id pairs: $count_added
+          echo Removed id pairs: $count_removed
+          # Store to env to use in issue
+          echo "ADDED=$count_added" >> $GITHUB_ENV
+          echo "REMOVED=$count_removed" >> $GITHUB_ENV
+          
       - uses: JasonEtco/create-an-issue@v2
+        name: Post issue about update availability
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE: chebi
         with:
-          filename: issue.md
-
-  post-issue-fail:
-    needs: process_file
-    if: github.FAILED == 'true'
-    name: Post issue about failed test
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      issues: write
-    steps:
-      - uses: actions/checkout@v3
-      - run: |
-          echo "---" >> issue.md
-          echo "title: Failed ChEBI processing for release ${{ GITHUB.RELEASE }}" >> issue.md
-          echo "assignees: tabbassidaloii" >> issue.md
-          echo "---" >> issue.md
-          echo "Processing failed for the [new release for ChEBI](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${{ GITHUB.RELEASE }}/SDF/) available from ${{ GITHUB.NEW_DATE }}." >> issue.md
+          filename: .github/ISSUE_UPDATE.md    
+       
       - uses: JasonEtco/create-an-issue@v2
+        name: Post issue about failing test
+        if: ${{ env.FAILED == 'true' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE: chebi
         with:
-          filename: issue.md
-
+          filename: .github/ISSUE_FAIL.md
