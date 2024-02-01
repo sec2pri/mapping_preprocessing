@@ -147,8 +147,8 @@ jobs:
           old="datasources/chebi/data/$to_check_from_zenodo"
           new="new/$to_check_from_zenodo"
           # Extract the secondaryID column from both files and sort them
-          ids_old=$(cat "$old" | sort | tr -d "\r")
-          ids_new=$(cat "$new" | sort | tr -d "\r")
+          ids_old=$(cat "$old" | sort | tr -d "\r") || true
+          ids_new=$(cat "$new" | sort | tr -d "\r") || true
           # Perform a diff between the sorted lists of secondaryIDs
           output_file=diff.txt
           diff -u <(echo "$ids_old") <(echo "$ids_new") > $output_file
