@@ -60,7 +60,6 @@ jobs:
           echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
           ##Clean up
           rm chebi_index.html
-
   
   test_sdf_processing:
     name: Test release
@@ -88,17 +87,14 @@ jobs:
           wget "https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${RELEASE_NUMBER}/SDF/ChEBI_complete_3star.sdf.gz"
           ##Unzip gz file:
           gunzip ChEBI_complete_3star.sdf.gz #TODO replace by config var
-
           ##Check file size if available
           ls
           ##Print file size
           # Set up vars from config file
           chmod +x datasources/chebi/config
           . datasources/chebi/config .
-
           ##Create temp. folder to store the data in
           mkdir -p mapping_preprocessing/datasources/chebi/data
-
      # step 4: run the Java .jar for ChEBI preprocessing 
       - name: Set up Java
         uses: actions/setup-java@v2
@@ -135,7 +131,6 @@ jobs:
               echo "Failed preprocessing of ChEBI data."
               echo "FAILED=true" >> $GITHUB_ENV
           fi
-
       - name: Diff versions
         if:
           ${{ env.FAILED == 'false' }}
@@ -144,28 +139,39 @@ jobs:
           ls datasources/chebi/config
           chmod +x datasources/chebi/config
           . datasources/chebi/config .
-          ids_old="datasources/chebi/data/$to_check_from_zenodo"
-          ids_new="new/$to_check_from_zenodo"
+          old="datasources/chebi/data/$to_check_from_zenodo"
+          new="new/$to_check_from_zenodo"
           column_name="secondaryID"
           echo $column_name
+          # Extract the secondaryID column from both files and sort them
+          cat "$old" | sort | tr -d "\r" > ids_old.txt
+          cat "$new" | sort | tr -d "\r" > ids_new.txt
           echo "Performing diff between the sorted lists of IDs"
           # Perform a diff between the sorted lists of IDs
           output_file=diff.txt
-          diff -u $ids_old $ids_new > $output_file || true
-          # new
+          diff -u ids_old.txt ids_new.txt > $output_file || true
+          # retrieve new lines
           added=$(grep '^+CHEBI' "$output_file") || true
-          # old
+          # retrieve removed lines
           removed=$(grep '^-CHEBI' "$output_file") || true
-          printf "$removed" 
-          printf "$added" 
+          # count them
           count_removed=$(echo "$removed" | wc -l)
           count_added=$(echo "$added" | wc -l)
-          echo Removed lines: $count_removed
-          echo Added lines: $count_added
+          # make sure we are not counting empty lines
+          if [ -z "$removed" ]; then
+           count_removed=$(expr $count_removed - 1)
+          fi
+          if [ -z "$added" ]; then
+           count_added=$(expr $count_added - 1)
+          fi
+          echo "$removed"
+          echo "$added"
+          echo Added id pairs: $count_added
+          echo Removed id pairs: $count_removed
+          # Store to env to use in issue
           echo "ADDED=$count_added" >> $GITHUB_ENV
           echo "REMOVED=$count_removed" >> $GITHUB_ENV
           
-
       - uses: JasonEtco/create-an-issue@v2
         name: Post issue about update availability
         env:
