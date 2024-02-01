@@ -151,18 +151,21 @@ jobs:
           output_file=diff.txt
           diff -u ids_old.txt ids_new.txt > $output_file || true
           # retrieve new lines
+          echo Counting added lines...
           added=$(grep '^+CHEBI' "$output_file") || true
           # retrieve removed lines
+          echo Counting removed lines...
           removed=$(grep '^-CHEBI' "$output_file") || true
           # count them
-          count_removed=$(echo "$removed" | wc -l)
-          count_added=$(echo "$added" | wc -l)
+          echo Counting differences:
+          count_removed=$(echo "$removed" | wc -l) || true
+          count_added=$(echo "$added" | wc -l) || true
           # make sure we are not counting empty lines
           if [ -z "$removed" ]; then
-           count_removed=$(expr $count_removed - 1)
+           count_removed=$(expr $count_removed - 1) || true
           fi
           if [ -z "$added" ]; then
-           count_added=$(expr $count_added - 1)
+           count_added=$(expr $count_added - 1) || true
           fi
           echo "$removed"
           echo "$added"
