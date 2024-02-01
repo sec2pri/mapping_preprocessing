@@ -1,4 +1,4 @@
-name: chebi
+name: Check and test ChEBI updates
 
 on:
   workflow_dispatch:
