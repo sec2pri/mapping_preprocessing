@@ -1,4 +1,4 @@
-name: Check and test ncbi updates
+name: Check and test NCBI updates
 
 on:
   workflow_dispatch:
@@ -17,7 +17,7 @@ permissions:
 jobs:
   check_new_release:
     runs-on: ubuntu-latest
-    name: Check latest release date
+    name: Check the latest release date
     outputs:
       DATE_NEW: ${{ steps.check_download.outputs.DATE_NEW }}
       DATE_OLD: ${{ steps.check_download.outputs.DATE_OLD }}
@@ -25,19 +25,19 @@ jobs:
       # checkout the repository
       - name: Checkout
         uses: actions/checkout@v4
-      # check the release date for the latest ncbi files
+      # check the release date for the latest NCBI files
       - name: Check for new ncbi files
         id: check_download
         run: |
           ## Read config
           . datasources/ncbi/config .
-          echo 'Accessing the ncbi data'
+          echo 'Accessing the NCBI data'
           last_modified=$(curl -sI https://ftp.ncbi.nih.gov/gene/DATA/gene_history.gz | grep -i Last-Modified)
           ##Extract the date from the latest changes (up to the day)
           date_new=$(echo $last_modified | cut -d':' -f2- | xargs -I {} date -d "{}" +%Y-%m-%d)
-          ##Extract the date from the ncbi config file 
+          ##Extract the date from the NCBI config file 
           date_old=$date
           #Store dates to output
           echo "DATE_OLD=$date_old" >> $GITHUB_OUTPUT
           echo "DATE_NEW=$date_new" >> $GITHUB_OUTPUT
-          echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
+          echo "Date of the latest release: $date_new", "Date of release of the current version: $date_old"
