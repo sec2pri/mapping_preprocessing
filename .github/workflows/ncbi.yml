@@ -17,7 +17,7 @@ permissions:
 jobs:
   check_new_release:
     runs-on: ubuntu-latest
-    name: Check the latest release date
+    name: Check the latest data date
     outputs:
       DATE_NEW: ${{ steps.check_download.outputs.DATE_NEW }}
       DATE_OLD: ${{ steps.check_download.outputs.DATE_OLD }}
@@ -32,7 +32,6 @@ jobs:
           ##Extract the date from the ncbi config file 
           date_old=$(grep -E '^date=' datasources/ncbi/config | cut -d'=' -f2)
           echo 'Accessing the ncbi data'
-          echo $date_old
           last_modified=$(curl -sI https://ftp.ncbi.nih.gov/gene/DATA/gene_history.gz | grep -i Last-Modified)
           ##Extract the date from the latest changes (up to the day)
           date_new=$(echo $last_modified | cut -d':' -f2- | xargs -I {} date -d "{}" +%Y-%m-%d)
@@ -40,4 +39,29 @@ jobs:
           echo "DATE_OLD=$date_old" >> $GITHUB_OUTPUT
           echo "DATE_NEW=$date_new" >> $GITHUB_OUTPUT
           echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
+  
+  test_data_processing:
+    name: Test data
+    needs: check_new_data
+    env:
+      DATE_OLD: ${{ needs.check_new_data.outputs.DATE_OLD }}
+      DATE_NEW: ${{ needs.check_new_data.outputs.DATE_NEW }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Download the recent data
+        run: |
+          # Store outputs from previous job in environment variables
+          echo "$DATE_NEW=$DATE_NEW" >> $GITHUB_ENV
+          ##Download ncbi file
+          url_gene_info="https://ftp.ncbi.nih.gov/gene/DATA/gene_info.gz"
+          echo "url_gene_info=$url_gene_info" >> $GITHUB_ENV
+          url_gene_history="https://ftp.ncbi.nih.gov/gene/DATA/gene_history.gz"
+          echo "url_gene_history=$url_gene_history" >> $GITHUB_ENV
+          
+          wget https://ftp.ncbi.nih.gov/gene/DATA/gene_info.gz
+          wget https://ftp.ncbi.nih.gov/gene/DATA/gene_history.gz
+          ##Check file size if available
+          ls
 
