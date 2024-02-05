@@ -19,8 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     name: Check the latest data date
     outputs:
-      DATE_NEW: ${{ steps.check_download.outputs.DATE_NEW }}
-      DATE_OLD: ${{ steps.check_download.outputs.DATE_OLD }}
+      DATE_NEW: ${{ steps.check_new_data.outputs.DATE_NEW }}
+      DATE_OLD: ${{ steps.check_new_data.outputs.DATE_OLD }}
     steps:
       # checkout the repository
       - name: Checkout
@@ -39,6 +39,7 @@ jobs:
           echo "DATE_OLD=$date_old" >> $GITHUB_OUTPUT
           echo "DATE_NEW=$date_new" >> $GITHUB_OUTPUT
           echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
+
   
   test_data_processing:
     name: Test data
