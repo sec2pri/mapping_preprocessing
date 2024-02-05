@@ -30,7 +30,7 @@ jobs:
         id: check_download
         run: |
           ##Extract the date from the ncbi config file 
-          date_old=$(grep -E '^date=' "$datasources/ncbi/config" | cut -d'=' -f2)
+          date_old=$(grep -E '^date=' datasources/ncbi/config | cut -d'=' -f2)
           echo 'Accessing the ncbi data'
           echo $date_old
           last_modified=$(curl -sI https://ftp.ncbi.nih.gov/gene/DATA/gene_history.gz | grep -i Last-Modified)
