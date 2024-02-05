@@ -32,6 +32,7 @@ jobs:
           ##Extract the date from the ncbi config file 
           date_old=$(grep -E '^date=' "$datasources/ncbi/config" | cut -d'=' -f2)
           echo 'Accessing the ncbi data'
+          echo $date_old
           last_modified=$(curl -sI https://ftp.ncbi.nih.gov/gene/DATA/gene_history.gz | grep -i Last-Modified)
           ##Extract the date from the latest changes (up to the day)
           date_new=$(echo $last_modified | cut -d':' -f2- | xargs -I {} date -d "{}" +%Y-%m-%d)
