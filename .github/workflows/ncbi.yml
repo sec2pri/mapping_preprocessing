@@ -15,12 +15,12 @@ permissions:
 
 
 jobs:
-  check_new_release:
+  check_new_data:
     runs-on: ubuntu-latest
     name: Check the latest data date
     outputs:
-      DATE_NEW: ${{ steps.check_new_data.outputs.DATE_NEW }}
-      DATE_OLD: ${{ steps.check_new_data.outputs.DATE_OLD }}
+      DATE_NEW: ${{ steps.check_download.outputs.DATE_NEW }}
+      DATE_OLD: ${{ steps.check_download.outputs.DATE_OLD }}
     steps:
       # checkout the repository
       - name: Checkout
