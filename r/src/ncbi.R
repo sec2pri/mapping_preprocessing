@@ -17,10 +17,10 @@ sourceName = "ncbi"
 sourceVersion = args[1]
 gene_history = args[2]
 gene_info = args[3]
-inputDir = "mapping_preprocessing/datasources"
+inputDir = "datasources"
 
 # Create output directory
-outputDir <- paste0("mapping_preprocessing/datasources/", sourceName, "/data")
+outputDir <- paste0("datasources/", sourceName, "/data")
 dir.create(outputDir, showWarnings = FALSE)
 
 ## Download the input files from NCBI (better to download and make a subset for human and mice in bash)
