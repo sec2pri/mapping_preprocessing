@@ -67,6 +67,5 @@ jobs:
      # step 3: run the Rscripts for ncbi preprocessing 
       - name: Install R
         uses: r-lib/actions/setup-r@v1
-        uses: r-lib/actions/setup-pandoc@v1
-        name: Install dependencies
+      - name: Install dependencies
         run: Rscript -e "install.packages(c('testthat', 'readr', 'downloader', 'dplyr', 'xml2', 'stringr', 'here'))"
