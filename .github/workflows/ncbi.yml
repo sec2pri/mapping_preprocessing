@@ -22,10 +22,9 @@ jobs:
       DATE_NEW: ${{ steps.check_download.outputs.DATE_NEW }}
       DATE_OLD: ${{ steps.check_download.outputs.DATE_OLD }}
     steps:
-      # checkout the repository
       - name: Checkout
         uses: actions/checkout@v4
-      # check the release date for the latest NCBI files
+      # step 1: check the release date for the latest NCBI files
       - name: Check for new ncbi files
         id: check_download
         run: |
@@ -51,21 +50,23 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      # step 2: download the recent data 
       - name: Download the recent data
         run: |
           ##Store outputs from previous job in environment variables
           echo "$DATE_NEW=$DATE_NEW" >> $GITHUB_ENV
-          # url_gene_info="https://ftp.ncbi.nih.gov/gene/DATA/gene_info.gz"
-          # echo "url_gene_info=$url_gene_info" >> $GITHUB_ENV
-          # url_gene_history="https://ftp.ncbi.nih.gov/gene/DATA/gene_history.gz"
-          # echo "url_gene_history=$url_gene_history" >> $GITHUB_ENV
           ##Create temp. folder to store the data in
           mkdir -p datasources/ncbi/data
           ##Download ncbi file
           wget https://ftp.ncbi.nih.gov/gene/DATA/gene_info.gz
           wget https://ftp.ncbi.nih.gov/gene/DATA/gene_history.gz
           mv gene_info.gz gene_history.gz datasources/ncbi/data
-         
           ##Check file size if available
-          ls datasources/ncbi/data
+          ls -trlh datasources/ncbi/data
 
+     # step 3: run the Rscripts for ncbi preprocessing 
+      - name: Install R
+        uses: r-lib/actions/setup-r@v1
+        uses: r-lib/actions/setup-pandoc@v1
+        name: Install dependencies
+        run: Rscript -e "install.packages(c('testthat', 'readr', 'downloader', 'dplyr', 'xml2', 'stringr', 'here'))"
