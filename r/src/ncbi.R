@@ -11,8 +11,11 @@ library(dplyr)
 if(!"data.table" %in% installed.packages()) {
    install.packages("data.table")
 }
-
 library(data.table)
+if(!"R.utils" %in% installed.packages()) {
+   install.packages("R.utils")
+}
+library(R.utils)
 
 # Retrieve command-line arguments
 args <- commandArgs(trailingOnly = TRUE)
