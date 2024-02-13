@@ -15,7 +15,6 @@ library(data.table)
 if(!"R.utils" %in% installed.packages()) {
    install.packages("R.utils")
 }
-library(R.utils)
 
 # Retrieve command-line arguments
 args <- commandArgs(trailingOnly = TRUE)
@@ -28,7 +27,7 @@ gene_info = args[3]
 inputDir = "datasources"
 
 # Create output directory
-outputDir <- paste0("datasources/", sourceName, "/data")
+outputDir <- paste0("datasources/", sourceName, "/recentData")
 dir.create(outputDir, showWarnings = FALSE)
 
 ## Download the input files from NCBI (better to download and make a subset for human and mice in bash)
