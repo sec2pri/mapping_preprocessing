@@ -17,7 +17,7 @@ permissions:
 jobs:
   check_new_data:
     runs-on: ubuntu-latest
-    name: Check the latest data date
+    name: Check the date of the latest data
     outputs:
       DATE_NEW: ${{ steps.check_download.outputs.DATE_NEW }}
       DATE_OLD: ${{ steps.check_download.outputs.DATE_OLD }}
@@ -63,14 +63,12 @@ jobs:
           mv gene_info.gz gene_history.gz datasources/ncbi/data
           ##Check file size if available
           ls -trlh datasources/ncbi/data
-
       # step 3: run the Rscripts for ncbi preprocessing 
       - name: Install R
         uses: r-lib/actions/setup-r@v2
         with:
           r-version: '4.1' # Specify the R version
-          include-recommended: true
-      
+          include-recommended: true      
       - name: Test ncbi data processing
         id: ncbi_process
         run: |
@@ -90,15 +88,13 @@ jobs:
               echo "Failed preprocessing of ncbi data."
               echo "FAILED=true" >> $GITHUB_ENV
           fi
-
       # step 4: compare the new and old data 
       - name: Diff versions
         if:
           ${{ env.FAILED == 'false' }}
         run: |
           # Set up vars from config file
-          chmod +x datasources/ncbi/config
-          . datasources/ncbi/config .
+          to_check_from_zenodo=$(grep -E '^to_check_from_zenodo=' datasources/ncbi/config | cut -d'=' -f2)
           old="datasources/ncbi/data/$to_check_from_zenodo"
           new="recentData/$to_check_from_zenodo"
           column_name="secondaryID"
@@ -134,7 +130,7 @@ jobs:
           # Store to env to use in issue
           echo "ADDED=$count_added" >> $GITHUB_ENV
           echo "REMOVED=$count_removed" >> $GITHUB_ENV
-          
+      # step 5: post issues    
       - uses: JasonEtco/create-an-issue@v2
         name: Post issue about update availability
         env:
