@@ -112,6 +112,7 @@ jobs:
           output_file=diff.txt
           diff -u ids_old.txt ids_new.txt > $output_file || true
           # retrieve new lines
+          less $output_file | head -n 200
           echo Counting added lines...
           added=$(grep '^+' "$output_file") || true
           # retrieve removed lines
