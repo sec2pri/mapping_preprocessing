@@ -75,10 +75,9 @@ jobs:
         id: ncbi_process
         run: |
           sourceVersion=$DATE_NEW
-          gene_history="datasources/ncbi/data/gene_history.gz" 
-          gene_info="datasources/ncbi/data/gene_info.gz" 
+          gene_history="data/gene_history.gz" 
+          gene_info="data/gene_info.gz" 
 
-          outputDir="datasources/ncbi/data/"
           # Run rscripts program and capture its exit code
           Rscript r/src/ncbi.R $sourceVersion $gene_history $gene_info
           # Check the exit status of the R script
