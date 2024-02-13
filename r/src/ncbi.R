@@ -7,7 +7,7 @@ library(downloader)
 if(!"dplyr" %in% installed.packages()) {
    install.packages("dplyr")
 }
-library(downloader)
+library(dplyr)
 if(!"data.table" %in% installed.packages()) {
    install.packages("data.table")
 }
