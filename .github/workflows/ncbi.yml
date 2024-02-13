@@ -64,7 +64,12 @@ jobs:
           ##Check file size if available
           ls -trlh datasources/ncbi/data
 
-     # step 3: run the Rscripts for ncbi preprocessing 
-      - name: Install R and dependencies
+      # step 3: run the Rscripts for ncbi preprocessing 
+      - name: Install R
         uses: r-lib/actions/setup-r@v2
-        run: Rscript -e "install.packages(c('testthat', 'readr', 'downloader', 'dplyr', 'xml2', 'stringr', 'here'))"
+        with:
+          r-version: '4.1' # Specify the R version
+          include-recommended: true
+      - name: Install R dependencies
+        run: |
+          Rscript -e "install.packages(c('testthat', 'readr', 'downloader', 'dplyr', 'xml2', 'stringr', 'here'))" 
