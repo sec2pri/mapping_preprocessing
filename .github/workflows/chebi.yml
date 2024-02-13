@@ -181,7 +181,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SOURCE: chebi
         with:
-          filename: .github/ISSUE_UPDATE.md    
+          filename: .github/ISSUE_TEMPLATE/ISSUE_UPDATE.md    
        
       - uses: JasonEtco/create-an-issue@v2
         name: Post issue about failing test
@@ -190,4 +190,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SOURCE: chebi
         with:
-          filename: .github/ISSUE_FAIL.md
+          filename: .github/ISSUE_TEMPLATE/ISSUE_FAIL.md
