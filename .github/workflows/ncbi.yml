@@ -72,4 +72,25 @@ jobs:
           include-recommended: true
       - name: Install R dependencies
         run: |
-          Rscript -e "install.packages(c('testthat', 'readr', 'downloader', 'dplyr', 'xml2', 'stringr', 'here'))" 
+          Rscript -e "install.packages(c('downloader', 'dplyr',))" 
+
+      - name: Test ncbi data processing
+        id: ncbi_process
+        run: |
+          sourceVersion=$DATE_NEW
+          gene_history="datasources/ncbi/data/gene_history.gz" 
+          gene_info="datasources/ncbi/data/gene_info.gz" 
+
+          outputDir="datasources/ncbi/data/"
+          # Run rscripts program and capture its exit code
+          Rscript r/src/ncbi.R $sourceVersion $gene_history $gene_info
+          # Check the exit status of the R script
+          if [ $? -eq 0 ]; then
+              # script succeeded
+              echo "Successful preprocessing of ncbi data."
+              echo "FAILED=false" >> $GITHUB_ENV
+          else
+              # script failed
+              echo "Failed preprocessing of ncbi data."
+              echo "FAILED=true" >> $GITHUB_ENV
+          fi
