@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   pull_request: # tests whether it is working on PR
      paths:
-     - '.`/workflows/ncbi.yml'
+     - '.github/workflows/ncbi.yml'
   schedule:
     - cron: "0 0 1,15 * *"  # Run the workflow on the 1st and 15th day of each month
 permissions:
@@ -22,9 +22,9 @@ jobs:
       DATE_NEW: ${{ steps.check_download.outputs.DATE_NEW }}
       DATE_OLD: ${{ steps.check_download.outputs.DATE_OLD }}
     steps:
+      # step 1: check the release date for the latest NCBI files
       - name: Checkout
         uses: actions/checkout@v4
-      # step 1: check the release date for the latest NCBI files
       - name: Check for new ncbi files
         id: check_download
         run: |
@@ -95,6 +95,9 @@ jobs:
         run: |
           # Set up vars from config file
           to_check_from_zenodo=$(grep -E '^to_check_from_zenodo=' datasources/ncbi/config | cut -d'=' -f2)
+          
+          unzip datasources/ncbi/data/${to_check_from_zenodo%.txt}.zip
+
           old="datasources/ncbi/data/$to_check_from_zenodo"
           new="recentData/$to_check_from_zenodo"
           column_name="secondaryID"
