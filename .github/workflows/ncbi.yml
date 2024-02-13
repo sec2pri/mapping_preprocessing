@@ -72,7 +72,7 @@ jobs:
           include-recommended: true
       - name: Install R dependencies
         run: |
-          Rscript -e "install.packages(c('downloader', 'dplyr',))" 
+          Rscript -e "install.packages(c('downloader', 'dplyr'))" 
 
       - name: Test ncbi data processing
         id: ncbi_process
