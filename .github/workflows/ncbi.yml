@@ -70,7 +70,7 @@ jobs:
         with:
           r-version: '4.1' # Specify the R version
           include-recommended: true
-
+      
       - name: Test ncbi data processing
         id: ncbi_process
         run: |
@@ -90,3 +90,64 @@ jobs:
               echo "Failed preprocessing of ncbi data."
               echo "FAILED=true" >> $GITHUB_ENV
           fi
+
+      # step 4: compare the new and old data 
+      - name: Diff versions
+        if:
+          ${{ env.FAILED == 'false' }}
+        run: |
+          # Set up vars from config file
+          chmod +x datasources/ncbi/config
+          . datasources/ncbi/config .
+          old="datasources/ncbi/data/$to_check_from_zenodo"
+          new="recentData/$to_check_from_zenodo"
+          column_name="secondaryID"
+          echo $column_name
+          # Extract the secondaryID column from both files and sort them
+          cat "$old" | sort | tr -d "\r" > ids_old.txt
+          cat "$new" | sort | tr -d "\r" > ids_new.txt
+          echo "Performing diff between the sorted lists of IDs"
+          # Perform a diff between the sorted lists of IDs
+          output_file=diff.txt
+          diff -u ids_old.txt ids_new.txt > $output_file || true
+          # retrieve new lines
+          echo Counting added lines...
+          added=$(grep '^+ncbi' "$output_file") || true
+          # retrieve removed lines
+          echo Counting removed lines...
+          removed=$(grep '^-ncbi' "$output_file") || true
+          # count them
+          echo Counting differences:
+          count_removed=$(echo "$removed" | wc -l) || true
+          count_added=$(echo "$added" | wc -l) || true
+          # make sure we are not counting empty lines
+          if [ -z "$removed" ]; then
+           count_removed=$(expr $count_removed - 1) || true
+          fi
+          if [ -z "$added" ]; then
+           count_added=$(expr $count_added - 1) || true
+          fi
+          echo "$removed"
+          echo "$added"
+          echo Added id pairs: $count_added
+          echo Removed id pairs: $count_removed
+          # Store to env to use in issue
+          echo "ADDED=$count_added" >> $GITHUB_ENV
+          echo "REMOVED=$count_removed" >> $GITHUB_ENV
+          
+      - uses: JasonEtco/create-an-issue@v2
+        name: Post issue about update availability
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE: ncbi
+        with:
+          filename: .github/ISSUE_TEMPLATE/ISSUE_UPDATE.md    
+       
+      - uses: JasonEtco/create-an-issue@v2
+        name: Post issue about failing test
+        if: ${{ env.FAILED == 'true' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE: ncbi
+        with:
+          filename: .github/ISSUE_TEMPLATE/ISSUE_FAIL.md
