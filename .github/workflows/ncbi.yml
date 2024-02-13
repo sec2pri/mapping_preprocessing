@@ -95,8 +95,8 @@ jobs:
         run: |
           # Set up vars from config file
           to_check_from_zenodo=$(grep -E '^to_check_from_zenodo=' datasources/ncbi/config | cut -d'=' -f2)
-          
-          unzip datasources/ncbi/data/${to_check_from_zenodo%.txt}.zip
+          file_to_unzip = echo $to_check_from_zenodo | sed -r 's/txt/zip/g' 
+          unzip datasources/ncbi/data/$file_to_unzip
 
           old="datasources/ncbi/data/$to_check_from_zenodo"
           new="recentData/$to_check_from_zenodo"
