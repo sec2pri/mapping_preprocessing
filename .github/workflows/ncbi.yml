@@ -40,8 +40,8 @@ jobs:
           echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
 
   
-  test_data_processing:
-    name: Test data
+  test_new_data_processing:
+    name: Processing new data and check updates
     needs: check_new_data
     env:
       DATE_OLD: ${{ needs.check_new_data.outputs.DATE_OLD }}
@@ -113,10 +113,10 @@ jobs:
           diff -u ids_old.txt ids_new.txt > $output_file || true
           # retrieve new lines
           echo Counting added lines...
-          added=$(grep '^+ncbi' "$output_file") || true
+          added=$(grep '^+' "$output_file") || true
           # retrieve removed lines
           echo Counting removed lines...
-          removed=$(grep '^-ncbi' "$output_file") || true
+          removed=$(grep '^-' "$output_file") || true
           # count them
           echo Counting differences:
           count_removed=$(echo "$removed" | wc -l) || true
