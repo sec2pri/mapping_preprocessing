@@ -7,7 +7,12 @@ library(downloader)
 if(!"dplyr" %in% installed.packages()) {
    install.packages("dplyr")
 }
-library(dplyr)
+library(downloader)
+if(!"data.table" %in% installed.packages()) {
+   install.packages("data.table")
+}
+
+library(data.table)
 
 # Retrieve command-line arguments
 args <- commandArgs(trailingOnly = TRUE)
@@ -17,10 +22,10 @@ sourceName = "ncbi"
 sourceVersion = args[1]
 gene_history = args[2]
 gene_info = args[3]
-inputDir = "mapping_preprocessing/datasources"
+inputDir = "datasources"
 
 # Create output directory
-outputDir <- paste0("mapping_preprocessing/datasources/", sourceName, "/data")
+outputDir <- paste0("datasources/", sourceName, "/data")
 dir.create(outputDir, showWarnings = FALSE)
 
 ## Download the input files from NCBI (better to download and make a subset for human and mice in bash)
