@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   pull_request: # tests whether it is working on PR
      paths:
-     - '.`/workflows/ncbi.yml'
+     - '.github/workflows/ncbi.yml'
   schedule:
     - cron: "0 0 1,15 * *"  # Run the workflow on the 1st and 15th day of each month
 permissions:
@@ -15,29 +15,163 @@ permissions:
 
 
 jobs:
-  check_new_release:
+  check_new_data:
     runs-on: ubuntu-latest
-    name: Check the latest release date
+    name: Check the date of the latest data
     outputs:
       DATE_NEW: ${{ steps.check_download.outputs.DATE_NEW }}
       DATE_OLD: ${{ steps.check_download.outputs.DATE_OLD }}
     steps:
-      # checkout the repository
+      # step 1: check the release date for the latest NCBI files
       - name: Checkout
         uses: actions/checkout@v4
-      # check the release date for the latest NCBI files
       - name: Check for new ncbi files
         id: check_download
         run: |
-          ## Read config
-          . datasources/ncbi/config .
-          echo 'Accessing the NCBI data'
+          ##Extract the date from the ncbi config file 
+          date_old=$(grep -E '^date=' datasources/ncbi/config | cut -d'=' -f2)
+          echo 'Accessing the ncbi data'
           last_modified=$(curl -sI https://ftp.ncbi.nih.gov/gene/DATA/gene_history.gz | grep -i Last-Modified)
           ##Extract the date from the latest changes (up to the day)
           date_new=$(echo $last_modified | cut -d':' -f2- | xargs -I {} date -d "{}" +%Y-%m-%d)
-          ##Extract the date from the NCBI config file 
-          date_old=$date
           #Store dates to output
           echo "DATE_OLD=$date_old" >> $GITHUB_OUTPUT
           echo "DATE_NEW=$date_new" >> $GITHUB_OUTPUT
-          echo "Date of the latest release: $date_new", "Date of release of the current version: $date_old"
+          echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
+
+  
+  test_new_data_processing:
+    name: Processing new data and check updates
+    needs: check_new_data
+    env:
+      DATE_OLD: ${{ needs.check_new_data.outputs.DATE_OLD }}
+      DATE_NEW: ${{ needs.check_new_data.outputs.DATE_NEW }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      # step 2: download the recent data 
+      - name: Download the recent data
+        run: |
+          ##Store outputs from previous job in environment variables
+          echo "$DATE_NEW=$DATE_NEW" >> $GITHUB_ENV
+          ##Create temp. folder to store the data in
+          mkdir -p datasources/ncbi/data
+          ##Download ncbi file
+          wget https://ftp.ncbi.nih.gov/gene/DATA/gene_info.gz
+          wget https://ftp.ncbi.nih.gov/gene/DATA/gene_history.gz
+          mv gene_info.gz gene_history.gz datasources/ncbi/data
+          ##Check file size if available
+          ls -trlh datasources/ncbi/data
+      # step 3: run the Rscripts for ncbi preprocessing 
+      - name: Install R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.1' # Specify the R version
+          include-recommended: true      
+      - name: Test ncbi data processing
+        id: ncbi_process
+        run: |
+          sourceVersion=$DATE_NEW
+          gene_history="data/gene_history.gz" 
+          gene_info="data/gene_info.gz" 
+
+          # Run rscripts program and capture its exit code
+          Rscript r/src/ncbi.R $sourceVersion $gene_history $gene_info
+          # Check the exit status of the R script
+          if [ $? -eq 0 ]; then
+              # script succeeded
+              echo "Successful preprocessing of ncbi data."
+              echo "FAILED=false" >> $GITHUB_ENV
+          else
+              # script failed
+              echo "Failed preprocessing of ncbi data."
+              echo "FAILED=true" >> $GITHUB_ENV
+          fi
+      # step 4: compare the new and old data 
+      - name: Diff versions
+        if:
+          ${{ env.FAILED == 'false' }}
+        run: |
+          # Set up vars from config file
+          to_check_from_zenodo=$(grep -E '^to_check_from_zenodo=' datasources/ncbi/config | cut -d'=' -f2)
+          old="datasources/ncbi/data/$to_check_from_zenodo"
+          new="datasources/ncbi/recentData/$to_check_from_zenodo"
+          column_name="secondaryID"
+          echo $column_name
+
+          # Unzip the zip file 
+          unzip datasources/ncbi/data/NCBI_secID2priID.zip -d datasources/ncbi/data/
+          ls datasources/ncbi/data/
+          ls datasources/ncbi/recentData/
+
+          
+          less $old | head
+          less $new | head
+          
+
+          # Extract the primaryID and secondaryID column from both files and sort them
+          cat "$old" | sort | tr -d "\r" | cut -f 1,3 > ids_old.txt
+          cat "$new" | sort | tr -d "\r" | cut -f 1,3 > ids_new.txt
+
+          # TODO decide whether to perform diff on symbols too? 
+          # Extract the secondarySymbol column from both files and sort them
+          ##cat "$old" | sort | tr -d "\r" | cut -f 4 > symbols_old.txt
+          ##cat "$new" | sort | tr -d "\r" | cut -f 4 > symbols_new.txt
+
+          echo "Performing diff between the sorted lists of IDs"
+
+          # Perform a diff between the sorted lists of IDs
+          output_file=diff.txt
+
+          diff -u ids_old.txt ids_new.txt > $output_file || true
+          less $output_file | head
+          # retrieve new lines
+          echo Counting added lines...
+          added=$(grep '^+' "$output_file" | sed 's/+//g') || true
+          # retrieve removed lines
+          echo Counting removed lines...
+          removed=$(grep '^-' "$output_file" | sed 's/-//g') || true
+          added_filtered=$(comm -23 <(sort <<< "$added") <(sort <<< "$removed"))
+          removed_filtered=$(comm -23 <(sort <<< "$removed") <(sort <<< "$added"))
+          added=$added_filtered
+          removed=$removed_filtered
+          # count them
+          echo Counting differences:
+          count_removed=$(echo "$removed" | wc -l) || true
+          count_added=$(echo "$added" | wc -l) || true
+
+          # make sure we are not counting empty lines
+          if [ -z "$removed" ]; then
+           count_removed=$(expr $count_removed - 1) || true
+          fi
+          if [ -z "$added" ]; then
+           count_added=$(expr $count_added - 1) || true
+          fi
+          echo removed:
+          echo "$removed"
+          echo added:
+          echo "$added"
+          echo Added id pairs: $count_added
+          echo Removed id pairs: $count_removed
+          # Store to env to use in issue
+          echo "ADDED=$count_added" >> $GITHUB_ENV
+          echo "REMOVED=$count_removed" >> $GITHUB_ENV
+          echo "URL_RELEASE=https://ftp.ncbi.nih.gov/gene/DATA/gene_history.gz" >> $GITHUB_ENV
+      # step 5: post issues    
+      - uses: JasonEtco/create-an-issue@v2
+        name: Post issue about update availability
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE: "NCBI"
+        with:
+          filename: .github/ISSUE_TEMPLATE/ISSUE_UPDATE.md    
+       
+      - uses: JasonEtco/create-an-issue@v2
+        name: Post issue about failing test
+        if: ${{ env.FAILED == 'true' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE: ncbi
+        with:
+          filename: .github/ISSUE_TEMPLATE/ISSUE_FAIL.md

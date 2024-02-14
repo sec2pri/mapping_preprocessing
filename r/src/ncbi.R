@@ -7,25 +7,27 @@ library(downloader)
 if(!"dplyr" %in% installed.packages()) {
    install.packages("dplyr")
 }
-library(downloader)
+library(dplyr)
 if(!"data.table" %in% installed.packages()) {
    install.packages("data.table")
 }
-
 library(data.table)
+if(!"R.utils" %in% installed.packages()) {
+   install.packages("R.utils")
+}
 
 # Retrieve command-line arguments
 args <- commandArgs(trailingOnly = TRUE)
 
 # Set variables
-sourceName = "ncbi"
+sourceName = "NCBI"
 sourceVersion = args[1]
 gene_history = args[2]
 gene_info = args[3]
 inputDir = "datasources"
 
 # Create output directory
-outputDir <- paste0("datasources/", sourceName, "/data")
+outputDir <- paste0("datasources/", "ncbi", "/recentData")
 dir.create(outputDir, showWarnings = FALSE)
 
 ## Download the input files from NCBI (better to download and make a subset for human and mice in bash)
@@ -36,7 +38,7 @@ dir.create(outputDir, showWarnings = FALSE)
 # download(fileUrl, paste(inputDir, sourceName, "gene_info.gz", sep = "/"), mode = "wb")
 
 # Read the file that includes the withdrawn ids
-ncbiWDN <- data.table::fread(paste(inputDir, sourceName, gene_history, sep = "/"), sep = "\t") %>% 
+ncbiWDN <- data.table::fread(paste(inputDir, "ncbi", gene_history, sep = "/"), sep = "\t") %>% 
   dplyr::filter(`#tax_id` == 9606) %>% #focusing on human
   dplyr::rename(primaryID = GeneID,
                 secondaryID	= Discontinued_GeneID,
@@ -83,7 +85,7 @@ ncbiWDN <- ncbiWDN %>%
                                  " Release: ", sourceVersion, "."))
 
 # Read the file that includes the gene info
-ncbi <- data.table::fread(paste(inputDir, sourceName, gene_info, sep = "/"), sep = "\t") %>%
+ncbi <- data.table::fread(paste(inputDir, "ncbi", gene_info, sep = "/"), sep = "\t") %>%
   dplyr::filter(`#tax_id` == 9606) %>% #focusing on human
   dplyr::mutate(Symbol_from_nomenclature_authority = ifelse(Symbol_from_nomenclature_authority == Symbol, "-", Symbol_from_nomenclature_authority),
                 Symbol = ifelse(Symbol_from_nomenclature_authority == "-", Symbol, paste0(Symbol, "|", Symbol_from_nomenclature_authority))) %>%
