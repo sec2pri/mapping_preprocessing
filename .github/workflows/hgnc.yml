@@ -31,32 +31,10 @@ jobs:
           ##Extract the date from the hgnc config file 
           date_old=$(grep -E '^date=' datasources/hgnc/config | cut -d'=' -f2)
           echo 'Accessing the hgnc data'
-          wget https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly -O hgnc_index.html
+          wget https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/ -O hgnc_index.html
+          less hgnc_index.html
           date_new=$(grep "tsv/" hgnc_index.html | sed -n 's/.*\([0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}\) [0-9]\{2\}:[0-9]\{2\}.*/\1/p')
           #Store dates to output
           echo "DATE_OLD=$date_old" >> $GITHUB_OUTPUT
           echo "DATE_NEW=$date_new" >> $GITHUB_OUTPUT
           echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
-
-  
-  test_new_data_processing:
-    name: Processing new data and check updates
-    needs: check_new_data
-    env:
-      DATE_OLD: ${{ needs.check_new_data.outputs.DATE_OLD }}
-      DATE_NEW: ${{ needs.check_new_data.outputs.DATE_NEW }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      # step 2: download the recent data 
-      - name: Download the recent data
-        run: |
-          ##Store outputs from previous job in environment variables
-          echo "$DATE_NEW=$DATE_NEW" >> $GITHUB_ENV
-          ##Create temp. folder to store the data in
-          mkdir -p datasources/hgnc/data
-          cd datasources/hgnc/data
-          ##Download hgnc file
-          wget "https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/withdrawn_${DATE_NEW}.txt"
-          ls
