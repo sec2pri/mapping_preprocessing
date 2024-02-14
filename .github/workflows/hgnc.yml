@@ -32,5 +32,11 @@ jobs:
           date_old=$(grep -E '^date=' datasources/hgnc/config | cut -d'=' -f2)
           echo 'Accessing the hgnc data'
           wget https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly -O hgnc_index.html
-          less hgnc_index.html
+          date_new=$(grep "tsv/" hgnc_index.html | sed -n 's/.*\([0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}\) [0-9]\{2\}:[0-9]\{2\}.*/\1/p')
+          #Store dates to output
+          echo "DATE_OLD=$date_old" >> $GITHUB_OUTPUT
+          echo "DATE_NEW=$date_new" >> $GITHUB_OUTPUT
+          echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
+
+
           
