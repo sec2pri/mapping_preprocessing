@@ -110,14 +110,14 @@ jobs:
           less $new | head
           
 
-          # Extract the secondaryID column from both files and sort them
-          cat "$old" | sort | tr -d "\r" | cut -f 3 > ids_old.txt
-          cat "$new" | sort | tr -d "\r" | cut -f 3 > ids_new.txt
+          # Extract the primaryID and secondaryID column from both files and sort them
+          cat "$old" | sort | tr -d "\r" | cut -f 1,3 > ids_old.txt
+          cat "$new" | sort | tr -d "\r" | cut -f 1,3 > ids_new.txt
 
           # TODO decide whether to perform diff on symbols too? 
           # Extract the secondarySymbol column from both files and sort them
-          cat "$old" | sort | tr -d "\r" | cut -f 4 > symbols_old.txt
-          cat "$new" | sort | tr -d "\r" | cut -f 4 > symbols_new.txt
+          ##cat "$old" | sort | tr -d "\r" | cut -f 4 > symbols_old.txt
+          ##cat "$new" | sort | tr -d "\r" | cut -f 4 > symbols_new.txt
 
           echo "Performing diff between the sorted lists of IDs"
 
