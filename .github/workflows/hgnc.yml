@@ -39,6 +39,7 @@ jobs:
           # Extracting the latest withdrawn file
           withdrawn=$(grep 'withdrawn_' hgnc_index.html | awk -F '">|</a' '{print $2}' | head -n 1)
           date_new=$(echo "$complete" | awk -F '_' '{print $4}' | awk -F '.' '{print $1}')
+          less hgnc_index.html
           grep -oP '(?<=href=")([^"]+(complete|withdrawn)_\d{4}-\d{2}-\d{2}\.txt)(?=")' hgnc_index.html | sort | tail -n 1
 
 
