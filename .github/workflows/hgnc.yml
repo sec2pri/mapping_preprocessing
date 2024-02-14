@@ -172,19 +172,19 @@ jobs:
       - uses: JasonEtco/create-an-issue@v2
         if: env.COUNT != 0
         name: Post issue about update availability
-        update_existing: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SOURCE: "HGNC"
         with:
-          filename: .github/ISSUE_TEMPLATE/ISSUE_UPDATE.md    
+          filename: .github/ISSUE_TEMPLATE/ISSUE_UPDATE.md 
+          update_existing: true   
        
       - uses: JasonEtco/create-an-issue@v2
         name: Post issue about failing test
-        update_existing: true
         if: ${{ env.FAILED == 'true' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SOURCE: "HGNC"
         with:
           filename: .github/ISSUE_TEMPLATE/ISSUE_FAIL.md
+          update_existing: true
