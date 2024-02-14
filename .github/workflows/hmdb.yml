@@ -41,8 +41,6 @@ jobs:
           head hmdb_metabolites.xml
           head hmdb_metabolites.xml | grep 'update_date' | sed 's/.*>\([0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}\).*/\1/'
           date_new=$(head hmdb_metabolites.xml | grep 'update_date' | sed 's/.*>\([0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}\).*/\1/')
-          ##Extract the date from the latest changes (up to the day)
-          date_new=$(echo $last_modified | cut -d':' -f2- | xargs -I {} date -d "{}" +%Y-%m-%d)
           #Store dates to output
           echo "DATE_OLD=$date_old" >> $GITHUB_OUTPUT
           echo "DATE_NEW=$date_new" >> $GITHUB_OUTPUT
@@ -74,16 +72,15 @@ jobs:
         run: |
           ##Store outputs from previous job in environment variables
           echo "$DATE_NEW=$DATE_NEW" >> $GITHUB_ENV
-          ##Create temp. folder to store the data in
-          mkdir -p datasources/hmdb/data
           ##Download hmdb file
           wget http://www.hmdb.ca/system/downloads/current/hmdb_metabolites.zip
           unzip hmdb_metabolites.zip
-          cd hmdb
-          cp ../hmdb_metabolites.xml .
+          mkdir tmp
+          mv ../hmdb_metabolites.xml .
           xml_split -v -l 1 hmdb_metabolites.xml
           rm hmdb_metabolites.xml
           cd ../
+          zip -r hmdb_metabolites_split.zip hmdb
 
           
       # step 3: run the jar for hmdb preprocessing 
@@ -92,24 +89,13 @@ jobs:
         with:
           java-version: '11'
           distribution: 'adopt'
-      # Download current version from Zenodo
-      #- name: Download current mapping file from Zenodo
-      #  id: download_current_zenodo
-      #  env:
-      #    zenodo_token: ${{ secrets.ZENODO }}
-      #  run: |
-      #    # Set up vars from config file
-      #    chmod +x datasources/chebi/config
-      #    . datasources/chebi/config .
-      #    echo "file name: $to_check_from_zenodo"
-      #    # Request Zenodo API to download the file
-      #    curl -H "Authorization: Bearer $zenodo_token" -LJO https://zenodo.org/api/record/$zenodo_file_id/$to_check_from_zenodo
-      - name: Test SDF processing
+   
+      - name: Test XML processing
         id: sdf_process
         run: |
           # Set up vars from config file
           to_check_from_zenodo=$(grep -E '^to_check_from_zenodo=' datasources/hmdb/config | cut -d'=' -f2)
-          inputFile=$to_check_from_zenodo
+          inputFile=hmdb_metabolites_split.zip
           mkdir datasources/hmdb/recentData/
           outputDir="datasources/hmdb/recentData/"
           # Run Java program and capture its exit code
@@ -179,7 +165,7 @@ jobs:
           # Store to env to use in issue
           echo "ADDED=$count_added" >> $GITHUB_ENV
           echo "REMOVED=$count_removed" >> $GITHUB_ENV
-          echo "URL_RELEASE=https://ftp.hmdb.nih.gov/gene/DATA/gene_history.gz" >> $GITHUB_ENV
+          echo "URL_RELEASE=https://hmdb.ca/downloads/" >> $GITHUB_ENV
       # step 5: post issues    
       - uses: JasonEtco/create-an-issue@v2
         name: Post issue about update availability
