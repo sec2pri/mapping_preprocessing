@@ -36,3 +36,5 @@ jobs:
           echo 'Accessing the uniprot data'
           wget https://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete/ -O uniprot_index.html
           less uniprot_index.html
+          date_new=$(grep -oP 'uniprot_sprot\.fasta\.gz</a></td><td[^>]*>\K[^<]+' uniprot_index.html)
+          echo $date_new
