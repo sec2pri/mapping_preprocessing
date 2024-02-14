@@ -111,9 +111,16 @@ jobs:
           
 
           # Extract the secondaryID column from both files and sort them
-          cat "$old" | sort | tr -d "\r" > ids_old.txt
-          cat "$new" | sort | tr -d "\r" > ids_new.txt
+          cat "$old" | sort | tr -d "\r" | cut -f 3 > ids_old.txt
+          cat "$new" | sort | tr -d "\r" | cut -f 3 > ids_new.txt
+
+          # TODO decide whether to perform diff on symbols too? 
+          # Extract the secondarySymbol column from both files and sort them
+          cat "$old" | sort | tr -d "\r" | cut -f 4 > symbols_old.txt
+          cat "$new" | sort | tr -d "\r" | cut -f 4 > symbols_new.txt
+
           echo "Performing diff between the sorted lists of IDs"
+
           # Perform a diff between the sorted lists of IDs
           output_file=diff.txt
 
@@ -143,6 +150,7 @@ jobs:
           # Store to env to use in issue
           echo "ADDED=$count_added" >> $GITHUB_ENV
           echo "REMOVED=$count_removed" >> $GITHUB_ENV
+          echo "URL_RELEASE=https://ftp.ncbi.nih.gov/gene/DATA/gene_history.gz" >> $GITHUB_ENV
       # step 5: post issues    
       - uses: JasonEtco/create-an-issue@v2
         name: Post issue about update availability
