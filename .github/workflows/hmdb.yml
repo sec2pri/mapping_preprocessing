@@ -168,10 +168,11 @@ jobs:
           echo "ADDED=$count_added" >> $GITHUB_ENV
           echo "REMOVED=$count_removed" >> $GITHUB_ENV
           echo "URL_RELEASE=https://hmdb.ca/downloads/" >> $GITHUB_ENV
-          count=$(expr $count_added + $count_removed)
+          count=$(expr $count_added + $count_removed) || true
           echo "COUNT=$count" >> $GITHUB_ENV
       - uses: JasonEtco/create-an-issue@v2
         if: env.COUNT != 0
+        update_existing: true
         name: Post issue about update availability
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -181,6 +182,7 @@ jobs:
        
       - uses: JasonEtco/create-an-issue@v2
         name: Post issue about failing test
+        update_existing: true
         if: ${{ env.FAILED == 'true' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
