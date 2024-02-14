@@ -19,6 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     name: Check the date of the latest data
     outputs:
+      COMPLETE_NEW: ${{ steps.check_download.outputs.COMPLETE_NEW }}
+      WITHDRAWN_NEW: ${{ steps.check_download.outputs.WITHDRAWN_NEW }}
       DATE_NEW: ${{ steps.check_download.outputs.DATE_NEW }}
       DATE_OLD: ${{ steps.check_download.outputs.DATE_OLD }}
     steps:
@@ -32,9 +34,18 @@ jobs:
           date_old=$(grep -E '^date=' datasources/hgnc/config | cut -d'=' -f2)
           echo 'Accessing the hgnc data'
           wget https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/ -O hgnc_index.html
-          less hgnc_index.html
-          date_new=$(grep "tsv/" hgnc_index.html | sed -n 's/.*\([0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}\) [0-9]\{2\}:[0-9]\{2\}.*/\1/p')
+          # Extracting the latest complete file
+          complete=$(grep 'hgnc_complete_set' hgnc_index.html | awk -F '">|</a' '{print $2}' | head -n 1)
+          # Extracting the latest withdrawn file
+          withdrawn=$(grep 'withdrawn_' hgnc_index.html | awk -F '">|</a' '{print $2}' | head -n 1)
+          date_new=$(echo "$complete" | awk -F '_' '{print $4}' | awk -F '.' '{print $1}')
+
           #Store dates to output
           echo "DATE_OLD=$date_old" >> $GITHUB_OUTPUT
           echo "DATE_NEW=$date_new" >> $GITHUB_OUTPUT
+          echo "COMPLETE_NEW=$complete" >> $GITHUB_OUTPUT
+          echo "WITHDRAWN_NEW=$withdrawn" >> $GITHUB_OUTPUT
+
           echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
+          echo $complete
+          echo $withdrawn
