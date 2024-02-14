@@ -74,4 +74,5 @@ jobs:
           cd datasources/hgnc/data
           ##Download hgnc file
           wget https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/$(WITHDRAWN_NEW)
-          ls
+          ls datasources/hgnc/data
+
