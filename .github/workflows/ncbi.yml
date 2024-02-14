@@ -72,8 +72,6 @@ jobs:
       - name: Test ncbi data processing
         id: ncbi_process
         run: |
-          # Set up vars from config file
-          . datasources/ncbi/config .
           sourceVersion=$DATE_NEW
           gene_history="data/gene_history.gz" 
           gene_info="data/gene_info.gz" 
@@ -85,8 +83,6 @@ jobs:
               # script succeeded
               echo "Successful preprocessing of ncbi data."
               echo "FAILED=false" >> $GITHUB_ENV
-              mkdir -p datasources/ncbi/recentData/
-              mv $to_check_from_zenodo datasources/ncbi/recentData/
           else
               # script failed
               echo "Failed preprocessing of ncbi data."
@@ -98,7 +94,7 @@ jobs:
           ${{ env.FAILED == 'false' }}
         run: |
           # Set up vars from config file
-          . datasources/ncbi/config .
+          to_check_from_zenodo=$(grep -E '^to_check_from_zenodo=' datasources/ncbi/config | cut -d'=' -f2)
           old="datasources/ncbi/data/$to_check_from_zenodo"
           new="datasources/ncbi/recentData/$to_check_from_zenodo"
           column_name="secondaryID"
@@ -117,10 +113,6 @@ jobs:
           # Extract the secondaryID column from both files and sort them
           cat "$old" | sort | tr -d "\r" | cut -f 3 > ids_old.txt
           cat "$new" | sort | tr -d "\r" | cut -f 3 > ids_new.txt
-
-          head ids_old_txt
-          echo _________
-          head ids_new.txt
 
           # TODO decide whether to perform diff on symbols too? 
           # Extract the secondarySymbol column from both files and sort them
