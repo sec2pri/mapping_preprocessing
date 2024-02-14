@@ -1,5 +1,5 @@
 release=
-date=July_1_2023
+date=2023-07-01
 url=https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/
 file_names=HGNC_alias&prev2symbol.tsv,HGNC_priIDs.tsv,HGNC_secID2priID.tsv
 to_check_from_zenodo=HGNC_secID2priID.tsv
