@@ -24,10 +24,10 @@ sourceName <- "HGNC"
 sourceVersion = args[1]
 withdrawn = args[2]
 complete_set = args[3]
-inputDir <- "mapping_preprocessing/datasources/"
+inputDir <- "datasources/"
 
 # Create output directory
-outputDir <- paste0("mapping_preprocessing/datasources/", "hgnc", "/recentData")
+outputDir <- paste0("datasources/", "hgnc", "/recentData")
 dir.create(outputDir, showWarnings = FALSE)
 
 # Download the input files from HGNC
