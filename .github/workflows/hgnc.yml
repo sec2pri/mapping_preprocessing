@@ -53,10 +53,10 @@ jobs:
     name: Processing new data and check updates
     needs: check_new_data
     env:
+      DATE_OLD: ${{ needs.check_new_data.outputs.DATE_OLD }}
+      DATE_NEW: ${{ needs.check_new_data.outputs.DATE_NEW }}
       COMPLETE_NEW: ${{ steps.check_new_data.outputs.COMPLETE_NEW }}
       WITHDRAWN_NEW: ${{ steps.check_new_data.outputs.WITHDRAWN_NEW }}
-      DATE_NEW: ${{ needs.check_new_data.outputs.DATE_NEW }}
-      DATE_OLD: ${{ needs.check_new_data.outputs.DATE_OLD }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
