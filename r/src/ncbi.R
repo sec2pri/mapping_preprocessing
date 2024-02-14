@@ -38,7 +38,7 @@ dir.create(outputDir, showWarnings = FALSE)
 # download(fileUrl, paste(inputDir, sourceName, "gene_info.gz", sep = "/"), mode = "wb")
 
 # Read the file that includes the withdrawn ids
-ncbiWDN <- data.table::fread(paste(inputDir, sourceName, gene_history, sep = "/"), sep = "\t") %>% 
+ncbiWDN <- data.table::fread(paste(inputDir, "ncbi", gene_history, sep = "/"), sep = "\t") %>% 
   dplyr::filter(`#tax_id` == 9606) %>% #focusing on human
   dplyr::rename(primaryID = GeneID,
                 secondaryID	= Discontinued_GeneID,
@@ -85,7 +85,7 @@ ncbiWDN <- ncbiWDN %>%
                                  " Release: ", sourceVersion, "."))
 
 # Read the file that includes the gene info
-ncbi <- data.table::fread(paste(inputDir, sourceName, gene_info, sep = "/"), sep = "\t") %>%
+ncbi <- data.table::fread(paste(inputDir, "ncbi", gene_info, sep = "/"), sep = "\t") %>%
   dplyr::filter(`#tax_id` == 9606) %>% #focusing on human
   dplyr::mutate(Symbol_from_nomenclature_authority = ifelse(Symbol_from_nomenclature_authority == Symbol, "-", Symbol_from_nomenclature_authority),
                 Symbol = ifelse(Symbol_from_nomenclature_authority == "-", Symbol, paste0(Symbol, "|", Symbol_from_nomenclature_authority))) %>%
