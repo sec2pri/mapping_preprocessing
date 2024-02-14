@@ -167,8 +167,10 @@ jobs:
           echo "ADDED=$count_added" >> $GITHUB_ENV
           echo "REMOVED=$count_removed" >> $GITHUB_ENV
           echo "URL_RELEASE=https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/${COMPLETE_NEW}" >> $GITHUB_ENV
-      # step 5: post issues    
+          count=$(expr $count_added + $count_removed)
+          echo "COUNT=$count" >> $GITHUB_ENV
       - uses: JasonEtco/create-an-issue@v2
+        if: env.COUNT != 0
         name: Post issue about update availability
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
