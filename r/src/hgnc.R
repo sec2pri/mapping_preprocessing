@@ -41,7 +41,7 @@ dir.create(outputDir, showWarnings = FALSE)
 # }
 
 # Read the file that includes the withdrawn ids
-hgncWDN <- read.csv(paste(inputDir, sourceName, withdrawn, sep = "/"), sep = "\t") %>%
+hgncWDN <- read.csv(withdrawn, sep = "\t") %>%
   dplyr::rename(
     HGNC_ID.SYMBOL.STATUS = MERGED_INTO_REPORT.S...i.e.HGNC_ID.SYMBOL.STATUS.,
     WITHDRAWN_HGNC_ID = HGNC_ID
@@ -131,8 +131,7 @@ outputSec2priTsv <- file.path(outputDir, paste(sourceName, "_secID2priID", ".tsv
 write.table(hgncWDN, outputSec2priTsv, sep = "\t", row.names = FALSE, quote = FALSE)
 
 # Read the file that includes the complete set
-hgnc <- read.csv(paste(inputDir, sourceName, complete_set, sep = "/"),
-  sep = "\t", as.is = T
+hgnc <- read.csv(complete_set, sep = "\t", as.is = T
 ) %>%
   dplyr::select(hgnc_id, symbol, alias_symbol, prev_symbol) %>%
   dplyr::mutate(
