@@ -58,5 +58,5 @@ jobs:
           mkdir -p datasources/hgnc/data
           cd datasources/hgnc/data
           ##Download hgnc file
-          wget https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/withdrawn_$(DATE_NEW).txt
+          wget "https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/withdrawn_${DATE_NEW}.txt"
           ls
