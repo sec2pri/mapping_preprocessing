@@ -54,7 +54,7 @@ hgncWDN <- read.csv(withdrawn, sep = "\t") %>%
 ## IAO:0100001 for IDs merged or 1:1 replacement to one and
 ## oboInOwl:consider for IDs split or deprecated
 
-outputSec2priTsv <- hgncWDN %>%
+hgncWDN <- hgncWDN %>%
   group_by(HGNC_ID.SYMBOL.STATUS) %>%
   mutate(
     primaryID_count = n(),
