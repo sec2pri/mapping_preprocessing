@@ -9,27 +9,32 @@ if (!"dplyr" %in% installed.packages()) {
 }
 library(dplyr)
 
+# Retrieve command-line arguments
+args <- commandArgs(trailingOnly = TRUE)
+
 # Set variables
-sourceName <- "hgnc"
-sourceVersion <- "2023-07-01"
+sourceName <- "HGNC"
+sourceVersion = args[1]
+withdrawn = args[2]
+complete_set = args[3]
 inputDir <- "mapping_preprocessing/datasources/"
 
 # Create output directory
-outputDir <- paste0("mapping_preprocessing/datasources/", sourceName, "/data")
+outputDir <- paste0("mapping_preprocessing/datasources/", "hgnc", "/recentData")
 dir.create(outputDir, showWarnings = FALSE)
 
 # Download the input files from HGNC
-if (!file.exists(paste(inputDir, sourceName, "/withdrawn_2023-07-01.txt", sep = "/"))) {
-  fileUrl <- paste0("https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/withdrawn_", sourceVersion, ".txt")
-  download(fileUrl, paste(inputDir, sourceName, "/withdrawn_2023-07-01.txt", sep = "/"), mode = "wb")
-}
-if (!file.exists(paste(inputDir, sourceName, "/hgnc_complete_set_2023-07-01.txt", sep = "/"))) {
-  fileUrl <- paste0("https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/hgnc_complete_set_", sourceVersion, ".txt")
-  download(fileUrl, paste(inputDir, sourceName, "/hgnc_complete_set_2023-07-01.txt", sep = "/"), mode = "wb")
-}
+# if (!file.exists(paste(inputDir, sourceName, "/_2023-07-01.txt", sep = "/"))) {
+#   fileUrl <- paste0("https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/withdrawn_", sourceVersion, ".txt")
+#   download(fileUrl, paste(inputDir, sourceName, "/withdrawn_2023-07-01.txt", sep = "/"), mode = "wb")
+# }
+# if (!file.exists(paste(inputDir, sourceName, "/hgnc__2023-07-01.txt", sep = "/"))) {
+#   fileUrl <- paste0("https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/hgnc_complete_set_", sourceVersion, ".txt")
+#   download(fileUrl, paste(inputDir, sourceName, "/hgnc_complete_set_2023-07-01.txt", sep = "/"), mode = "wb")
+# }
 
 # Read the file that includes the withdrawn ids
-hgncWDN <- read.csv(paste(inputDir, sourceName, paste0("withdrawn_", sourceVersion, ".txt"), sep = "/"), sep = "\t") %>%
+hgncWDN <- read.csv(paste(inputDir, sourceName, withdrawn, sep = "/"), sep = "\t") %>%
   dplyr::rename(
     HGNC_ID.SYMBOL.STATUS = MERGED_INTO_REPORT.S...i.e.HGNC_ID.SYMBOL.STATUS.,
     WITHDRAWN_HGNC_ID = HGNC_ID
@@ -87,7 +92,7 @@ outputSec2priTsv <- hgncWDN %>%
         )
       )
     ),
-    source = paste0("https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/withdrawn_", sourceVersion, ".txt")
+    source = paste0("https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/", withdrawn)
   )
 
 # Add a row for each primary ID
@@ -119,7 +124,7 @@ outputSec2priTsv <- file.path(outputDir, paste(sourceName, "_secID2priID", ".tsv
 write.table(hgncWDN, outputSec2priTsv, sep = "\t", row.names = FALSE, quote = FALSE)
 
 # Read the file that includes the complete set
-hgnc <- read.csv(paste(inputDir, sourceName, paste0("hgnc_complete_set_", sourceVersion, ".txt"), sep = "/"),
+hgnc <- read.csv(paste(inputDir, sourceName, complete_set, sep = "/"),
   sep = "\t", as.is = T
 ) %>%
   dplyr::select(hgnc_id, symbol, alias_symbol, prev_symbol) %>%
@@ -166,7 +171,7 @@ hgncPrev <- data.frame(
 
 hgnc <- rbind(hgncPrev, hgncAlias) %>%
   unique() %>%
-  dplyr::mutate(source = paste0("https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/hgnc_complete_set_", sourceVersion, ".txt")) %>%
+  dplyr::mutate(source = paste0("https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/", complete_set)) %>%
   dplyr::select(primaryID, primarySymbol, secondarySymbol, predicateID, mapping_cardinality_sec2pri, comment, source)
 
 # Check the symbols that are not present in hgnc file while they are in hgncWDN: all of those symbols are belong to HGNC IDs that were withdrawn and therefore not present in the complete set
