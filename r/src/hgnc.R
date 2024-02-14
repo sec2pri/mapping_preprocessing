@@ -1,13 +1,20 @@
 # Clear environment and load necessary libraries
 rm(list = ls())
-if (!"downloader" %in% installed.packages()) {
-  install.packages("downloader")
+if(!"downloader" %in% installed.packages()) {
+   install.packages("downloader")
 }
-require(downloader)
-if (!"dplyr" %in% installed.packages()) {
-  install.packages("dplyr")
+library(downloader)
+if(!"dplyr" %in% installed.packages()) {
+   install.packages("dplyr")
 }
 library(dplyr)
+if(!"data.table" %in% installed.packages()) {
+   install.packages("data.table")
+}
+library(data.table)
+if(!"R.utils" %in% installed.packages()) {
+   install.packages("R.utils")
+}
 
 # Retrieve command-line arguments
 args <- commandArgs(trailingOnly = TRUE)
