@@ -47,5 +47,31 @@ jobs:
           echo "WITHDRAWN_NEW=$withdrawn" >> $GITHUB_OUTPUT
 
           echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
-          echo $complete
-          echo $withdrawn
+          
+          
+  test_new_data_processing:
+    name: Processing new data and check updates
+    needs: check_new_data
+    env:
+      COMPLETE_NEW: ${{ steps.check_new_data.outputs.COMPLETE_NEW }}
+      WITHDRAWN_NEW: ${{ steps.check_new_data.outputs.WITHDRAWN_NEW }}
+      DATE_NEW: ${{ needs.check_new_data.outputs.DATE_NEW }}
+      DATE_OLD: ${{ needs.check_new_data.outputs.DATE_OLD }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      # step 2: download the recent data 
+      - name: Download the recent data
+        run: |
+          ##Store outputs from previous job in environment variables
+          echo "$DATE_NEW=$DATE_NEW" >> $GITHUB_ENV
+          echo "$COMPLETE_NEW=$COMPLETE_NEW" >> $GITHUB_ENV
+          echo "$WITHDRAWN_NEW=$WITHDRAWN_NEW" >> $GITHUB_ENV
+          
+          ##Create temp. folder to store the data in
+          mkdir -p datasources/hgnc/data
+          cd datasources/hgnc/data
+          ##Download hgnc file
+          wget https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/$(WITHDRAWN_NEW)
+          ls
