@@ -155,7 +155,11 @@ jobs:
           added=$(grep '^+CHEBI' "$output_file") || true
           # retrieve removed lines
           echo Counting removed lines...
-          removed=$(grep '^-CHEBI' "$output_file") || true
+          removed=$(grep '^-' "$output_file" | sed 's/-//g') || true
+          added_filtered=$(comm -23 <(sort <<< "$added") <(sort <<< "$removed"))
+          removed_filtered=$(comm -23 <(sort <<< "$removed") <(sort <<< "$added"))
+          added=$added_filtered
+          removed=$removed_filtered
           # count them
           echo Counting differences:
           count_removed=$(echo "$removed" | wc -l) || true
