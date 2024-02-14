@@ -20,7 +20,7 @@ if(!"R.utils" %in% installed.packages()) {
 args <- commandArgs(trailingOnly = TRUE)
 
 # Set variables
-sourceName = "ncbi"
+sourceName = "NCBI"
 sourceVersion = args[1]
 gene_history = args[2]
 gene_info = args[3]
