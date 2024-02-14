@@ -185,7 +185,7 @@ jobs:
         name: Post issue about update availability
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SOURCE: chebi
+          SOURCE: ChEBI
         with:
           filename: .github/ISSUE_TEMPLATE/ISSUE_UPDATE.md    
        
