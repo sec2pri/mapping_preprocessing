@@ -152,7 +152,7 @@ jobs:
           diff -u ids_old.txt ids_new.txt > $output_file || true
           # retrieve new lines
           echo Counting added lines...
-          added=$(grep '^+CHEBI' "$output_file") || true
+          added=$(grep '^+CHEBI' "$output_file" | sed 's/-//g') || true
           # retrieve removed lines
           echo Counting removed lines...
           removed=$(grep '^-' "$output_file" | sed 's/-//g') || true
@@ -162,16 +162,18 @@ jobs:
           removed=$removed_filtered
           # count them
           echo Counting differences:
-          count_removed=$(echo "$removed" | wc -l) || true
-          count_added=$(echo "$added" | wc -l) || true
+          count_removed=$(printf "$removed" | wc -l) || true
+          count_added=$(printf "$added" | wc -l) || true
           # make sure we are not counting empty lines
           if [ -z "$removed" ]; then
-           count_removed=$(expr $count_removed - 1) || true
+           count_removed=0
           fi
           if [ -z "$added" ]; then
-           count_added=$(expr $count_added - 1) || true
+           count_added=0
           fi
+          echo removed:
           echo "$removed"
+          echo added:
           echo "$added"
           echo Added id pairs: $count_added
           echo Removed id pairs: $count_removed
