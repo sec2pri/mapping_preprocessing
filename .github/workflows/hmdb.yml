@@ -70,6 +70,7 @@ jobs:
       # step 2: download the recent data 
       - name: Download the recent data
         run: |
+          sudo apt-get install xml-twig-tools
           ##Store outputs from previous job in environment variables
           echo "$DATE_NEW=$DATE_NEW" >> $GITHUB_ENV
           ##Download hmdb file
