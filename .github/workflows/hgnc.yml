@@ -74,6 +74,5 @@ jobs:
           ##Download hgnc file
           wget https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/$(WITHDRAWN_NEW)
           wget https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/$(COMPLETE_NEW)
-          mv $WITHDRAWN_NEW $COMPLETE_NEW datasources/hgnc/data
           ##Check file size if available
-          ls -trlh datasources/hgnc/data
+          ls 
