@@ -31,4 +31,6 @@ jobs:
           ##Extract the date from the hgnc config file 
           date_old=$(grep -E '^date=' datasources/hgnc/config | cut -d'=' -f2)
           echo 'Accessing the hgnc data'
-          curl -sI https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly
+          wget https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly -O hgnc_index.html
+          less hgnc_index.html
+          
