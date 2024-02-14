@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   pull_request: # tests whether it is working on PR
      paths:
-     - '.`/workflows/chebi.yml'
+     - '.github/workflows/chebi.yml'
   schedule:
     - cron: "0 0 1,15 * *"  # Run the workflow on the 1st and 15th day of each month
 permissions:
@@ -155,7 +155,11 @@ jobs:
           added=$(grep '^+CHEBI' "$output_file") || true
           # retrieve removed lines
           echo Counting removed lines...
-          removed=$(grep '^-CHEBI' "$output_file") || true
+          removed=$(grep '^-' "$output_file" | sed 's/-//g') || true
+          added_filtered=$(comm -23 <(sort <<< "$added") <(sort <<< "$removed"))
+          removed_filtered=$(comm -23 <(sort <<< "$removed") <(sort <<< "$added"))
+          added=$added_filtered
+          removed=$removed_filtered
           # count them
           echo Counting differences:
           count_removed=$(echo "$removed" | wc -l) || true
