@@ -36,5 +36,41 @@ jobs:
           echo 'Accessing the uniprot data'
           wget https://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete/ -O uniprot_index.html
           less uniprot_index.html
-          date_new=$(grep -oP 'uniprot_sprot\.fasta\.gz</a></td><td[^>]*>\K[^<]+' uniprot_index.html)
-          echo $date_new
+          date_new=$(grep -oP 'uniprot_sprot\.fasta\.gz</a></td><td[^>]*>\K[0-9]{4}-[0-9]{2}-[0-9]{2}' uniprot_index.html)
+
+          #Store dates to output
+          echo "DATE_OLD=$date_old" >> $GITHUB_OUTPUT
+          echo "DATE_NEW=$date_new" >> $GITHUB_OUTPUT
+          echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
+          
+        
+  test_new_data_processing:
+    name: Processing new data and check updates
+    needs: check_new_data
+    env:
+      DATE_OLD: ${{ needs.check_new_data.outputs.DATE_OLD }}
+      DATE_NEW: ${{ needs.check_new_data.outputs.DATE_NEW }}
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      # step 2: download the recent data 
+      - name: Download the recent data
+        run: |
+          ##Store outputs from previous job in environment variables
+          echo "$DATE_NEW=$DATE_NEW" >> $GITHUB_ENV
+          
+          UNIPROT_SPROT_NEW=$(echo uniprot_sprot.fasta.gz)
+          SEC_AC_NEW=$(echo sec_ac.txt)
+          DELAC_SP_NEW=$(echo delac_sp.txt)
+
+          ##Create temp. folder to store the data in
+          mkdir -p datasources/uniprot/data
+          ##Download uniprot file
+          wget https://ftp.ebi.ac.uk/pub/databases/genenames/uniprot/archive/quarterly/tsv/${SEC_AC_NEW}
+          wget https://ftp.ebi.ac.uk/pub/databases/genenames/uniprot/archive/quarterly/tsv/${DELAC_SP_NEW}
+          wget https://ftp.ebi.ac.uk/pub/databases/genenames/uniprot/archive/quarterly/tsv/${UNIPROT_SPROT_NEW}
+          mv $DELAC_SP_NEW $SEC_AC_NEW $UNIPROT_SPROT_NEW datasources/uniprot/data
+          ##Check file size if available
+          ls -trlh datasources/uniprot/data
