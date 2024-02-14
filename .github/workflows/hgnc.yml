@@ -39,13 +39,6 @@ jobs:
           # Extracting the latest withdrawn file
           withdrawn=$(grep 'withdrawn_' hgnc_index.html | awk -F '">|</a' '{print $2}' | head -n 1)
           date_new=$(echo "$complete" | awk -F '_' '{print $4}' | awk -F '.' '{print $1}')
+          grep -oP '(?<=href=")([^"]+(complete|withdrawn)_\d{4}-\d{2}-\d{2}\.txt)(?=")' hgnc_index.html | sort | tail -n 1
 
-          #Store dates to output
-          echo "DATE_OLD=$date_old" >> $GITHUB_OUTPUT
-          echo "DATE_NEW=$date_new" >> $GITHUB_OUTPUT
-          echo "COMPLETE_NEW=$complete" >> $GITHUB_OUTPUT
-          echo "WITHDRAWN_NEW=$withdrawn" >> $GITHUB_OUTPUT
 
-          echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
-          echo $complete
-          echo $withdrawn
