@@ -132,8 +132,10 @@ jobs:
           # retrieve removed lines
           echo Counting removed lines...
           removed=$(grep '^-' "$output_file" | sed 's/-//g') || true
-          added=$(comm -23 <(sort <<< "$added") <(sort <<< "$removed"))
-          removed=$(comm -23 <(sort <<< "$removed") <(sort <<< "$added"))
+          added_filtered=$(comm -23 <(sort <<< "$added") <(sort <<< "$removed"))
+          removed_filtered=$(comm -23 <(sort <<< "$removed") <(sort <<< "$added"))
+          added=$added_filtered
+          removed=$removed_filtered
           # count them
           echo Counting differences:
           count_removed=$(echo "$removed" | wc -l) || true
@@ -161,7 +163,7 @@ jobs:
         name: Post issue about update availability
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SOURCE: ncbi
+          SOURCE: "NCBI"
         with:
           filename: .github/ISSUE_TEMPLATE/ISSUE_UPDATE.md    
        
