@@ -128,10 +128,12 @@ jobs:
           less $output_file | head
           # retrieve new lines
           echo Counting added lines...
-          added=$(grep '^+' "$output_file") || true
+          added=$(grep '^+' "$output_file") | sed 's/+//g' || true
           # retrieve removed lines
           echo Counting removed lines...
-          removed=$(grep '^-' "$output_file") || true
+          removed=$(grep '^-' "$output_file") | sed 's/-//g' || true
+          added=$(comm -23 <(sort <<< "$added") <(sort <<< "$removed"))
+          removed=$(comm -23 <(sort <<< "$removed") <(sort <<< "$added"))
           # count them
           echo Counting differences:
           count_removed=$(echo "$removed" | wc -l) || true
