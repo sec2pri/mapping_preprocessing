@@ -72,7 +72,9 @@ jobs:
           ##Create temp. folder to store the data in
           mkdir -p datasources/hgnc/data
           ##Download hgnc file
-          wget https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/$(WITHDRAWN_NEW)
-          wget https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/$(COMPLETE_NEW)
+          wget https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/${WITHDRAWN_NEW}
+          wget https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/${COMPLETE_NEW}
+          ls -trlh
+          mv $WITHDRAWN_NEW $COMPLETE_NEW datasources/hgnc/data
           ##Check file size if available
-          ls 
+          ls -trlh datasources/hgnc/data
