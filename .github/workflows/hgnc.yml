@@ -167,11 +167,12 @@ jobs:
           echo "ADDED=$count_added" >> $GITHUB_ENV
           echo "REMOVED=$count_removed" >> $GITHUB_ENV
           echo "URL_RELEASE=https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/${COMPLETE_NEW}" >> $GITHUB_ENV
-          count=$(expr $count_added + $count_removed)
+          count=$(expr $count_added + $count_removed) || true
           echo "COUNT=$count" >> $GITHUB_ENV
       - uses: JasonEtco/create-an-issue@v2
         if: env.COUNT != 0
         name: Post issue about update availability
+        update_existing: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SOURCE: "HGNC"
@@ -180,6 +181,7 @@ jobs:
        
       - uses: JasonEtco/create-an-issue@v2
         name: Post issue about failing test
+        update_existing: true
         if: ${{ env.FAILED == 'true' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
