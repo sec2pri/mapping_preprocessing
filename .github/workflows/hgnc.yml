@@ -35,11 +35,17 @@ jobs:
           echo 'Accessing the hgnc data'
           wget https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/ -O hgnc_index.html
           # Extracting the latest complete file
-          complete=$(grep 'hgnc_complete_set' hgnc_index.html | awk -F '">|</a' '{print $2}' | head -n 1)
+          complete=$(grep -o 'hgnc_complete_set_[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}\.txt' hgnc_index.html | tail -n 1)
           # Extracting the latest withdrawn file
-          withdrawn=$(grep 'withdrawn_' hgnc_index.html | awk -F '">|</a' '{print $2}' | head -n 1)
-          date_new=$(echo "$complete" | awk -F '_' '{print $4}' | awk -F '.' '{print $1}')
-          less hgnc_index.html
-          grep -oP '(?<=href=")([^"]+(complete|withdrawn)_\d{4}-\d{2}-\d{2}\.txt)(?=")' hgnc_index.html | sort | tail -n 1
+          withdrawn=$(grep -o 'withdrawn_[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}\.txt' hgnc_index.html | tail -n 1)
+          date_new=$(echo "$complete" | awk -F '_' '{print $4}' | sed 's/\.txt//')
 
+          #Store dates to output
+          echo "DATE_OLD=$date_old" >> $GITHUB_OUTPUT
+          echo "DATE_NEW=$date_new" >> $GITHUB_OUTPUT
+          echo "COMPLETE_NEW=$complete" >> $GITHUB_OUTPUT
+          echo "WITHDRAWN_NEW=$withdrawn" >> $GITHUB_OUTPUT
 
+          echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
+          echo $complete
+          echo $withdrawn
