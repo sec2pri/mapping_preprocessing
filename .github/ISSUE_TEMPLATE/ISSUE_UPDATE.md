@@ -10,3 +10,7 @@ labels: enhancement
 - ID pairs removed in new data version: **{{ env.REMOVED }}**
 
 Date of release: {{ env.DATE_NEW }}.
+
+## Retrieve processed data
+
+The processed data is available in [the action log page](https://github.com/sec2pri/maping_preprocessing/actions/runs/{{ env.GITHUB_RUN_ID }}) as an artifact.
