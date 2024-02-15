@@ -16,39 +16,53 @@ if (!"readr" %in% installed.packages()) {
   install.packages("readr")
 }
 library(readr)
+if(!"data.table" %in% installed.packages()) {
+  install.packages("data.table")
+}
+library(data.table)
+if(!"R.utils" %in% installed.packages()) {
+  install.packages("R.utils")
+}
+
+# Retrieve command-line arguments
+args <- commandArgs(trailingOnly = TRUE)
 
 # Set variables
-sourceName <- "uniprot"
-inputDir <- "mapping_preprocessing/datasources/"
+sourceName = "UniProt"
+sourceVersion = args[1]
+uniprot_sprot = args[2]
+delac_sp = args[3] 
+sec_ac = args[4]
+inputDir <- "datasources"
 
 # Create output directory
-outputDir <- paste0("mapping_preprocessing/datasources/", sourceName, "/data")
+outputDir <- paste0("datasources/", "uniprot", "/recentData")
 dir.create(outputDir, showWarnings = FALSE)
 
 # Download the input files from UniProt
-if (!file.exists(paste(inputDir, sourceName, "uniprot_sprot_release-2023_03.fasta.gz", sep = "/"))) {
-  # uniprot_sprot.fasta.gz includes complete UniProtKB/Swiss-Prot data set in FASTA format
-  fileUrl <- "https://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.fasta.gz"
-  download(fileUrl, paste(inputDir, sourceName, "/uniprot_sprot_release-2023_03.fasta.gz", sep = "/"), mode = "wb")
-}
-if (!file.exists(paste(inputDir, sourceName, "delac_sp_release-2023_03.txt", sep = "/"))) {
-  # Accession numbers deleted from Swiss-Prot are listed in the document file delac_sp.txt
-  fileUrl <- "https://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete/docs/delac_sp.txt"
-  download(fileUrl, paste(inputDir, sourceName, "/delac_sp_release-2023_03.txt", sep = "/"), mode = "wb")
-}
-if (!file.exists(paste(inputDir, sourceName, "sec_ac_release-2023_03.txt", sep = "/"))) {
-  # This file lists all secondary accession numbers in UniProtKB (Swiss-Prot and TrEMBL), together with their corresponding current primary accession number(s).
-  fileUrl <- "https://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete/docs/sec_ac.txt"
-  download(fileUrl, paste(inputDir, sourceName, "/sec_ac_release-2023_03.txt", sep = "/"), mode = "wb")
-}
+# if (!file.exists(paste(inputDir, sourceName, "uniprot_sprot_release-2023_03.fasta.gz", sep = "/"))) {
+#   # uniprot_sprot.fasta.gz includes complete UniProtKB/Swiss-Prot data set in FASTA format
+#   fileUrl <- "https://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.fasta.gz"
+#   download(fileUrl, paste(inputDir, sourceName, "/uniprot_sprot_release-2023_03.fasta.gz", sep = "/"), mode = "wb")
+# }
+# if (!file.exists(paste(inputDir, sourceName, "delac_sp_release-2023_03.txt", sep = "/"))) {
+#   # Accession numbers deleted from Swiss-Prot are listed in the document file delac_sp.txt
+#   fileUrl <- "https://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete/docs/delac_sp.txt"
+#   download(fileUrl, paste(inputDir, sourceName, "/delac_sp_release-2023_03.txt", sep = "/"), mode = "wb")
+# }
+# if (!file.exists(paste(inputDir, sourceName, "sec_ac_release-2023_03.txt", sep = "/"))) {
+#   # This file lists all secondary accession numbers in UniProtKB (Swiss-Prot and TrEMBL), together with their corresponding current primary accession number(s).
+#   fileUrl <- "https://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete/docs/sec_ac.txt"
+#   download(fileUrl, paste(inputDir, sourceName, "/sec_ac_release-2023_03.txt", sep = "/"), mode = "wb")
+# }
 
 # Read the fasta file
-fastaFile <- paste(inputDir, sourceName, "uniprot_sprot_release-2023_03.fasta.gz", sep = "/")
-fastaData <- readLines(fastaFile)
+# fastaFile <- paste(inputDir, sourceName, "uniprot_sprot_release-2023_03.fasta.gz", sep = "/")
+fastaData <- readLines(uniprot_sprot)
 
 # Extract the IDs using regular expressions
 pattern <- "^>.*?\\|(.*?)\\|" # Updated pattern to match IDs at the start of lines
-listOfpri <- str_extract(fastaFile, pattern)
+listOfpri <- str_extract(fastaData, pattern)
 listOfpri <- str_remove_all(listOfpri, "^>.*?\\||\\|$") # Remove the '>' symbol and '|' characters from the extracted IDs
 listOfpri <- listOfpri[!is.na(listOfpri)] # Filter out NAs
 
@@ -57,8 +71,7 @@ outputPriTsv <- file.path(outputDir, paste(sourceName, "_priIDs", ".tsv", sep = 
 write.table(data.frame(primaryID = listOfpri), outputPriTsv, sep = "\t", row.names = FALSE, quote = FALSE)
 
 # Read the secondary to primary IDs
-uniportSec <- readr::read_table(paste(inputDir, sourceName, "sec_ac_release-2023_03.txt", sep = "/"),
-  skip = 31, col_names = c("secondaryID", "primaryID")
+uniportSec <- readr::read_table(sec_ac, skip = 31, col_names = c("secondaryID", "primaryID")
 ) %>%
   dplyr::mutate(
     secondaryID = gsub(" ", "", secondaryID),
@@ -92,13 +105,13 @@ uniportSec <- uniportSec %>%
       )
     ),
     comment = ifelse(mapping_cardinality_sec2pri == "1:n", # the IDs Splits
-      "ID (subject) is split into mutiple. Release: 28-Jun-2023.", ifelse(
+      aste0("ID (subject) is split into mutiple. Release: ", sourceVersion, "."), ifelse(
         mapping_cardinality_sec2pri == "1:1", # the secondary ID replace by new ID
-        "ID (subject) is replaced. Release: 28-Jun-2023.", ifelse(
+        paste0("ID (subject) is replaced. Release: ", sourceVersion, "."), ifelse(
           mapping_cardinality_sec2pri == "n:n",
-          "This ID (subject) and other ID(s) are merged/splited into multiple ID(Object). Release: 28-Jun-2023.", ifelse(
+          paste0("This ID (subject) and other ID(s) are merged/splited into multiple ID(Object). Release: ", sourceVersion, "."), ifelse(
             mapping_cardinality_sec2pri == "n:1", # multiple secondary IDs merged into one primary ID
-            "This ID (subject) and other ID(s) are merged into one ID. Release: 28-Jun-2023.", NA
+            paste0("This ID (subject) and other ID(s) are merged into one ID. Release: ", sourceVersion, "."), NA
           )
         )
       )
@@ -109,15 +122,14 @@ uniportSec <- uniportSec %>%
 
 
 # Read the deleted IDs
-uniportSpDel <- readr::read_table(paste(inputDir, sourceName, "delac_sp_release-2023_03.txt", sep = "/"),
-  skip = 27, col_names = "secondaryID"
+uniportSpDel <- readr::read_table(delac_sp, skip = 27, col_names = "secondaryID"
 ) %>%
   dplyr::mutate(
     secondaryID = gsub(" ", "", secondaryID),
     primaryID = "Entry Withdrawn",
     mapping_cardinality_sec2pri = "1:0",
     predicateID = "oboInOwl:consider",
-    comment = "ID (subject) withdrawn/deprecated. Release: 2023_03 of 28-Jun-2023",
+    comment = paste0("ID (subject) withdrawn/deprecated. Release: ", sourceVersion, "."),
     source = "https://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete/docs/delac_sp.txt"
   ) %>%
   dplyr::select(primaryID, secondaryID, predicateID, mapping_cardinality_sec2pri, comment, source)
