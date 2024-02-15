@@ -167,14 +167,26 @@ jobs:
           echo "ADDED=$count_added" >> $GITHUB_ENV
           echo "REMOVED=$count_removed" >> $GITHUB_ENV
           echo "URL_RELEASE=https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/${COMPLETE_NEW}" >> $GITHUB_ENV
-      # step 5: post issues    
+          count=$(expr $count_added + $count_removed) || true
+          echo "COUNT=$count" >> $GITHUB_ENV
+
+      
+      - name: 'Upload processed data as artifacts'
+        uses: actions/upload-artifact@v3
+        with:
+          name: hgnc_processed
+          path: datasources/hgnc/recentData/*
+
+
       - uses: JasonEtco/create-an-issue@v2
+        if: env.COUNT != 0
         name: Post issue about update availability
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SOURCE: "HGNC"
         with:
-          filename: .github/ISSUE_TEMPLATE/ISSUE_UPDATE.md    
+          filename: .github/ISSUE_TEMPLATE/ISSUE_UPDATE.md 
+          update_existing: true   
        
       - uses: JasonEtco/create-an-issue@v2
         name: Post issue about failing test
@@ -184,3 +196,4 @@ jobs:
           SOURCE: "HGNC"
         with:
           filename: .github/ISSUE_TEMPLATE/ISSUE_FAIL.md
+          update_existing: true

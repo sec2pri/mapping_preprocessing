@@ -1,76 +1,199 @@
-name: hmdb
+name: Check and test HMDB updates
 
 on:
   workflow_dispatch:
-
+  pull_request: # tests whether it is working on PR
+     paths:
+     - '.github/workflows/hmdb.yml'
+  schedule:
+    - cron: "0 0 1,15 * *"  # Run the workflow on the 1st and 15th day of each month
 permissions:
   contents: write
   pages: write
   id-token: write
-  
+  issues: write
+
+
 jobs:
-  hmdb:
+  check_new_data:
     runs-on: ubuntu-latest
-    name: Test HMDB
-
+    name: Check the date of the latest data
+    outputs:
+      DATE_NEW: ${{ steps.check_download.outputs.DATE_NEW }}
+      DATE_OLD: ${{ steps.check_download.outputs.DATE_OLD }}
+      NEW_RELEASE: ${{ steps.check_download.outputs.NEW_RELEASE }}
     steps:
-      # Step 1: Checkout the repository (for bash script (tba))
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-      
-      # Step 2: Install xml-twig-tools and process HMDB data
-      - name: Process HMDB Data
+      # step 1: check the release date for the latest hmdb files
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Check for new hmdb files
+        id: check_download
         run: |
-          # Install xml-twig-tools
-          sudo apt-get install xml-twig-tools
-                    
-          # Create a directory to store processed data
-          mkdir -p datasources/hmdb/results
-          
-          # Navigate to the HMDB directory
-          cd datasources/hmdb/results/
-          
-          # Download and extract HMDB metabolites data
-          URL=$"http://www.hmdb.ca/system/downloads/current/hmdb_metabolites.zip"
-          wget_output=$(wget -q "$URL")
-          if [ $? -ne 0 ]; then
-            echo "HMDB data not downloadable"
-            exit 1
-          else
-            wget "$URL"
-                  
-          unzip hmdb_metabolites.zip
-          
-          # Split the XML file into smaller parts
-          xml_split -v -l 1 hmdb_metabolites.xml
-          
-          # Remove the original XML file
-          rm hmdb_metabolites.xml
-          
-          # Navigate back to the main directory
-          cd ../
-          
-          # Create a zip archive of the processed data
-          zip -r hmdb_metabolites_split.zip hmdb_data
 
-      # Step 3: create and compare logfile (tba)
-      - name: Compare data size 
+          ## Setup
+          sudo apt-get install xml-twig-tools
+
+          ##Extract the date from the hmdb config file 
+          date_old=$(grep -E '^date=' datasources/hmdb/config | cut -d'=' -f2)
+          echo 'Accessing the hmdb data'
+          wget http://www.hmdb.ca/system/downloads/current/hmdb_metabolites.zip
+          unzip hmdb_metabolites.zip
+          head hmdb_metabolites.xml
+          head hmdb_metabolites.xml | grep 'update_date' | sed 's/.*>\([0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}\).*/\1/'
+          date_new=$(head hmdb_metabolites.xml | grep 'update_date' | sed 's/.*>\([0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}\).*/\1/')
+          #Store dates to output
+          echo "DATE_OLD=$date_old" >> $GITHUB_OUTPUT
+          echo "DATE_NEW=$date_new" >> $GITHUB_OUTPUT
+          ##Compare the dates and set variable if date_new is more recent
+          timestamp1=$(date -d "$date_new" +%s)
+          timestamp2=$(date -d "$date_old" +%s)
+          if [ "$timestamp1" -gt "$timestamp2" ]; then
+            echo 'New release available', "$release"
+            echo "NEW_RELEASE=true" >> $GITHUB_OUTPUT
+          else
+            echo 'No new release available'
+          fi
+          echo "Date of latest release: $date_new"
+          echo "Date of release of the current version: $date_old"
+
+  
+  test_new_data_processing:
+    name: Processing new data and check updates
+    needs: check_new_data
+    env:
+      DATE_OLD: ${{ needs.check_new_data.outputs.DATE_OLD }}
+      DATE_NEW: ${{ needs.check_new_data.outputs.DATE_NEW }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      # step 2: download the recent data 
+      - name: Download the recent data
         run: |
-          echo "HMDB data has been succesfully downloaded."
+          sudo apt-get install xml-twig-tools
+          ##Store outputs from previous job in environment variables
+          echo "$DATE_NEW=$DATE_NEW" >> $GITHUB_ENV
+          ##Download hmdb file
+          wget http://www.hmdb.ca/system/downloads/current/hmdb_metabolites.zip
+          unzip hmdb_metabolites.zip
+          mkdir hmdb
+          mv hmdb_metabolites.xml hmdb
+          cd hmdb
+          xml_split -v -l 1 hmdb_metabolites.xml
+          rm hmdb_metabolites.xml
+          cd ../
+          zip -r hmdb_metabolites_split.zip hmdb
+
           
-      # Step 4: Commit and push logfile
-     # - name: Commit and Push Logfile
-      #  run: |
-       #   git pull
-          # Add the generated zip file
-        #  git add datasources/hmdb/hmdb_metabolites_split.zip
+      # step 3: run the jar for hmdb preprocessing 
+      - name: Set up Java
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+   
+      - name: Test XML processing
+        id: sdf_process
+        run: |
+          # Set up vars from config file
+          to_check_from_zenodo=$(grep -E '^to_check_from_zenodo=' datasources/hmdb/config | cut -d'=' -f2)
+          inputFile=hmdb_metabolites_split.zip
+          mkdir datasources/hmdb/recentData/
+          outputDir="datasources/hmdb/recentData/"
+          # Run Java program and capture its exit code
+          java -cp java/target/mapping_prerocessing-0.0.1-jar-with-dependencies.jar org.sec2pri.hmdb_xml "$inputFile" "$outputDir"          
+          # Check the exit status of the Java program
+          if [ $? -eq 0 ]; then
+              # Java program succeeded
+              echo "Successful preprocessing of ChEBI data."
+              echo "FAILED=false" >> $GITHUB_ENV
+          else
+              # Java program failed
+              echo "Failed preprocessing of ChEBI data."
+              echo "FAILED=true" >> $GITHUB_ENV
+          fi
+      # step 4: compare the new and old data 
+      - name: Diff versions
+        if:
+          ${{ env.FAILED == 'false' }}
+        run: |
+          # Set up vars from config file
+          to_check_from_zenodo=$(grep -E '^to_check_from_zenodo=' datasources/hmdb/config | cut -d'=' -f2)
+          old="datasources/hmdb/data/$to_check_from_zenodo"
+          new="datasources/hmdb/recentData/$to_check_from_zenodo"
           
-          # Configure the user for the commit
-         # git config --local user.email "action@github.com"
-          #git config --local user.name "GitHub Action"
+          less $old | head
+          less $new | head
           
-          # Commit changes
-          #git commit -m "Automated test"
+          # Extract the primarySymbol and secondarySymbol column from both files and sort them
+          cat "$old" | sort | tr -d "\r" > ids_old.txt
+          cat "$new" | sort | tr -d "\r" > ids_new.txt
+
+          echo "Performing diff between the sorted lists of Symbols"
+
+          # Perform a diff between the sorted lists of Symbols
+          output_file=diff.txt
+
+          diff -u ids_old.txt ids_new.txt > $output_file || true
+          less $output_file | head
+          # retrieve new lines
+          echo Counting added lines...
+          added=$(grep '^+' "$output_file" | sed 's/+//g') || true
+          # retrieve removed lines
+          echo Counting removed lines...
+          removed=$(grep '^-' "$output_file" | sed 's/-//g') || true
+          added_filtered=$(comm -23 <(sort <<< "$added") <(sort <<< "$removed"))
+          removed_filtered=$(comm -23 <(sort <<< "$removed") <(sort <<< "$added"))
+          added=$added_filtered
+          removed=$removed_filtered
+          # count them
+          echo Counting differences:
+          count_removed=$(printf "$removed" | wc -l) || true
+          count_added=$(printf "$added" | wc -l) || true
+
+          # make sure we are not counting empty lines
+          if [ -z "$removed" ]; then
+           count_removed=0
+          fi
+          if [ -z "$added" ]; then
+           count_added=0
+          fi
+          echo removed:
+          echo "$removed"
+          echo added:
+          echo "$added"
+          echo Added id pairs: $count_added
+          echo Removed id pairs: $count_removed
+          # Store to env to use in issue
+          echo "ADDED=$count_added" >> $GITHUB_ENV
+          echo "REMOVED=$count_removed" >> $GITHUB_ENV
+          echo "URL_RELEASE=https://hmdb.ca/downloads/" >> $GITHUB_ENV
+          count=$(expr $count_added + $count_removed) || true
+          echo "COUNT=$count" >> $
           
-          # Push changes
-          #git push
+      - name: 'Upload processed data as artifacts'
+        uses: actions/upload-artifact@v3
+        with:
+          name: hmdb_processed
+          path: datasources/hmdb/recentData/*
+
+
+      - uses: JasonEtco/create-an-issue@v2
+        if: env.COUNT != 0
+        name: Post issue about update availability
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE: "HMDB"
+        with:
+          filename: .github/ISSUE_TEMPLATE/ISSUE_UPDATE.md
+          update_existing: true    
+       
+      - uses: JasonEtco/create-an-issue@v2
+        name: Post issue about failing test
+        if: ${{ env.FAILED == 'true' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE: hmdb
+        with:
+          filename: .github/ISSUE_TEMPLATE/ISSUE_FAIL.md
+          update_existing: true
