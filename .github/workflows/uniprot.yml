@@ -87,6 +87,13 @@ jobs:
           uniprot_sprot="datasources/uniprot/data/${UNIPROT_SPROT_NEW}" 
           sec_ac="datasources/uniprot/data/${SEC_AC_NEW}"
           delac_sp="datasources/uniprot/data/${DELAC_SP_NEW}" 
+          echo Check files
+          echo $sourceVersion 
+          echo $uniprot_sprot
+          echo $delac_sp
+          echo $sec_ac
+          ls -trlh datasources/uniprot/data
+          
           # Run rscripts program and capture its exit code
           Rscript r/src/uniprot.R $sourceVersion $uniprot_sprot $delac_sp $sec_ac 
           # Check the exit status of the R script
