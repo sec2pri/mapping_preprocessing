@@ -169,7 +169,15 @@ jobs:
           echo "REMOVED=$count_removed" >> $GITHUB_ENV
           echo "URL_RELEASE=https://hmdb.ca/downloads/" >> $GITHUB_ENV
           count=$(expr $count_added + $count_removed) || true
-          echo "COUNT=$count" >> $GITHUB_ENV
+          echo "COUNT=$count" >> $
+          
+      - name: 'Upload processed data as artifacts'
+        uses: actions/upload-artifact@v3
+        with:
+          name: hmdb_processed
+          path: datasources/hmdb/recentData/*
+
+
       - uses: JasonEtco/create-an-issue@v2
         if: env.COUNT != 0
         name: Post issue about update availability

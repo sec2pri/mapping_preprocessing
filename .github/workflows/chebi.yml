@@ -118,7 +118,7 @@ jobs:
         run: |
           inputFile="ChEBI_complete_3star.sdf" 
           mkdir new
-          outputDir="new/"
+          outputDir="datasources/chebi/recentData/"
           # Run Java program and capture its exit code
           java -cp java/target/mapping_prerocessing-0.0.1-jar-with-dependencies.jar org.sec2pri.chebi_sdf "$inputFile" "$outputDir"
           # Check the exit status of the Java program
@@ -140,7 +140,7 @@ jobs:
           chmod +x datasources/chebi/config
           . datasources/chebi/config .
           old="datasources/chebi/data/$to_check_from_zenodo"
-          new="new/$to_check_from_zenodo"
+          new="datasources/chebi/recentData/$to_check_from_zenodo"
           column_name="secondaryID"
           echo $column_name
           # Extract the secondaryID column from both files and sort them
@@ -182,6 +182,13 @@ jobs:
           echo "REMOVED=$count_removed" >> $GITHUB_ENV
           count=$(expr $count_added + $count_removed) || true
           echo "COUNT=$count" >> $GITHUB_ENV
+
+      - name: 'Upload processed data as artifacts'
+        uses: actions/upload-artifact@v3
+        with:
+          name: chebi_processed
+          path: datasources/chebi/recentData/*
+
       - uses: JasonEtco/create-an-issue@v2
         if: ${{ env.COUNT != 0 }}
         name: Post issue about update availability

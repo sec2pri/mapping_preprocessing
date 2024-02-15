@@ -160,6 +160,14 @@ jobs:
           echo "URL_RELEASE=https://ftp.ncbi.nih.gov/gene/DATA/gene_history.gz" >> $GITHUB_ENV
           count=$(expr $count_added + $count_removed) || true
           echo "COUNT=$count" >> $GITHUB_ENV
+      
+      - name: 'Upload processed data as artifacts'
+        uses: actions/upload-artifact@v3
+        with:
+          name: ncbi_processed
+          path: datasources/ncbi/recentData/*
+
+
       - uses: JasonEtco/create-an-issue@v2
         if: env.COUNT != 0
         name: Post issue about update availability
