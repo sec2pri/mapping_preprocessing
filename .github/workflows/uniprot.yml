@@ -84,14 +84,7 @@ jobs:
           sourceVersion=$DATE_NEW
           uniprot_sprot=$(echo datasources/uniprot/data/uniprot_sprot.fasta.gz)
           sec_ac=$(echo datasources/uniprot/data/sec_ac.txt)
-          delac_sp=$(echo datasources/uniprot/data/delac_sp.txt)
-          echo Check files
-          echo $sourceVersion 
-          echo $uniprot_sprot
-          echo $delac_sp
-          echo $sec_ac
-          ls -trlh datasources/uniprot/data
-          
+          delac_sp=$(echo datasources/uniprot/data/delac_sp.txt)         
           # Run rscripts program and capture its exit code
           Rscript r/src/uniprot.R $sourceVersion $uniprot_sprot $delac_sp $sec_ac 
           # Check the exit status of the R script
