@@ -180,14 +180,17 @@ jobs:
           # Store to env to use in issue
           echo "ADDED=$count_added" >> $GITHUB_ENV
           echo "REMOVED=$count_removed" >> $GITHUB_ENV
-          
+          count=$(expr $count_added + $count_removed) || true
+          echo "COUNT=$count" >> $GITHUB_ENV
       - uses: JasonEtco/create-an-issue@v2
+        if: ${{ env.COUNT != 0 }}
         name: Post issue about update availability
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SOURCE: ChEBI
         with:
-          filename: .github/ISSUE_TEMPLATE/ISSUE_UPDATE.md    
+          filename: .github/ISSUE_TEMPLATE/ISSUE_UPDATE.md   
+          update_existing: true
        
       - uses: JasonEtco/create-an-issue@v2
         name: Post issue about failing test
@@ -197,3 +200,4 @@ jobs:
           SOURCE: chebi
         with:
           filename: .github/ISSUE_TEMPLATE/ISSUE_FAIL.md
+          update_existing: true
