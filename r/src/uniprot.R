@@ -105,7 +105,7 @@ uniportSec <- uniportSec %>%
       )
     ),
     comment = ifelse(mapping_cardinality_sec2pri == "1:n", # the IDs Splits
-      aste0("ID (subject) is split into mutiple. Release: ", sourceVersion, "."), ifelse(
+      paste0("ID (subject) is split into mutiple. Release: ", sourceVersion, "."), ifelse(
         mapping_cardinality_sec2pri == "1:1", # the secondary ID replace by new ID
         paste0("ID (subject) is replaced. Release: ", sourceVersion, "."), ifelse(
           mapping_cardinality_sec2pri == "n:n",
