@@ -118,8 +118,8 @@ jobs:
           less $new | head
           
           # Extract the primaryID and secondaryID column from both files and sort them
-          cat "$old" | sort | tr -d "\r" | cut -f 1,3 > ids_old.txt
-          cat "$new" | sort | tr -d "\r" | cut -f 1,3 > ids_new.txt
+          cat "$old" | sort | tr -d "\r" | cut -f 1,2 > ids_old.txt
+          cat "$new" | sort | tr -d "\r" | cut -f 1,2 > ids_new.txt
 
           # TODO decide whether to perform diff on symbols too? 
           # Extract the secondarySymbol column from both files and sort them
@@ -167,6 +167,13 @@ jobs:
           echo "URL_RELEASE=https://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete/${UNIPROT_SPROT_NEW}" >> $GITHUB_ENV
           count=$(expr $count_added + $count_removed) || true
           echo "COUNT=$count" >> $GITHUB_ENV
+          
+      - name: 'Upload processed data as artifacts'
+        uses: actions/upload-artifact@v3
+        with:
+          name: uniprot_processed
+          path: datasources/uniprot/recentData/*
+          
       # step 5: post issues    
       - uses: JasonEtco/create-an-issue@v2
         if: env.COUNT != 0
