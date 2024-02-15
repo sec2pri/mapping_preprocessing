@@ -84,9 +84,9 @@ jobs:
         id: uniprot_process
         run: |
           sourceVersion=$DATE_NEW
-          uniprot_sprot="datasources/uniprot/data/${UNIPROT_SPROT_NEW}" 
-          sec_ac="datasources/uniprot/data/${SEC_AC_NEW}"
-          delac_sp="datasources/uniprot/data/${DELAC_SP_NEW}" 
+          uniprot_sprot=$(echo datasources/uniprot/data/${UNIPROT_SPROT_NEW})
+          sec_ac=$(echo datasources/uniprot/data/${SEC_AC_NEW})
+          delac_sp=$(echo datasources/uniprot/data/${DELAC_SP_NEW})
           echo Check files
           echo $sourceVersion 
           echo $uniprot_sprot
