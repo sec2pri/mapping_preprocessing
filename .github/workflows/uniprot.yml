@@ -74,3 +74,112 @@ jobs:
           mv $DELAC_SP_NEW $SEC_AC_NEW $UNIPROT_SPROT_NEW datasources/uniprot/data
           ##Check file size if available
           ls -trlh datasources/uniprot/data
+      # step 3: run the Rscripts for uniprot preprocessing 
+      - name: Install R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.1' # Specify the R version
+          include-recommended: true      
+      - name: Test uniprot data processing
+        id: uniprot_process
+        run: |
+          sourceVersion=$DATE_NEW
+          uniprot_sprot="datasources/uniprot/data/${UNIPROT_SPROT_NEW}" 
+          sec_ac="datasources/uniprot/data/${SEC_AC_NEW}"
+          delac_sp="datasources/uniprot/data/${DELAC_SP_NEW}" 
+          # Run rscripts program and capture its exit code
+          Rscript r/src/uniprot.R $sourceVersion $uniprot_sprot $delac_sp $sec_ac 
+          # Check the exit status of the R script
+          if [ $? -eq 0 ]; then
+              # script succeeded
+              echo "Successful preprocessing of uniprot data."
+              echo "FAILED=false" >> $GITHUB_ENV
+          else
+              # script failed
+              echo "Failed preprocessing of uniprot data."
+              echo "FAILED=true" >> $GITHUB_ENV
+          fi
+      # step 4: compare the new and old data 
+      - name: Diff versions
+        if:
+          ${{ env.FAILED == 'false' }}
+        run: |
+          # Set up vars from config file
+          to_check_from_zenodo=$(grep -E '^to_check_from_zenodo=' datasources/uniprot/config | cut -d'=' -f2)
+          old="datasources/uniprot/data/$to_check_from_zenodo"
+          new="datasources/uniprot/recentData/$to_check_from_zenodo"
+          column_name="secondaryID"
+          echo $column_name
+
+          ls datasources/uniprot/data/
+          ls datasources/uniprot/recentData/
+          
+          less $old | head
+          less $new | head
+          
+          # Extract the primaryID and secondaryID column from both files and sort them
+          cat "$old" | sort | tr -d "\r" | cut -f 1,3 > ids_old.txt
+          cat "$new" | sort | tr -d "\r" | cut -f 1,3 > ids_new.txt
+
+          # TODO decide whether to perform diff on symbols too? 
+          # Extract the secondarySymbol column from both files and sort them
+          ##cat "$old" | sort | tr -d "\r" | cut -f 4 > symbols_old.txt
+          ##cat "$new" | sort | tr -d "\r" | cut -f 4 > symbols_new.txt
+
+          echo "Performing diff between the sorted lists of IDs"
+
+          # Perform a diff between the sorted lists of IDs
+          output_file=diff.txt
+
+          diff -u ids_old.txt ids_new.txt > $output_file || true
+          less $output_file | head
+          # retrieve new lines
+          echo Counting added lines...
+          added=$(grep '^+' "$output_file" | sed 's/+//g') || true
+          # retrieve removed lines
+          echo Counting removed lines...
+          removed=$(grep '^-' "$output_file" | sed 's/-//g') || true
+          added_filtered=$(comm -23 <(sort <<< "$added") <(sort <<< "$removed"))
+          removed_filtered=$(comm -23 <(sort <<< "$removed") <(sort <<< "$added"))
+          added=$added_filtered
+          removed=$removed_filtered
+          # count them
+          echo Counting differences:
+          count_removed=$(printf "$removed" | wc -l) || true
+          count_added=$(printf "$added" | wc -l) || true
+
+          # make sure we are not counting empty lines
+          if [ -z "$removed" ]; then
+           count_removed=0
+          fi
+          if [ -z "$added" ]; then
+           count_added=0
+          fi
+          echo removed:
+          echo "$removed"
+          echo added:
+          echo "$added"
+          echo Added id pairs: $count_added
+          echo Removed id pairs: $count_removed
+          # Store to env to use in issue
+          echo "ADDED=$count_added" >> $GITHUB_ENV
+          echo "REMOVED=$count_removed" >> $GITHUB_ENV
+          echo "URL_RELEASE=https://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete/${UNIPROT_SPROT_NEW}" >> $GITHUB_ENV
+      # step 5: post issues    
+      - uses: JasonEtco/create-an-issue@v2
+        name: Post issue about update availability
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE: "UniProt"
+        with:
+          filename: .github/ISSUE_TEMPLATE/ISSUE_UPDATE.md    
+       
+      - uses: JasonEtco/create-an-issue@v2
+        name: Post issue about failing test
+        if: ${{ env.FAILED == 'true' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE: "UniProt"
+        with:
+          filename: .github/ISSUE_TEMPLATE/ISSUE_FAIL.md
+
