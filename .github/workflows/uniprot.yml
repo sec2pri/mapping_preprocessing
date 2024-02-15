@@ -109,6 +109,8 @@ jobs:
           column_name="secondaryID"
           echo $column_name
 
+           # Unzip the zip file 
+          unzip datasources/ncbi/data/UniProt_secID2priID.zip -d datasources/ncbi/data/
           ls datasources/uniprot/data/
           ls datasources/uniprot/recentData/
           
