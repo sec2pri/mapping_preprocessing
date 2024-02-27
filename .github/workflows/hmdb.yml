@@ -160,7 +160,7 @@ jobs:
           echo ________________________________________________
           echo "$added"
           echo _________________________________________________
-          echo What's changed:
+          echo "What's changed:"
           echo "- Added id pairs: $count_added"
           echo "- Removed id pairs: $count_removed"
           # Store to env to use in issue
