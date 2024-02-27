@@ -111,13 +111,6 @@ jobs:
           old="datasources/hgnc/data/$to_check_from_zenodo"
           new="datasources/hgnc/recentData/$to_check_from_zenodo"
           column_name="secondaryID"
-          echo $column_name
-
-          ls datasources/hgnc/data/
-          ls datasources/hgnc/recentData/
-          
-          less $old | head
-          less $new | head
           
           # Extract the primaryID and secondaryID column from both files and sort them
           cat "$old" | sort | tr -d "\r" | cut -f 1,3 > ids_old.txt
@@ -136,17 +129,14 @@ jobs:
           diff -u ids_old.txt ids_new.txt > $output_file || true
           less $output_file | head
           # retrieve new lines
-          echo Counting added lines...
           added=$(grep '^+' "$output_file" | sed 's/+//g') || true
           # retrieve removed lines
-          echo Counting removed lines...
           removed=$(grep '^-' "$output_file" | sed 's/-//g') || true
           added_filtered=$(comm -23 <(sort <<< "$added") <(sort <<< "$removed"))
           removed_filtered=$(comm -23 <(sort <<< "$removed") <(sort <<< "$added"))
           added=$added_filtered
           removed=$removed_filtered
           # count them
-          echo Counting differences:
           count_removed=$(printf "$removed" | wc -l) || true
           count_added=$(printf "$added" | wc -l) || true
 
@@ -157,16 +147,21 @@ jobs:
           if [ -z "$added" ]; then
            count_added=0
           fi
-          echo removed:
+          echo ________________________________________________
+          echo "                 removed pairs                    "
+          echo ________________________________________________
           echo "$removed"
-          echo added:
+          echo ________________________________________________
+          echo "                 added pairs                    "
+          echo ________________________________________________
           echo "$added"
-          echo Added id pairs: $count_added
-          echo Removed id pairs: $count_removed
+          echo _________________________________________________
+          echo What's changed:
+          echo "- Added id pairs: $count_added"
+          echo "- Removed id pairs: $count_removed"
           # Store to env to use in issue
           echo "ADDED=$count_added" >> $GITHUB_ENV
           echo "REMOVED=$count_removed" >> $GITHUB_ENV
-          echo "URL_RELEASE=https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/${COMPLETE_NEW}" >> $GITHUB_ENV
           count=$(expr $count_added + $count_removed) || true
           echo "COUNT=$count" >> $GITHUB_ENV
 
