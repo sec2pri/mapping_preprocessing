@@ -199,6 +199,9 @@ jobs:
           echo "REMOVED=$count_removed" >> $GITHUB_ENV
           count=$(expr $count_added + $count_removed) || true
           echo "COUNT=$count" >> $GITHUB_ENV
+          total_old=$(printf "$old" | wc -l) || true 
+          change=$((100 * count / total_old))
+          echo "CHANGE=$change" >> $GITHUB_ENV 
           
       - name: 'Upload processed data as artifacts'
         uses: actions/upload-artifact@v3
