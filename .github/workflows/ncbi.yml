@@ -124,7 +124,7 @@ jobs:
           # Use grep to check if any line in the secondary column doesn't match the pattern
           if grep -nqvE "$NCBI_ID" "column1.txt"; then
             echo "All lines in the secondary column match the pattern."
-            exit 0
+            
           else
             echo "Error: At least one line in the secondary column does not match pattern."
             grep -nqvE "$NCBI_ID" "column2.txt"
