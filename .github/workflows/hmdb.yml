@@ -133,6 +133,7 @@ jobs:
             exit 0
           else
             echo "Error: At least one line does not match pattern."
+            grep -vnE "$HMDB_ID" "$new" | sed 's/:.*//'
             exit 1
           fi
           # sort them
