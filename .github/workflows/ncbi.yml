@@ -102,12 +102,25 @@ jobs:
 
           # Unzip the zip file 
           unzip datasources/ncbi/data/NCBI_secID2priID.zip -d datasources/ncbi/data/
-          # Extract the primaryID and secondaryID column from both files and sort them
+          # remove headers
+          sed -i '1d' "$new"
+          sed -i '1d' "$old"
+          # qc integrity of IDs
+          wget -nc https://raw.githubusercontent.com/bridgedb/datasources/main/datasources.tsv
+          NCBI_ID=$(awk -F '\t' '$1 == "Entrez Gene" {print $10}' datasources.tsv)
+          # Use grep to check if any line doesn't match the pattern
+          if ! grep -qvE "$NCBI_ID" "$new"; then
+            echo "All lines match the pattern."
+            exit 0
+          else
+            echo "Error: At least one line does not match pattern."
+            exit 1
+          fi
+          # sort them
           cat "$old" | sort | tr -d "\r" | cut -f 1,3 > ids_old.txt
           cat "$new" | sort | tr -d "\r" | cut -f 1,3 > ids_new.txt
 
           # TODO decide whether to perform diff on symbols too? 
-          # Extract the secondarySymbol column from both files and sort them
           ##cat "$old" | sort | tr -d "\r" | cut -f 4 > symbols_old.txt
           ##cat "$new" | sort | tr -d "\r" | cut -f 4 > symbols_new.txt
 

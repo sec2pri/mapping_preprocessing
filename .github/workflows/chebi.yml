@@ -139,8 +139,21 @@ jobs:
           . datasources/chebi/config .
           old="datasources/chebi/data/$to_check_from_zenodo"
           new="datasources/chebi/recentData/$to_check_from_zenodo"
-          column_name="secondaryID"
-          # Extract the secondaryID column from both files and sort them
+          # remove headers
+          sed -i '1d' "$new"
+          sed -i '1d' "$old"
+          # qc integrity of IDs
+          wget -nc https://raw.githubusercontent.com/bridgedb/datasources/main/datasources.tsv
+          CHEBI_ID=$(awk -F '\t' '$1 == "ChEBI" {print $10}' datasources.tsv)
+          # Use grep to check if any line doesn't match the pattern
+          if ! grep -qvE "$CHEBI_ID" "$new"; then
+            echo "All lines match the pattern."
+            exit 0
+          else
+            echo "Error: At least one line does not match pattern."
+            exit 1
+          fi
+          # sort them
           cat "$old" | sort | tr -d "\r" > ids_old.txt
           cat "$new" | sort | tr -d "\r" > ids_new.txt
           echo "Performing diff between the sorted lists of IDs"
