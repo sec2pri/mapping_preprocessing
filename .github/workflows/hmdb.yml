@@ -137,7 +137,8 @@ jobs:
           else
             echo "Error: At least one line in the primary column does not match pattern."
             grep -nvE "^$HMDB_ID$" "column1.txt"
-            #exit 1
+            echo "FAILED=true" >> $GITHUB_ENV
+            exit 1
           fi
                   
           # Use grep to check if any line in the secondary column doesn't match the pattern
@@ -147,6 +148,7 @@ jobs:
           else
             echo "Error: At least one line in the secondary column does not match pattern."
             grep -nqvE "$HMDB_ID" "column2.txt"
+            echo "FAILED=true" >> $GITHUB_ENV
             exit 1
           fi
           # sort them

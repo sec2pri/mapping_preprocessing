@@ -131,7 +131,7 @@ jobs:
               echo "Failed preprocessing of ChEBI data."
               echo "FAILED=true" >> $GITHUB_ENV
           fi
-      - name: Diff versions
+      - name: RegEx and Diff test
         if:
           ${{ env.FAILED == 'false' }}
         run: |
@@ -155,7 +155,8 @@ jobs:
           else
             echo "Error: At least one line in the primary column does not match pattern."
             grep -nvE "^$CHEBI_ID$" "column1.txt"
-            #exit 1
+            echo "FAILED=true" >> $GITHUB_ENV
+            exit 1
           fi
 
           # Use grep to check if any line in the secondary column doesn't match the pattern
@@ -165,6 +166,7 @@ jobs:
           else
             echo "Error: At least one line in the secondary column does not match pattern."
             grep -nqvE "$CHEBI_ID" "column2.txt"
+            echo "FAILED=true" >> $GITHUB_ENV
             exit 1
           fi
           # sort them
