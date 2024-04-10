@@ -27,7 +27,7 @@ gene_info = args[3]
 inputDir = "datasources"
 
 # Create output directory
-outputDir <- paste0("datasources/", sourceName, "/recentData")
+outputDir <- paste0("datasources/", "ncbi", "/recentData")
 dir.create(outputDir, showWarnings = FALSE)
 
 ## Download the input files from NCBI (better to download and make a subset for human and mice in bash)
