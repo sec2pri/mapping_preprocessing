@@ -27,7 +27,7 @@ complete_set = args[3]
 inputDir <- "datasources/"
 
 # Create output directory
-outputDir <- paste0("datasources/", "hgnc", "/recentData")
+outputDir <- paste0("datasources/", tolower(sourceName), "/recentData")
 dir.create(outputDir, showWarnings = FALSE)
 
 # Download the input files from HGNC
