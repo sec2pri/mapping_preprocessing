@@ -2,4 +2,4 @@ release=5
 date=2021-11-17
 url=http://www.hmdb.ca/system/downloads/current/hmdb_metabolites.zip
 file_names=HMDB_priIDs.tsv,HMDB_secID2priID.tsv,HMDB_synonym2name.tsv
-to_check_from_zenodo=HMDB_synonym2name.tsv
+to_check_from_zenodo=HMDB_secID2priID.tsv

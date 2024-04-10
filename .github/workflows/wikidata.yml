@@ -25,26 +25,29 @@ jobs:
           mkdir datasources/wikidata/results
           ##Define variable to be used in storing and updating output data (to avoid hardcoding for each change) (tba)
           
-          ## Download outdated IDs for chemicals
+          ## Download outdated IDs for chemicals Wikidata Style
           curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalRedirects.rq -G https://query.wikidata.org/sparql -o datasources/wikidata/results/metabolites_secID2priID.tsv
+          ## Download outdated IDs for chemicals qLever Style
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalRedirects.rq -G https://qlever.cs.uni-freiburg.de/api/wikidata -o datasources/wikidata/results/metabolites_secID2priID_qlever.tsv
+          
           ## Download all primary IDs for chemicals
           #curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalAllPrimary.rq -G https://query.wikidata.org/sparql -o datasources/wikidata/results/metabolites_priIDs.tsv
           ## Download alias/synonyms/names for chemicals
-          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalPrimarySynonyms.rq -G https://query.wikidata.org/sparql -o datasources/wikidata/results/metabolites_name2synonym.tsv
+          #curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalPrimarySynonyms.rq -G https://query.wikidata.org/sparql -o datasources/wikidata/results/metabolites_name2synonym.tsv
           
           ## Download outdated IDs for genes (split from proteins to avoid timeouts)
-          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/geneHumanRedirects.rq -G https://query.wikidata.org/sparql -o datasources/wikidata/results/gene_secID2priID.tsv
+          #curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/geneHumanRedirects.rq -G https://query.wikidata.org/sparql -o datasources/wikidata/results/gene_secID2priID.tsv
           ## Download outdated IDs for proteins (split from genes to avoid timeouts)
-          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/proteinHumanRedirects.rq -G https://query.wikidata.org/sparql -o datasources/wikidata/results/protein_secID2priID.tsv
+          #curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/proteinHumanRedirects.rq -G https://query.wikidata.org/sparql -o datasources/wikidata/results/protein_secID2priID.tsv
           ## Download all primary IDs for genes and proteins
           #curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/geneproteinHumanAllPrimary.rq -G https://query.wikidata.org/sparql -o datasources/wikidata/results/geneProtein_priIDs.tsv
           ## Download alias/synonyms/names for genes and proteins
           #curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/geneproteinHumanPrimarySynonyms.rq -G https://query.wikidata.org/sparql -o datasources/wikidata/results/geneProtein_name2synonym.tsv
 
           ##Concatenate gene and protein outdated ID data
-          head -n 1 datasources/wikidata/results/gene_secID2priID.tsv > datasources/wikidata/results/geneProtein_secID2priID.tsv ##Add the header of one file as start
-          tail -n +2 -q datasources/wikidata/results/gene_secID2priID.tsv >> datasources/wikidata/results/geneProtein_secID2priID.tsv ##Add gene sec. IDs to the file (not overwrite)
-          tail -n +2 -q datasources/wikidata/results/protein_secID2priID.tsv >> datasources/wikidata/results/geneProtein_secID2priID.tsv ##Add protein sec. IDs to the file (not overwrite)
+          #head -n 1 datasources/wikidata/results/gene_secID2priID.tsv > datasources/wikidata/results/geneProtein_secID2priID.tsv ##Add the header of one file as start
+          #tail -n +2 -q datasources/wikidata/results/gene_secID2priID.tsv >> datasources/wikidata/results/geneProtein_secID2priID.tsv ##Add gene sec. IDs to the file (not overwrite)
+          #tail -n +2 -q datasources/wikidata/results/protein_secID2priID.tsv >> datasources/wikidata/results/geneProtein_secID2priID.tsv ##Add protein sec. IDs to the file (not overwrite)
           
           ##Check new data, fail job if query timeout has occured
           cd datasources/wikidata/results
