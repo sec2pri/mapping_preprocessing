@@ -1,8 +1,32 @@
-[![Java CI with Maven](https://github.com/sec2pri/mapping_preprocessing/actions/workflows/maven.yml/badge.svg)](https://github.com/sec2pri/mapping_preprocessing/actions/workflows/maven.yml) [![ChEBI](https://github.com/sec2pri/mapping_preprocessing/actions/workflows/chebi.yml/badge.svg)](https://github.com/sec2pri/mapping_preprocessing/actions/workflows/chebi.yml) [![HMDB](https://github.com/sec2pri/mapping_preprocessing/actions/workflows/hmdb.yml/badge.svg)](https://github.com/sec2pri/mapping_preprocessing/actions/workflows/hmdb.yml) [![HGNC](https://github.com/sec2pri/mapping_preprocessing/actions/workflows/hgnc.yml/badge.svg)](https://github.com/sec2pri/mapping_preprocessing/actions/workflows/hgnc.yml) [![NCBI](https://github.com/sec2pri/mapping_preprocessing/actions/workflows/ncbi.yml/badge.svg)](https://github.com/sec2pri/mapping_preprocessing/actions/workflows/ncbi.yml) [![Wikidata](https://github.com/sec2pri/mapping_preprocessing/actions/workflows/wikidata.yml/badge.svg)](https://github.com/sec2pri/mapping_preprocessing/actions/workflows/wikidata.yml)
-# Processing mapping files for the omics FixID tool
-In this repository, the details of data processing to create mapping files for the omics FixID tool are explained. Most of the data processing is done in R, and some is done in Java when the input is too large to be processed in R.
 
- included
+<h1 align="center">
+  Processing mapping files for the omics FixID tool
+</h1>
+<p align="center">
+    <a href="https://github.com/sec2pri/mapping_preprocessing/actions/workflows/maven.yml">
+        <img alt="Java CI with Maven" src="https://github.com/sec2pri/mapping_preprocessing/actions/workflows/maven.yml/badge.svg" />
+    </a>
+    <a href="https://github.com/sec2pri/mapping_preprocessing/actions/workflows/chebi.yml">
+        <img alt="ChEBI" src="https://github.com/sec2pri/mapping_preprocessing/actions/workflows/chebi.yml/badge.svg" />
+    </a>
+    <a href="https://github.com/sec2pri/mapping_preprocessing/actions/workflows/hmdb.yml">
+        <img alt="HMDB" src="https://github.com/sec2pri/mapping_preprocessing/actions/workflows/hmdb.yml/badge.svg" />
+    </a>
+    <a href="https://github.com/sec2pri/mapping_preprocessing/actions/workflows/hgnc.yml">
+        <img alt="HGNC" src="https://github.com/sec2pri/mapping_preprocessing/actions/workflows/hgnc.yml/badge.svg" />
+    </a>
+    <a href='https://github.com/sec2pri/mapping_preprocessing/actions/workflows/ncbi.yml'>
+        <img src='https://github.com/sec2pri/mapping_preprocessing/actions/workflows/ncbi.yml/badge.svg' alt="NCBI" />
+    </a>
+    <a href="https://github.com/sec2pri/mapping_preprocessing/actions/workflows/uniprot.yml">
+        <img src="https://github.com/sec2pri/mapping_preprocessing/actions/workflows/uniprot.yml/badge.svg" alt="UniProt" />
+    </a>  
+    <a href="https://github.com/sec2pri/mapping_preprocessing/actions/workflows/wikidata.yml">
+        <img alt="Wikidata" src="https://github.com/sec2pri/mapping_preprocessing/actions/workflows/wikidata.yml/badge.svg" /> 
+    </a>
+</p>
+
+In this repository, the details of data processing to create mapping files for the omics FixID tool are explained. Most of the data processing is done in R, and some is done in Java when the input is too large to be processed in R.
 
 | Datasource | license | citation |
 |-----------------|-----------------|-----------------|
