@@ -6,7 +6,7 @@ if (!"readr" %in% installed.packages()) {
 library(readr)
 
 # Set variables
-sourceName <- "chebi"
+sourceName <- "ChEBI"
 inputDir <- "mapping_preprocessing/datasources/"
 
 # Create output directory
