@@ -6,11 +6,11 @@ if (!"xml2" %in% installed.packages()) {
 library(xml2)
 
 # Set variables
-sourceName <- "hmdb"
-inputDir <- "mapping_preprocessing/datasources/"
+sourceName <- "HMDB"
+inputDir <- "datasources/"
 
 # Create output directory
-outputDir <- paste0("mapping_preprocessing/datasources/", sourceName, "/data")
+outputDir <- paste0("datasources/", tolower(sourceName), "/recentData")
 dir.create(outputDir, showWarnings = FALSE)
 
 # Create list to save the mapping data
