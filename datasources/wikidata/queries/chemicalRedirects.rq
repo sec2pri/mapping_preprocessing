@@ -1,5 +1,8 @@
-SELECT ?primaryID ?secondaryID WITH {
-SELECT ?primaryID
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+SELECT ?primaryID ?secondaryID 
 WHERE
 {
 { ?primaryID p:P31/ps:P31 wd:Q11173 }
@@ -17,9 +20,6 @@ UNION
 { ?primaryID p:P279/ps:P279 wd:Q79529 }
 UNION
 { ?primaryID p:P279/ps:P279 wd:Q55662747 }
-}
-} AS %RESULTS {
-INCLUDE %RESULTS
 
         ?secondaryID owl:sameAs ?primaryID. 
 }

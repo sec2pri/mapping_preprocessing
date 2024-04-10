@@ -8,6 +8,7 @@ labels: enhancement
 ## What's changed
 - ID pairs changed or added in new release: **{{ env.ADDED }}**
 - ID pairs removed in new data version: **{{ env.REMOVED }}**
+- Change rate: **{{ env.CHANGE }}** % in current version (100 * changed mapping pairs / total mapping pairs)
 
 Date of release: {{ env.DATE_NEW }}.
 
