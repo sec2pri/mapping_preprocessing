@@ -7,10 +7,10 @@ library(readr)
 
 # Set variables
 sourceName <- "ChEBI"
-inputDir <- "mapping_preprocessing/datasources/"
+inputDir <- "datasources/"
 
 # Create output directory
-outputDir <- paste0("mapping_preprocessing/datasources/", sourceName, "/data")
+outputDir <- paste0("datasources/", tolower(sourceName), "/recentData")
 dir.create(outputDir, showWarnings = FALSE)
 
 # Create output tsv mapping files
