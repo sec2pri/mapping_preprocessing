@@ -22,7 +22,7 @@ sourceName <- "uniprot"
 inputDir <- "mapping_preprocessing/datasources/"
 
 # Create output directory
-outputDir <- paste0("mapping_preprocessing/datasources/", sourceName, "/data")
+outputDir <- paste0("datasources/", tolower(sourceName), "/recentData")
 dir.create(outputDir, showWarnings = FALSE)
 
 # Download the input files from UniProt
