@@ -107,16 +107,10 @@ jobs:
           old="datasources/uniprot/data/$to_check_from_zenodo"
           new="datasources/uniprot/recentData/$to_check_from_zenodo"
           column_name="secondaryID"
-          echo $column_name
 
           # Unzip the zip file 
           unzip datasources/uniprot/data/UniProt_secID2priID.zip -d datasources/uniprot/data/
-          ls datasources/uniprot/data/
-          ls datasources/uniprot/recentData/
-          
-          less $old | head
-          less $new | head
-          
+                    
           # Extract the primaryID and secondaryID column from both files and sort them
           cat "$old" | sort | tr -d "\r" | cut -f 1,2 > ids_old.txt
           cat "$new" | sort | tr -d "\r" | cut -f 1,2 > ids_new.txt
@@ -151,22 +145,33 @@ jobs:
           # make sure we are not counting empty lines
           if [ -z "$removed" ]; then
            count_removed=0
+           removed="None"
           fi
           if [ -z "$added" ]; then
            count_added=0
+           added="None"
           fi
-          echo removed:
+          echo ________________________________________________
+          echo "                 removed pairs                    "
+          echo ________________________________________________
           echo "$removed"
-          echo added:
+          echo ________________________________________________
+          echo "                 added pairs                    "
+          echo ________________________________________________
           echo "$added"
-          echo Added id pairs: $count_added
-          echo Removed id pairs: $count_removed
+          echo _________________________________________________
+          echo "What's changed:"
+          echo "- Added id pairs: $count_added"
+          echo "- Removed id pairs: $count_removed"
           # Store to env to use in issue
           echo "ADDED=$count_added" >> $GITHUB_ENV
           echo "REMOVED=$count_removed" >> $GITHUB_ENV
-          echo "URL_RELEASE=https://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete/${UNIPROT_SPROT_NEW}" >> $GITHUB_ENV
           count=$(expr $count_added + $count_removed) || true
           echo "COUNT=$count" >> $GITHUB_ENV
+          total_old=$(cat "$old" | wc -l) || true 
+          change=$((100 * count / total_old))
+          echo "CHANGE=$change" >> $GITHUB_ENV 
+
           
       - name: 'Upload processed data as artifacts'
         uses: actions/upload-artifact@v3
