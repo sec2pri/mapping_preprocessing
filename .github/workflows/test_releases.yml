@@ -1,0 +1,354 @@
+name: Check and test upstream releases or updates
+
+on:
+  workflow_dispatch:
+  push:
+  pull_request: # tests whether it is working on PR
+     paths:
+     - '.github/workflows/test_releases.yml'
+  schedule:
+    - cron: "0 0 1,15 * *"  # Run the workflow on the 1st and 15th day of each month
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+  issues: write
+jobs:
+                          ################################ChEBI###########################
+  check_new_data_chebi:
+    runs-on: ubuntu-latest
+    name: Check ChEBI
+    outputs:
+      RELEASE_NUMBER: ${{ steps.check_download.outputs.RELEASE_NUMBER }}
+      CURRENT_RELEASE_NUMBER: ${{ steps.check_download.outputs.CURRENT_RELEASE_NUMBER }}
+      NEW_RELEASE: ${{ steps.check_download.outputs.NEW_RELEASE }}
+      DATE_NEW: ${{ steps.check_download.outputs.DATE_NEW }}
+      DATE_OLD: ${{ steps.check_download.outputs.DATE_OLD }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Check release date
+        id: check_download
+        run: bash scripts/check_release_date.sh chebi
+  test_sdf_processing_chebi:
+    name: Test and diff ChEBI
+    if: needs.check_new_release.outputs.NEW_RELEASE
+    needs: check_new_data_chebi
+    env:
+      RELEASE_NUMBER: ${{ needs.check_new_release_chebi.outputs.RELEASE_NUMBER }}
+      DATE_OLD: ${{ needs.check_new_release_chebi.outputs.DATE_OLD }}
+      DATE_NEW: ${{ needs.check_new_release_chebi.outputs.DATE_NEW }}
+      CURRENT_RELEASE_NUMBER: ${{ needs.check_new_release_chebi.outputs.CURRENT_RELEASE_NUMBER }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.1' # Specify the R version
+          include-recommended: true    
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+      - name: Download and test new release data
+        run: bash scripts/test_new_release.sh chebi
+      - name: Diff ChEBI
+        if:
+          ${{ env.FAILED == 'false' }}
+        run: bash scripts/diff_release.sh chebi
+        
+      - name: 'Upload ChEBI artifact'
+        uses: actions/upload-artifact@v4
+        with:
+          name: chebi_processed
+          path: datasources/chebi/recentData/*
+
+      - uses: JasonEtco/create-an-issue@v2
+        if: ${{ env.COUNT != 0 }}
+        name: Post issue about ChEBI update availability
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE: ChEBI
+        with:
+          filename: .github/ISSUE_TEMPLATE/ISSUE_UPDATE.md   
+          update_existing: true
+       
+      - uses: JasonEtco/create-an-issue@v2
+        name: Post issue about ChEBI failing test
+        if: ${{ env.FAILED == 'true' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE: ChEBI
+        with:
+          filename: .github/ISSUE_TEMPLATE/ISSUE_FAIL.md
+          update_existing: true
+  
+                          ################################HGNC###########################
+  check_new_data_hgnc:
+    runs-on: ubuntu-latest
+    name: Check HGNC
+    outputs:
+      COMPLETE_NEW: ${{ steps.check_download.outputs.COMPLETE_NEW }}
+      WITHDRAWN_NEW: ${{ steps.check_download.outputs.WITHDRAWN_NEW }}
+      DATE_NEW: ${{ steps.check_download.outputs.DATE_NEW }}
+      DATE_OLD: ${{ steps.check_download.outputs.DATE_OLD }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Check release date
+        id: check_download
+        run: bash scripts/check_release_date.sh hgnc
+  test_processing_hgnc:
+    name: Test and diff HGNC
+    needs: check_new_data_hgnc
+    env:
+      DATE_OLD: ${{ needs.check_new_data_hgnc.outputs.DATE_OLD }}
+      DATE_NEW: ${{ needs.check_new_data_hgnc.outputs.DATE_NEW }}
+      COMPLETE_NEW: ${{ needs.check_new_data_hgnc.outputs.COMPLETE_NEW }}
+      WITHDRAWN_NEW: ${{ needs.check_new_data_hgnc.outputs.WITHDRAWN_NEW }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.1' # Specify the R version
+          include-recommended: true    
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+      - name: Download and test new release data
+        run: bash scripts/test_new_release.sh hgnc
+      - name: Diff HGNC
+        if:
+          ${{ env.FAILED == 'false' }}
+        run: bash scripts/diff_release.sh hgnc
+      - name: 'Upload HGNC artifact'
+        uses: actions/upload-artifact@v4
+        with:
+          name: hgnc_processed
+          path: datasources/hgnc/recentData/*
+
+      - uses: JasonEtco/create-an-issue@v2
+        if: ${{ env.COUNT != 0 }}
+        name: Post issue about HGNC update availability
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE: HGNC
+        with:
+          filename: .github/ISSUE_TEMPLATE/ISSUE_UPDATE.md   
+          update_existing: true
+       
+      - uses: JasonEtco/create-an-issue@v2
+        name: Post issue about HGNC failing test
+        if: ${{ env.FAILED == 'true' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE: HGNC
+        with:
+          filename: .github/ISSUE_TEMPLATE/ISSUE_FAIL.md
+          update_existing: true
+                          ################################HMDB###########################
+  check_new_data_hmdb:
+    runs-on: ubuntu-latest
+    name: Check HMDB
+    outputs:
+      DATE_NEW: ${{ steps.check_new_data_hmdb.outputs.DATE_NEW }}
+      DATE_OLD: ${{ steps.check_new_data_hmdb.outputs.DATE_OLD }}
+      NEW_RELEASE: ${{ steps.check_new_data_hmdb.outputs.NEW_RELEASE }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Check release date
+        id: check_download
+        run: bash scripts/check_release_date.sh hmdb
+  test_processing_hmdb:
+    name: Test and diff HMDB
+    needs: check_new_data_hmdb
+    env:
+      DATE_OLD: ${{ needs.check_download.outputs.DATE_OLD }}
+      DATE_NEW: ${{ needs.check_download.outputs.DATE_NEW }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.1' # Specify the R version
+          include-recommended: true    
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+      - name: Download and test new release data
+        run: bash scripts/test_new_release.sh hmdb
+      - name: Diff HMDB
+        if:
+          ${{ env.FAILED == 'false' }}
+        run: bash scripts/diff_release.sh hmdb
+      - name: 'Upload HMDB artifact'
+        uses: actions/upload-artifact@v4
+        with:
+          name: hmdb_processed
+          path: datasources/hgnc/recentData/*
+      - uses: JasonEtco/create-an-issue@v2
+        if: ${{ env.COUNT != 0 }}
+        name: Post issue about HGNC update availability
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE: HMDB
+        with:
+          filename: .github/ISSUE_TEMPLATE/ISSUE_UPDATE.md   
+          update_existing: true
+       
+      - uses: JasonEtco/create-an-issue@v2
+        name: Post issue about HGNC failing test
+        if: ${{ env.FAILED == 'true' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE: HMDB
+        with:
+          filename: .github/ISSUE_TEMPLATE/ISSUE_FAIL.md
+          update_existing: true
+                          ################################NCBI###########################
+  check_new_data_ncbi:
+    runs-on: ubuntu-latest
+    name: Check NCBI
+    outputs:
+      DATE_NEW: ${{ steps.check_d_hmdb.outputs.DATE_NEW }}
+      DATE_OLD: ${{ steps.check_download.outputs.DATE_OLD }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Check release date
+        id: check_download
+        run: bash scripts/check_release_date.sh ncbi
+  test_processing_ncbi:
+    name: Test and diff NCBI
+    needs: check_new_data_ncbi
+    env:
+      DATE_OLD: ${{ needs.check_new_data.outputs.DATE_OLD }}
+      DATE_NEW: ${{ needs.check_new_data.outputs.DATE_NEW }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.1' # Specify the R version
+          include-recommended: true    
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+      - name: Download and test new release data
+        run: |
+          echo New date $DATE_NEW
+          bash scripts/test_new_release.sh ncbi
+      - name: Diff NCBI
+        if:
+          ${{ env.FAILED == 'false' }}
+        run: bash scripts/diff_release.sh ncbi
+
+      - uses: JasonEtco/create-an-issue@v2
+        if: ${{ env.COUNT != 0 }}
+        name: Post issue about NCBI update availability
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE: NCBI
+        with:
+          filename: .github/ISSUE_TEMPLATE/ISSUE_UPDATE.md   
+          update_existing: true
+       
+      - uses: JasonEtco/create-an-issue@v2
+        name: Post issue about NCBI failing test
+        if: ${{ env.FAILED == 'true' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE: NCBI
+        with:
+          filename: .github/ISSUE_TEMPLATE/ISSUE_FAIL.md
+          update_existing: true
+                          ##############################UNIPROT#########################
+  check_new_data_uniprot:
+    runs-on: ubuntu-latest
+    name: Check UniProt
+    outputs:
+      UNIPROT_SPROT_NEW: ${{ steps.check_download.outputs.UNIPROT_SPROT_NEW }}
+      SEC_AC_NEW: ${{ steps.check_download.outputs.SEC_AC_NEW }}
+      DELAC_SP_NEW: ${{ steps.check_download.outputs.DELAC_SP_NEW }}
+      DATE_NEW: ${{ steps.check_download.outputs.DATE_NEW }}
+      DATE_OLD: ${{ steps.check_download.outputs.DATE_OLD }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Check release date
+        id: check_download
+        run: bash scripts/check_release_date.sh uniprot
+  test_processing_uniprot:
+    name: Test and diff UniProt
+    needs: check_new_data_uniprot
+    env:
+      DATE_OLD: ${{ needs.check_new_data.outputs.DATE_OLD }}
+      DATE_NEW: ${{ needs.check_new_data.outputs.DATE_NEW }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.1' # Specify the R version
+          include-recommended: true    
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+      - name: Download and test new release data
+        run: bash scripts/test_new_release.sh uniprot
+      - name: Diff UniProt
+        if:
+          ${{ env.FAILED == 'false' }}
+        run: bash scripts/diff_release.sh uniprot
+
+      - uses: JasonEtco/create-an-issue@v2
+        if: ${{ env.COUNT != 0 }}
+        name: Post issue about UniProt update availability
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE: UniProt
+        with:
+          filename: .github/ISSUE_TEMPLATE/ISSUE_UPDATE.md   
+          update_existing: true
+       
+      - uses: JasonEtco/create-an-issue@v2
+        name: Post issue about UniProt failing test
+        if: ${{ env.FAILED == 'true' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE: UniProt
+        with:
+          filename: .github/ISSUE_TEMPLATE/ISSUE_FAIL.md
+          update_existing: true
+  #trigger-docker-update:
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #    - name: Checkout
+  #      uses: actions/checkout@v4
+  #    - name: Trigger docker release
+  #      uses: peter-evans/repository-dispatch@v3
+  #      with:
+  #        token: ${{ secrets.pat_external_workflow }}
+  #        repository: jmillanacosta/omicsFixID
+  #        event-type: update-event
