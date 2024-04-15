@@ -12,6 +12,9 @@ if [ $# -ne 1 ]; then
 fi
 
 source="$1"
+if [ $source=="uniprot" ]; then
+    unzip datasources/uniprot/data/UniProt_secID2priID.zip -d datasources/uniprot/data/
+fi
 
 # Read config variables
 #. datasources/$source/config .
