@@ -20,7 +20,7 @@ fi
 #. datasources/$source/config .
 #chmod +x datasources/$source/config
 #. datasources/$source/config .
-file_to_check="${source}_secID2priID.tsv"
+file_to_check=$(grep -E '^to_check_from_zenodo=' datasources/$source/config | cut -d'=' -f2)
 old="datasources/$source/data/$file_to_check"
 new="datasources/$source/recentData/$file_to_check"
 
