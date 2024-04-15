@@ -223,8 +223,8 @@ jobs:
     runs-on: ubuntu-latest
     name: Check NCBI
     outputs:
-      DATE_NEW: ${{ steps.check_download_ncbi.outputs.DATE_NEW }}
-      DATE_OLD: ${{ steps.check_download_ncbi.outputs.DATE_OLD }}
+      DATE_NEW: ${{ steps.check_download.outputs.DATE_NEW }}
+      DATE_OLD: ${{ steps.check_download.outputs.DATE_OLD }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -235,8 +235,8 @@ jobs:
     name: Test and diff NCBI
     needs: check_new_data_ncbi
     env:
-      DATE_OLD: ${{ needs.check_new_data.outputs.DATE_OLD }}
-      DATE_NEW: ${{ needs.check_new_data.outputs.DATE_NEW }}
+      DATE_OLD: ${{ needs.check_new_data_ncbi.outputs.DATE_OLD }}
+      DATE_NEW: ${{ needs.check_new_data_ncbi.outputs.DATE_NEW }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
