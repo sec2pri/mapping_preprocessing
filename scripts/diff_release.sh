@@ -77,7 +77,7 @@ echo "CHANGE=$change" >> $GITHUB_ENV
 
 # Perform source-specific steps
 case $source in
-    "chebi" "hmdb" "ncbi")
+    "chebi" | "hmdb" | "ncbi")
     # qc integrity of IDs
     wget -nc https://raw.githubusercontent.com/bridgedb/datasources/main/datasources.tsv
     echo _________________________________________________
