@@ -10,10 +10,9 @@ if [ $# -ne 1 ]; then
     echo "Usage: $0 <source> ($source | hgnc | hmdb | ncbi | uniprot)"
     exit 1
 fi
-
+source="$1"
 file_to_check=$(grep -E '^to_check_from_zenodo=' datasources/$source/config | cut -d'=' -f2)
 file_to_check_zip="${file_to_check%.zip}.tsv"
-source="$1"
 # Unzip
 if [[ $source == "uniprot" || $source == "ncbi" ]]; then
     unzip datasources/$source/data/$file_to_check_zip -d datasources/$source/data/
@@ -110,6 +109,7 @@ case $source in
         source_ID=$(awk -F '\t' '$1 == "Entrez Gene" {print $10}' datasources.tsv)
     "hgnc" | "uniprot") # No QC set up for these sources
         exit 0
+    ;;
 esac
 
 wget https://raw.githubusercontent.com/bridgedb/datasources/main/datasources.tsv
