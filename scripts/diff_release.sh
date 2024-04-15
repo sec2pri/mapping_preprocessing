@@ -97,34 +97,42 @@ echo "CHANGE=$change" >> $GITHUB_ENV
 
 
 # Perform id regex QC when applicable
+
 case $source in
-    "chebi" | "hmdb" | "ncbi")
-    # qc integrity of IDs
-    wget -nc https://raw.githubusercontent.com/bridgedb/datasources/main/datasources.tsv
-    echo _________________________________________________
-    echo "Quality control for IDs"
-    wget -nc https://raw.githubusercontent.com/bridgedb/datasources/main/datasources.tsv
-    $source_ID=$(awk -F '\t' '$1 == "$source" {print $10}' datasources.tsv)
-    # Split the file into two separate files for each column
-    awk -F '\t' '{print $1}' $new > column1.txt
-    awk -F '\t' '{print $2}' $new > column2.txt
-    # Use grep to check if any line in the primary column doesn't match the pattern
-          if grep -nqvE "$source_ID" "column1.txt"; then
-            echo "All lines in the primary column match the pattern."
-          else
-            echo "Error: At least one line in the primary column does not match pattern."
-            grep -nvE "^$source_ID$" "column1.txt"
-            echo "FAILED=true" >> $GITHUB_ENV
-            exit 1
-          fi
-    # Use grep to check if any line in the secondary column doesn't match the pattern
-          if grep -nqvE "$source_ID" "column1.txt"; then
-            echo "All lines in the secondary column match the pattern."
-          else
-            echo "Error: At least one line in the secondary column does not match pattern."
-            grep -nqvE "$source_ID" "column2.txt"
-            echo "FAILED=true" >> $GITHUB_ENV
-            exit 1
-          fi
-        ;;
+    "hmdb")
+        source_ID=$(awk -F '\t' '$1 == "HMDB" {print $10}' datasources.tsv)
+    ;;
+    "chebi")
+        source_ID=$(awk -F '\t' '$1 == "ChEBI" {print $10}' datasources.tsv)
+    ;;
+    "ncbi")
+        source_ID=$(awk -F '\t' '$1 == "Entrez Gene" {print $10}' datasources.tsv)
+    "hgnc" | "uniprot") # No QC set up for these sources
+        exit 0
 esac
+
+wget https://raw.githubusercontent.com/bridgedb/datasources/main/datasources.tsv
+# Split the file into two separate files for each column
+awk -F '\t' '{print $1}' $new > column1.txt
+awk -F '\t' '{print $2}' $new > column2.txt
+                  
+# Use grep to check if any line in the primary column doesn't match the pattern
+if grep -nqvE "$source_ID" "column1.txt"; then
+    echo "All lines in the primary column match the pattern."
+else
+    echo "Error: At least one line in the primary column does not match pattern."
+    grep -nvE "^$source_ID$" "column1.txt"
+    echo "FAILED=true" >> $GITHUB_ENV
+    exit 1
+fi
+                  
+# Use grep to check if any line in the secondary column doesn't match the pattern
+if grep -nqvE "$source_ID" "column1.txt"; then
+    echo "All lines in the secondary column match the pattern."
+            
+else
+    echo "Error: At least one line in the secondary column does not match pattern."
+    grep -nqvE "$source_ID" "column2.txt"
+    echo "FAILED=true" >> $GITHUB_ENV
+    exit 1
+fi
