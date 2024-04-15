@@ -12,7 +12,7 @@ if [ $# -ne 1 ]; then
 fi
 source="$1"
 file_to_check=$(grep -E '^to_check_from_zenodo=' datasources/$source/config | cut -d'=' -f2)
-file_to_check_zip="${file_to_check%.zip}.tsv"
+file_to_check_zip="${file_to_check%.tsv}.zip"
 # Unzip
 if [[ $source == "uniprot" || $source == "ncbi" ]]; then
     unzip datasources/$source/data/$file_to_check_zip -d datasources/$source/data/
@@ -97,19 +97,19 @@ echo "CHANGE=$change" >> $GITHUB_ENV
 
 
 # Perform id regex QC when applicable
-
 case $source in
     "hmdb")
         source_ID=$(awk -F '\t' '$1 == "HMDB" {print $10}' datasources.tsv)
-    ;;
+        ;;
     "chebi")
         source_ID=$(awk -F '\t' '$1 == "ChEBI" {print $10}' datasources.tsv)
-    ;;
+        ;;
     "ncbi")
         source_ID=$(awk -F '\t' '$1 == "Entrez Gene" {print $10}' datasources.tsv)
+        ;;
     "hgnc" | "uniprot") # No QC set up for these sources
         exit 0
-    ;;
+        ;;
 esac
 
 wget https://raw.githubusercontent.com/bridgedb/datasources/main/datasources.tsv
@@ -128,7 +128,7 @@ else
 fi
                   
 # Use grep to check if any line in the secondary column doesn't match the pattern
-if grep -nqvE "$source_ID" "column1.txt"; then
+if grep -nqvE "$source_ID" "column2.txt"; then
     echo "All lines in the secondary column match the pattern."
             
 else
