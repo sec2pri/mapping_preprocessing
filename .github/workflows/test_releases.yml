@@ -75,7 +75,13 @@ jobs:
         with:
           filename: .github/ISSUE_TEMPLATE/ISSUE_UPDATE.md   
           update_existing: true
-       
+          
+      - name: 'Upload processed data as artifacts'
+        uses: actions/upload-artifact@v4
+        with:
+          name: chebi_processed
+          path: datasources/chebi/recentData/*
+          
       - uses: JasonEtco/create-an-issue@v2
         name: Post issue about ChEBI failing test
         if: ${{ env.FAILED == 'true' }}
@@ -134,7 +140,13 @@ jobs:
         with:
           name: hgnc_processed
           path: datasources/hgnc/recentData/*
-
+          
+      - name: 'Upload processed data as artifacts'
+        uses: actions/upload-artifact@v4
+        with:
+          name: hgnc_processed
+          path: datasources/hgnc/recentData/*
+          
       - uses: JasonEtco/create-an-issue@v2
         if: ${{ env.COUNT != 0 }}
         name: Post issue about HGNC update availability
@@ -208,6 +220,12 @@ jobs:
         with:
           filename: .github/ISSUE_TEMPLATE/ISSUE_UPDATE.md   
           update_existing: true
+
+      - name: 'Upload processed data as artifacts'
+        uses: actions/upload-artifact@v4
+        with:
+          name: hmdb_processed
+          path: datasources/hmdb/recentData/*
        
       - uses: JasonEtco/create-an-issue@v2
         name: Post issue about HGNC failing test
@@ -259,6 +277,12 @@ jobs:
         if:
           ${{ env.FAILED == 'false' }}
         run: bash scripts/diff_release.sh ncbi
+
+      - name: 'Upload processed data as artifacts'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ncbi_processed
+          path: datasources/ncbi/recentData/*
 
       - uses: JasonEtco/create-an-issue@v2
         if: ${{ env.COUNT != 0 }}
@@ -322,6 +346,12 @@ jobs:
           ${{ env.FAILED == 'false' }}
         run: bash scripts/diff_release.sh uniprot
 
+      - name: 'Upload processed data as artifacts'
+        uses: actions/upload-artifact@v4
+        with:
+          name: uniprot_processed
+          path: datasources/uniprot/recentData/*
+
       - uses: JasonEtco/create-an-issue@v2
         if: ${{ env.COUNT != 0 }}
         name: Post issue about UniProt update availability
@@ -350,5 +380,5 @@ jobs:
   #      uses: peter-evans/repository-dispatch@v3
   #      with:
   #        token: ${{ secrets.pat_external_workflow }}
-  #        repository: jmillanacosta/omicsFixID
+  #        repository: sec2pri/omicsFixID
   #        event-type: update-event
