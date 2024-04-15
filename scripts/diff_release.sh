@@ -11,23 +11,25 @@ if [ $# -ne 1 ]; then
     exit 1
 fi
 
+file_to_check=$(grep -E '^to_check_from_zenodo=' datasources/$source/config | cut -d'=' -f2)
+file_to_check_zip="${file_to_check%.zip}.tsv"
 source="$1"
+# Unzip
 if [[ $source == "uniprot" || $source == "ncbi" ]]; then
-    unzip datasources/$source/data/$source_secID2priID.zip -d datasources/$source/data/
+    unzip datasources/$source/data/$file_to_check_zip -d datasources/$source/data/
 fi
 
 # Read config variables
 #. datasources/$source/config .
 #chmod +x datasources/$source/config
 #. datasources/$source/config .
-file_to_check=$(grep -E '^to_check_from_zenodo=' datasources/$source/config | cut -d'=' -f2)
+
 old="datasources/$source/data/$file_to_check"
 new="datasources/$source/recentData/$file_to_check"
 
 # Check if the old file exists
 if [ -f "$old" ]; then
     # Print the size of the old file
-    echo "Size of $old:"
     du -sh "$old"
 else
     echo "$old does not exist."
@@ -36,7 +38,6 @@ fi
 # Check if the new file exists
 if [ -f "$new" ]; then
     # Print the size of the new file
-    echo "Size of $new:"
     du -sh "$new"
 else
     echo "$new does not exist."
