@@ -76,12 +76,6 @@ jobs:
           filename: .github/ISSUE_TEMPLATE/ISSUE_UPDATE.md   
           update_existing: true
           
-      - name: 'Upload processed data as artifacts'
-        uses: actions/upload-artifact@v4
-        with:
-          name: chebi_processed
-          path: datasources/chebi/recentData/*
-          
       - uses: JasonEtco/create-an-issue@v2
         name: Post issue about ChEBI failing test
         if: ${{ env.FAILED == 'true' }}
@@ -135,13 +129,8 @@ jobs:
         if:
           ${{ env.FAILED == 'false' }}
         run: bash scripts/diff_release.sh hgnc
+        
       - name: 'Upload HGNC artifact'
-        uses: actions/upload-artifact@v4
-        with:
-          name: hgnc_processed
-          path: datasources/hgnc/recentData/*
-          
-      - name: 'Upload processed data as artifacts'
         uses: actions/upload-artifact@v4
         with:
           name: hgnc_processed
@@ -220,13 +209,7 @@ jobs:
         with:
           filename: .github/ISSUE_TEMPLATE/ISSUE_UPDATE.md   
           update_existing: true
-
-      - name: 'Upload processed data as artifacts'
-        uses: actions/upload-artifact@v4
-        with:
-          name: hmdb_processed
-          path: datasources/hmdb/recentData/*
-       
+   
       - uses: JasonEtco/create-an-issue@v2
         name: Post issue about HGNC failing test
         if: ${{ env.FAILED == 'true' }}
@@ -278,7 +261,7 @@ jobs:
           ${{ env.FAILED == 'false' }}
         run: bash scripts/diff_release.sh ncbi
 
-      - name: 'Upload processed data as artifacts'
+      - name: 'Upload NCBI artifact'
         uses: actions/upload-artifact@v4
         with:
           name: ncbi_processed
@@ -346,7 +329,7 @@ jobs:
           ${{ env.FAILED == 'false' }}
         run: bash scripts/diff_release.sh uniprot
 
-      - name: 'Upload processed data as artifacts'
+      - name: 'Upload UNIPROT artifact'
         uses: actions/upload-artifact@v4
         with:
           name: uniprot_processed
