@@ -32,13 +32,13 @@ jobs:
         run: bash scripts/check_release_date.sh chebi
   test_sdf_processing_chebi:
     name: Test and diff ChEBI
-    if: needs.check_new_release.outputs.NEW_RELEASE
+    if: needs.check_new_data.outputs.NEW_RELEASE
     needs: check_new_data_chebi
     env:
-      RELEASE_NUMBER: ${{ needs.check_new_release_chebi.outputs.RELEASE_NUMBER }}
-      DATE_OLD: ${{ needs.check_new_release_chebi.outputs.DATE_OLD }}
-      DATE_NEW: ${{ needs.check_new_release_chebi.outputs.DATE_NEW }}
-      CURRENT_RELEASE_NUMBER: ${{ needs.check_new_release_chebi.outputs.CURRENT_RELEASE_NUMBER }}
+      RELEASE_NUMBER: ${{ needs.check_new_data_chebi.outputs.RELEASE_NUMBER }}
+      DATE_OLD: ${{ needs.check_new_data_chebi.outputs.DATE_OLD }}
+      DATE_NEW: ${{ needs.check_new_data_chebi.outputs.DATE_NEW }}
+      CURRENT_RELEASE_NUMBER: ${{ needs.check_new_data_chebi.outputs.CURRENT_RELEASE_NUMBER }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -223,8 +223,8 @@ jobs:
     runs-on: ubuntu-latest
     name: Check NCBI
     outputs:
-      DATE_NEW: ${{ steps.check_d_hmdb.outputs.DATE_NEW }}
-      DATE_OLD: ${{ steps.check_download.outputs.DATE_OLD }}
+      DATE_NEW: ${{ steps.check_download_ncbi.outputs.DATE_NEW }}
+      DATE_OLD: ${{ steps.check_download_ncbi.outputs.DATE_OLD }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -299,8 +299,8 @@ jobs:
     name: Test and diff UniProt
     needs: check_new_data_uniprot
     env:
-      DATE_OLD: ${{ needs.check_new_data.outputs.DATE_OLD }}
-      DATE_NEW: ${{ needs.check_new_data.outputs.DATE_NEW }}
+      DATE_OLD: ${{ needs.check_new_data_uniprot.outputs.DATE_OLD }}
+      DATE_NEW: ${{ needs.check_new_data_uniprot.outputs.DATE_NEW }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
