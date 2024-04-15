@@ -12,25 +12,45 @@ if [ $# -ne 1 ]; then
 fi
 
 source="$1"
-if [ $source=="uniprot" ]; then
-    unzip datasources/uniprot/data/UniProt_secID2priID.zip -d datasources/uniprot/data/
+if [[ $source == "uniprot" || $source == "ncbi" ]]; then
+    unzip datasources/$source/data/$source_secID2priID.zip -d datasources/$source/data/
 fi
 
 # Read config variables
 #. datasources/$source/config .
 #chmod +x datasources/$source/config
 #. datasources/$source/config .
-to_check_from_zenodo=$(grep -E '^to_check_from_zenodo=' datasources/$source/config | cut -d'=' -f2)
-old="datasources/$source/data/$to_check_from_zenodo"
-new="datasources/$source/recentData/$to_check_from_zenodo"
+file_to_check="${source}_secID2priID.tsv"
+old="datasources/$source/data/$file_to_check"
+new="datasources/$source/recentData/$file_to_check"
+
+# Check if the old file exists
+if [ -f "$old" ]; then
+    # Print the size of the old file
+    echo "Size of $old:"
+    du -sh "$old"
+else
+    echo "$old does not exist."
+fi
+
+# Check if the new file exists
+if [ -f "$new" ]; then
+    # Print the size of the new file
+    echo "Size of $new:"
+    du -sh "$new"
+else
+    echo "$new does not exist."
+fi
+
 # remove headers
 sed -i '1d' "$new"
 sed -i '1d' "$old"
-# sort them
+# sort the ids
 cat "$old" | sort | tr -d "\r" > ids_old.txt
 cat "$new" | sort | tr -d "\r" > ids_new.txt
-echo "Performing diff between the sorted lists of IDs"
+
 # Perform a diff between the sorted lists of IDs
+echo "Performing diff between the sorted lists of IDs"
 output_file=diff.txt
 diff -u ids_old.txt ids_new.txt > $output_file || true
 # retrieve new lines
@@ -53,8 +73,9 @@ if [ -z "$added" ]; then
  count_added=0
  added="None"
 fi
+
 echo ________________________________________________
-          echo "                 removed pairs                    "
+echo "                 removed pairs                    "
 echo ________________________________________________
 echo "$removed"
 echo ________________________________________________
@@ -75,7 +96,7 @@ change=$((100 * count / total_old))
 echo "CHANGE=$change" >> $GITHUB_ENV 
 
 
-# Perform source-specific steps
+# Perform id regex QC when applicable
 case $source in
     "chebi" | "hmdb" | "ncbi")
     # qc integrity of IDs
