@@ -34,9 +34,9 @@ case $source in
           echo "CURRENT_RELEASE_NUMBER=$CURRENT_RELEASE_NUMBER" >> $GITHUB_ENV
           url_release="https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel$RELEASE_NUMBER/SDF/"
           echo "URL_RELEASE=$url_release" >> $GITHUB_ENV
-          wget "https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${RELEASE_NUMBER}/SDF/ChEBI_complete_3star.sdf.gz"
+          wget -q "https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${RELEASE_NUMBER}/SDF/ChEBI_complete_3star.sdf.gz"
           ##Unzip gz file:
-          gunzip ChEBI_complete_3star.sdf.gz #TODO replace by config var
+          gunzip --quiet ChEBI_complete_3star.sdf.gz #TODO replace by config var
           ##Check file size if available
           ls
           ##Print file size
@@ -55,8 +55,8 @@ case $source in
           ##Create temp. folder to store the data in
           mkdir -p datasources/hgnc/data
           ##Download hgnc file
-          wget https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/${WITHDRAWN_NEW}
-          wget https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/${COMPLETE_NEW}
+          wget -q https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/${WITHDRAWN_NEW}
+          wget -q https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/${COMPLETE_NEW}
           mv $WITHDRAWN_NEW $COMPLETE_NEW datasources/hgnc/data
           ##Check file size if available
           ls -trlh datasources/hgnc/data
@@ -70,7 +70,7 @@ case $source in
           ##Store outputs from previous job in environment variables
           echo "$DATE_NEW=$DATE_NEW" >> $GITHUB_ENV
           ##Download hmdb file
-          wget http://www.hmdb.ca/system/downloads/current/hmdb_metabolites.zip
+          wget -q http://www.hmdb.ca/system/downloads/current/hmdb_metabolites.zip
           unzip hmdb_metabolites.zip
           mkdir hmdb
           mv hmdb_metabolites.xml hmdb
@@ -96,9 +96,9 @@ case $source in
           ##Create temp. folder to store the data in
           mkdir -p datasources/uniprot/data
           ##Download uniprot file
-          wget https://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete/${UNIPROT_SPROT_NEW}
-          wget https://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete/docs/${SEC_AC_NEW}
-          wget https://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete/docs/${DELAC_SP_NEW}
+          wget -q https://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete/${UNIPROT_SPROT_NEW}
+          wget -q https://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete/docs/${SEC_AC_NEW}
+          wget -q https://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete/docs/${DELAC_SP_NEW}
           mv $DELAC_SP_NEW $SEC_AC_NEW $UNIPROT_SPROT_NEW datasources/uniprot/data
           ##Check file size if available
           ls -trlh datasources/uniprot/data
@@ -115,8 +115,8 @@ case $source in
           ##Create temp. folder to store the data in
           mkdir -p datasources/ncbi/data
           ##Download ncbi file
-          wget https://ftp.ncbi.nih.gov/gene/DATA/gene_info.gz
-          wget https://ftp.ncbi.nih.gov/gene/DATA/gene_history.gz
+          wget -q https://ftp.ncbi.nih.gov/gene/DATA/gene_info.gz
+          wget -q https://ftp.ncbi.nih.gov/gene/DATA/gene_history.gz
           mv gene_info.gz gene_history.gz datasources/ncbi/data
           ##Check file size if available
           ls -trlh datasources/ncbi/data

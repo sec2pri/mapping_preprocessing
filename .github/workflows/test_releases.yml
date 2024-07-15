@@ -16,7 +16,7 @@ permissions:
 jobs:
                           ################################ChEBI###########################
   check_new_data_chebi:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     name: Check ChEBI
     outputs:
       RELEASE_NUMBER: ${{ steps.check_download.outputs.RELEASE_NUMBER }}
@@ -39,7 +39,7 @@ jobs:
       DATE_OLD: ${{ needs.check_new_data_chebi.outputs.DATE_OLD }}
       DATE_NEW: ${{ needs.check_new_data_chebi.outputs.DATE_NEW }}
       CURRENT_RELEASE_NUMBER: ${{ needs.check_new_data_chebi.outputs.CURRENT_RELEASE_NUMBER }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -88,7 +88,7 @@ jobs:
   
                           ################################HGNC###########################
   check_new_data_hgnc:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     name: Check HGNC
     outputs:
       COMPLETE_NEW: ${{ steps.check_download.outputs.COMPLETE_NEW }}
@@ -109,7 +109,7 @@ jobs:
       DATE_NEW: ${{ needs.check_new_data_hgnc.outputs.DATE_NEW }}
       COMPLETE_NEW: ${{ needs.check_new_data_hgnc.outputs.COMPLETE_NEW }}
       WITHDRAWN_NEW: ${{ needs.check_new_data_hgnc.outputs.WITHDRAWN_NEW }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -157,7 +157,7 @@ jobs:
           update_existing: true
                           ################################HMDB###########################
   check_new_data_hmdb:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     name: Check HMDB
     outputs:
       DATE_NEW: ${{ steps.check_new_data_hmdb.outputs.DATE_NEW }}
@@ -175,7 +175,7 @@ jobs:
     env:
       DATE_OLD: ${{ needs.check_download.outputs.DATE_OLD }}
       DATE_NEW: ${{ needs.check_download.outputs.DATE_NEW }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -221,7 +221,7 @@ jobs:
           update_existing: true
                           ################################NCBI###########################
   check_new_data_ncbi:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     name: Check NCBI
     outputs:
       DATE_NEW: ${{ steps.check_download.outputs.DATE_NEW }}
@@ -238,7 +238,7 @@ jobs:
     env:
       DATE_OLD: ${{ needs.check_new_data_ncbi.outputs.DATE_OLD }}
       DATE_NEW: ${{ needs.check_new_data_ncbi.outputs.DATE_NEW }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -288,7 +288,7 @@ jobs:
           update_existing: true
                           ##############################UNIPROT#########################
   check_new_data_uniprot:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     name: Check UniProt
     outputs:
       UNIPROT_SPROT_NEW: ${{ steps.check_download.outputs.UNIPROT_SPROT_NEW }}
@@ -308,7 +308,7 @@ jobs:
     env:
       DATE_OLD: ${{ needs.check_new_data_uniprot.outputs.DATE_OLD }}
       DATE_NEW: ${{ needs.check_new_data_uniprot.outputs.DATE_NEW }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -355,7 +355,7 @@ jobs:
           filename: .github/ISSUE_TEMPLATE/ISSUE_FAIL.md
           update_existing: true
   #trigger-docker-update:
-  #  runs-on: ubuntu-latest
+  #  runs-on: ubuntu-22.04
   #  steps:
   #    - name: Checkout
   #      uses: actions/checkout@v4
