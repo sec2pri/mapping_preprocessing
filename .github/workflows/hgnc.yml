@@ -197,3 +197,16 @@ jobs:
         with:
           filename: .github/ISSUE_TEMPLATE/ISSUE_FAIL.md
           update_existing: true
+  # Docker
+  trigger-docker-update:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Trigger docker release
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.pat_external_workflow }}
+          repository: sec2pri/omicsFixID
+          event-type: update-event
+          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}", "datasource": "HGNC"}'
