@@ -242,3 +242,4 @@ jobs:
           repository: sec2pri/omicsFixID
           event-type: update-event
           client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}", "datasource": "HMDB"}'
+          permissions: write-all
