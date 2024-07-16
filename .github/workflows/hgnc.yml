@@ -206,8 +206,7 @@ jobs:
       - name: Trigger docker release
         uses: peter-evans/repository-dispatch@v3
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PING }}
           repository: sec2pri/omicsFixID
           event-type: update-event
           client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}", "datasource": "HGNC"}'
-          permissions: write-all
