@@ -195,7 +195,7 @@ jobs:
 
       
       - name: 'Upload processed data as artifacts'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: hgnc_processed
           path: datasources/hgnc/recentData/*
@@ -228,4 +228,12 @@ jobs:
           token: ${{ secrets.PING }}
           repository: sec2pri/omicsFixID
           event-type: update-event
-          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}", "datasource": "HGNC", "version": "$env.RELEASE_NUMBER", "url": "$env.URL_RELEASE", "processed_data": "https://github.com/sec2pri/mapping_preprocessing/actions/runs/${{ github.run_id }}/artifacts/${{ steps.artifact-upload.outputs.artifact-id }}"}'
+          client-payload: >
+            {
+              "ref": "${{ github.ref }}",
+              "sha": "${{ github.sha }}",
+              "datasource": "HGNC",
+              "version": "${{ env.RELEASE_NUMBER }}",
+              "url": "${{ env.URL_RELEASE }}",
+              "processed_data": "https://github.com/sec2pri/mapping_preprocessing/actions/runs/${{ github.run_id }}/artifacts/${{ steps.artifact-upload.outputs.artifact-id }}"
+            }
