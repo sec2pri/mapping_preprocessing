@@ -228,4 +228,4 @@ jobs:
           token: ${{ secrets.PING }}
           repository: sec2pri/omicsFixID
           event-type: update-event
-          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}", "datasource": "HGNC", "version": "$RELEASE_NUMBER", "url": "$URL_RELEASE", "processed_data": "https://github.com/sec2pri/mapping_preprocessing/actions/runs/${{ github.run_id }}/artifacts/$ARTIFACT_ID"}'
+          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}", "datasource": "HGNC", "version": "$env.RELEASE_NUMBER", "url": "$env.URL_RELEASE", "processed_data": "https://github.com/sec2pri/mapping_preprocessing/actions/runs/${{ github.run_id }}/artifacts/${{ steps.artifact-upload.outputs.artifact-id }}"}'
