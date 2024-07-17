@@ -150,6 +150,27 @@ jobs:
           added=$(grep '^+' "$output_file" | sed 's/+//g') || true
           # retrieve removed lines
           removed=$(grep '^-' "$output_file" | sed 's/-//g') || true
+          # Create temporary files
+          tmp_added=$(mktemp)
+          tmp_withdrawn=$(mktemp)
+          tmp_removed=$(mktemp)
+          # Write the content of the added variable to the temporary file
+          echo "$added" > "$tmp_added"
+          # Retrieve matches and store them in another temporary file
+          grep 'Entry Withdrawn' "$tmp_added" > "$tmp_withdrawn" || true
+          # Append matches to the removed variable
+          if [ -n "$removed" ]; then
+            echo -e "$removed\n$(cat $tmp_withdrawn)" > "$tmp_removed"
+          else
+            cat "$tmp_withdrawn" > "$tmp_removed"
+          fi
+          # Remove matching lines from the added variable
+          sed '/Entry Withdrawn/d' "$tmp_added" > "$tmp_added.tmp" && mv "$tmp_added.tmp" "$tmp_added"
+          # Read the updated content back into the variables
+          added=$(cat "$tmp_added")
+          removed=$(cat "$tmp_removed")                 
+          # Clean up temporary files
+          rm "$tmp_added" "$tmp_withdrawn" "$tmp_removed"
           added_filtered=$(comm -23 <(sort <<< "$added") <(sort <<< "$removed"))
           removed_filtered=$(comm -23 <(sort <<< "$removed") <(sort <<< "$added"))
           added=$added_filtered
@@ -215,16 +236,12 @@ jobs:
         with:
           filename: .github/ISSUE_TEMPLATE/ISSUE_FAIL.md
           update_existing: true
-  # Docker
-  trigger-docker-update:
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+
       - name: Trigger docker release
         uses: peter-evans/repository-dispatch@v3
+        if: ${{ env.COUNT != 0 }}
         with:
           token: ${{ secrets.PING }}
           repository: sec2pri/omicsFixID
           event-type: update-event
-          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}", "datasource": "NCBI"}'
+          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}", "datasource": "NCBI", "version": "${{ env.RELEASE_NUMBER }}", "url": "${{ env.URL_RELEASE }}", "processed_data": "https://github.com/sec2pri/mapping_preprocessing/actions/runs/${{ github.run_id }}/jobs/${{ github.job }}/artifacts/${{ steps.artifact-upload.outputs.artifact-id }}"}'
