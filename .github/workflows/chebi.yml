@@ -181,14 +181,14 @@ jobs:
           # retrieve removed lines
           removed=$(grep '^-' "$output_file" | sed 's/-//g') || true
           # retrieve withdrawn IDs
-          withdrawn=$(grep 'Entry Withdrawn' $added) || true
+          withdrawn=$(echo "$added" | grep 'Entry Withdrawn') || true
+
           if [ -n "$removed" ]; then
             removed="${removed}"$'\n'"${withdrawn}"
           else
             removed="${withdrawn}"
           fi
-          sed -i '/Entry Withdrawn/d' $added
-          sed -i '/Entry Withdrawn/d' $added
+          added=$(echo "$added" | sed '/Entry Withdrawn/d')
           added_filtered=$(comm -23 <(sort <<< "$added") <(sort <<< "$removed"))
           removed_filtered=$(comm -23 <(sort <<< "$removed") <(sort <<< "$added"))
           added=$added_filtered
