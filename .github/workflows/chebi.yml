@@ -65,6 +65,8 @@ jobs:
     name: Test release
     if: needs.check_new_release.outputs.NEW_RELEASE
     needs: check_new_release
+    outputs:
+      ARTIFACT_ID: ${{ steps.artifact-upload.outputs.artifact-id }}
     env:
       RELEASE_NUMBER: ${{ needs.check_new_release.outputs.RELEASE_NUMBER }}
       DATE_OLD: ${{ needs.check_new_release.outputs.DATE_OLD }}
@@ -274,4 +276,4 @@ jobs:
           token: ${{ secrets.PING }}
           repository: sec2pri/omicsFixID
           event-type: update-event
-          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}", "datasource": "ChEBI", "version": "${{ github.RELEASE_NUMBER }}", "url": "${{ github.URL_RELEASE }}", "processed_data": "https://github.com/sec2pri/mapping_preprocessing/actions/runs/${{ github.run_id }}/artifacts/${{ steps.artifact-upload.outputs.artifact-id }}"}'
+          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}", "datasource": "ChEBI", "version": "$RELEASE_NUMBER", "url": "$URL_RELEASE", "processed_data": "https://github.com/sec2pri/mapping_preprocessing/actions/runs/${{ github.run_id }}/artifacts/$ARTIFACT_ID"}'

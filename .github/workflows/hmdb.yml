@@ -60,6 +60,8 @@ jobs:
   test_new_data_processing:
     name: Processing new data and check updates
     needs: check_new_data
+    outputs:
+      ARTIFACT_ID: ${{ steps.artifact-upload.outputs.artifact-id }}
     env:
       DATE_OLD: ${{ needs.check_new_data.outputs.DATE_OLD }}
       DATE_NEW: ${{ needs.check_new_data.outputs.DATE_NEW }}
@@ -258,4 +260,4 @@ jobs:
           token: ${{ secrets.PING }}
           repository: sec2pri/omicsFixID
           event-type: update-event
-          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}", "datasource": "HMDB", "version": "${{ github.RELEASE_NUMBER }}", "url": "${{ github.URL_RELEASE }}", "processed_data": "https://github.com/sec2pri/mapping_preprocessing/actions/runs/${{ github.run_id }}/artifacts/${{ steps.artifact-upload.outputs.artifact-id }}"}'
+          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}", "datasource": "HMDB", "version": "$RELEASE_NUMBER", "url": "$URL_RELEASE", "processed_data": "https://github.com/sec2pri/mapping_preprocessing/actions/runs/${{ github.run_id }}/artifacts/$ARTIFACT_ID"}'
