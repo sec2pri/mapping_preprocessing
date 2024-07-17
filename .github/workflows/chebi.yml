@@ -281,7 +281,6 @@ jobs:
               "ref": "${{ github.ref }}",
               "sha": "${{ github.sha }}",
               "datasource": "ChEBI",
-              "version": "${{ env.RELEASE_NUMBER }}",
-              "url": "${{ env.URL_RELEASE }}",
+              "version": "${{ steps.check_download.outputs.RELEASE_NUMBER }}",
               "processed_data": "https://github.com/sec2pri/mapping_preprocessing/actions/runs/${{ github.run_id }}/artifacts/${{ steps.artifact-upload.outputs.artifact-id }}"
             }

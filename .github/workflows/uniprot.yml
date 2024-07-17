@@ -236,7 +236,7 @@ jobs:
               "ref": "${{ github.ref }}",
               "sha": "${{ github.sha }}",
               "datasource": "UniProt",
-              "version": "${{ env.RELEASE_NUMBER }}",
+              "version": "NA",
               "url": "${{ env.URL_RELEASE }}",
               "processed_data": "https://github.com/sec2pri/mapping_preprocessing/actions/runs/${{ github.run_id }}/artifacts/${{ steps.artifact-upload.outputs.artifact-id }}"
             }
