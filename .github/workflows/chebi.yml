@@ -268,8 +268,10 @@ jobs:
       - name: Trigger docker release
         uses: peter-evans/repository-dispatch@v3
         if: ${{ env.COUNT != 0 }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           token: ${{ secrets.PING }}
           repository: sec2pri/omicsFixID
           event-type: update-event
-          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}", "datasource": "ChEBI", "version": "${{ env.RELEASE_NUMBER }}", "url": "${{ env.URL_RELEASE }}", "processed_data": "https://github.com/sec2pri/mapping_preprocessing/actions/runs/${{ github.run_id }}/jobs/${{ github.job }}/artifacts/${{ steps.artifact-upload.outputs.artifact-id }}"}'
+          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}", "datasource": "ChEBI", "version": "${{ github.RELEASE_NUMBER }}", "url": "${{ github.URL_RELEASE }}", "processed_data": "https://github.com/sec2pri/mapping_preprocessing/actions/runs/${{ github.run_id }}/artifacts/${{ steps.artifact-upload.outputs.artifact-id }}"}'
