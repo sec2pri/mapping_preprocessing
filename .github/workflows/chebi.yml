@@ -180,6 +180,15 @@ jobs:
           added=$(grep '^+CHEBI' "$output_file" | sed 's/-//g') || true
           # retrieve removed lines
           removed=$(grep '^-' "$output_file" | sed 's/-//g') || true
+          # retrieve withdrawn IDs
+          withdrawn=$(grep 'Entry Withdrawn' $added) || true
+          if [ -n "$removed" ]; then
+            removed="${removed}"$'\n'"${withdrawn}"
+          else
+            removed="${withdrawn}"
+          fi
+          sed -i '/Entry Withdrawn/d' $added
+          sed -i '/Entry Withdrawn/d' $added
           added_filtered=$(comm -23 <(sort <<< "$added") <(sort <<< "$removed"))
           removed_filtered=$(comm -23 <(sort <<< "$removed") <(sort <<< "$added"))
           added=$added_filtered
