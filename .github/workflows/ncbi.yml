@@ -244,7 +244,7 @@ jobs:
         uses: peter-evans/repository-dispatch@v3
         if: ${{ env.COUNT != 0 }}
         env:
-          RELEASE_DATE = ${{ steps.check_download.outputs.DATE_NEW }}
+          RELEASE_DATE: ${{ steps.check_download.outputs.DATE_NEW }}
         with:
           token: ${{ secrets.PING }}
           repository: sec2pri/omicsFixID
