@@ -272,6 +272,8 @@ jobs:
         if: ${{ env.COUNT != 0 }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_NUMBER: ${{ needs.check_new_release.outputs.RELEASE_NUMBER }}
+          RELEASE_DATE: ${{ needs.check_new_release.outputs.DATE_NEW }}
         with:
           token: ${{ secrets.PING }}
           repository: sec2pri/omicsFixID
@@ -281,6 +283,7 @@ jobs:
               "ref": "${{ github.ref }}",
               "sha": "${{ github.sha }}",
               "datasource": "ChEBI",
-              "version": "${{ steps.check_download.outputs.RELEASE_NUMBER }}",
+              "version": "${{ env.RELEASE_NUMBER }}",
+              "date": "${{ env.RELEASE_DATE }}",
               "processed_data": "https://github.com/sec2pri/mapping_preprocessing/actions/runs/${{ github.run_id }}/artifacts/${{ steps.artifact-upload.outputs.artifact-id }}"
             }

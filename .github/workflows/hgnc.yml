@@ -225,6 +225,9 @@ jobs:
       - name: Trigger docker release
         uses: peter-evans/repository-dispatch@v3
         if: ${{ env.COUNT != 0 }}
+        env:
+          RELEASE_DATE: ${{ needs.check_new_data.outputs.DATE_NEW }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           token: ${{ secrets.PING }}
           repository: sec2pri/omicsFixID
@@ -236,5 +239,6 @@ jobs:
               "datasource": "HGNC",
               "version": "${{ env.RELEASE_NUMBER }}",
               "url": "${{ env.URL_RELEASE }}",
+              "date": "${{ env.RELEASE_DATE}}",
               "processed_data": "https://github.com/sec2pri/mapping_preprocessing/actions/runs/${{ github.run_id }}/artifacts/${{ steps.artifact-upload.outputs.artifact-id }}"
             }
