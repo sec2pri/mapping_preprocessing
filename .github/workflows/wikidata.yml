@@ -125,9 +125,10 @@ jobs:
         run: |
           chmod +x datasources/wikidata/config
           . datasources/wikidata/config .
+          ls datasources/wikidata/results/
           file_to_diff="geneProtein_secID2priID.tsv"
           old="datasources/wikidata/data/$file_to_diff"
-          new="datasources/wikidata/data/results/$file_to_diff"
+          new="datasources/wikidata/results/$file_to_diff"
           # remove headers
           sed -i '1d' "$new"
           sed -i '1d' "$old"
@@ -232,7 +233,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Wikidata_processed
-          path: datasources/wikidata/data/results/*
+          path: datasources/wikidata/results/*
         
       - uses: JasonEtco/create-an-issue@v2
         if: ${{ env.COUNT != 0 }}
