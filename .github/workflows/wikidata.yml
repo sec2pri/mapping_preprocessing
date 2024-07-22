@@ -9,8 +9,10 @@ on:
   schedule:
     - cron: "0 0 1,15 * *"  # Run the workflow on the 1st and 15th day of each month
 jobs:
-  wikidata:
+  query_wikidata:
     runs-on: ubuntu-latest
+    outputs:
+      TIMEOUT = ${{ steps.queries.outputs.TIMEOUT }}
     permissions:
       contents: write
       # step 1: checkout the repository
@@ -20,6 +22,7 @@ jobs:
 
       # step 2: run the SPARQL queries from the Wikidata query subfolder
       - name: Run the Queries
+        id: queries
         run: |
           ##Make directory if not existing already
           mkdir datasources/wikidata/results
@@ -59,9 +62,12 @@ jobs:
               echo "Wikidata data will not be updated"
               head -n 20 "$File" 
               echo "TIMEOUT=true" >>$GITHUB_ENV
+              echo "TIMEOUT=true" >>$GITHUB_OUTPUT
               fail_file="${fail_file} $File"
             else
               echo "No Query Timeout detected for file: " "$File" 
+              echo "TIMEOUT=false" >>$GITHUB_ENV
+              echo "TIMEOUT=false" >>$GITHUB_OUTPUT
             fi
           done
           # Store value of fail_file in GITHUB_ENV for the issue
@@ -118,9 +124,9 @@ jobs:
            with: 
              filename: issue.md 
 
-  # Docker
-  trigger-docker-update:
+  test_data:
     runs-on: ubuntu-22.04
+    if: needs.query_wikidata.outputs.TIMEOUT == 'false'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -246,7 +252,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Wikidata_processed
-          path: datasources/Wikidata/recentData/*
+          path: datasources/Wikidata/data/results/*
 
       - uses: JasonEtco/create-an-issue@v2
         if: ${{ env.COUNT != 0 }}
@@ -273,8 +279,8 @@ jobs:
         if: ${{ env.COUNT != 0 }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_NUMBER: ${{ needs.check_new_release.outputs.RELEASE_NUMBER }}
-          RELEASE_DATE: ${{ needs.check_new_release.outputs.DATE_NEW }}
+          RELEASE_NUMBER: ${{ needs.query_wikidata.outputs.RELEASE_NUMBER }}
+          RELEASE_DATE: ${{ needs.query_wikidata.outputs.DATE_NEW }}
         with:
           token: ${{ secrets.PING }}
           repository: sec2pri/omicsFixID
