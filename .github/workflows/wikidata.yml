@@ -17,8 +17,8 @@ jobs:
       contents: write
       # step 1: checkout the repository
     steps:
-      - name: Download GitHub repo for the queries
-        uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
       # step 2: run the SPARQL queries from the Wikidata query subfolder
       - name: Run the Queries
@@ -123,11 +123,11 @@ jobs:
         if:
           ${{ env.TIMEOUT == 'false' }}
         run: |
-          chmod +x datasources/Wikidata/config
-          . datasources/Wikidata/config .
+          chmod +x datasources/wikidata/config
+          . datasources/wikidata/config .
           file_to_diff="geneProtein_secID2priID.tsv"
-          old="datasources/Wikidata/data/$file_to_diff"
-          new="datasources/Wikidata/data/results/$file_to_diff"
+          old="datasources/wikidata/data/$file_to_diff"
+          new="datasources/wikidata/data/results/$file_to_diff"
           # remove headers
           sed -i '1d' "$new"
           sed -i '1d' "$old"
@@ -232,7 +232,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Wikidata_processed
-          path: datasources/Wikidata/data/results/*
+          path: datasources/wikidata/data/results/*
         
       - uses: JasonEtco/create-an-issue@v2
         if: ${{ env.COUNT != 0 }}
