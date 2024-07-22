@@ -86,21 +86,6 @@ jobs:
           cd ../..
           ##Move and overwrite all files from results folder to data folder, to update previous data
           mv -f wikidata/results/* wikidata/data/
-#        # step 3: save the data from the queries
-##      - name: Commit and Push Changes
-#        run: |
-#          git pull
-#          ls
-#          if [[ `git status --porcelain` ]]; then
-#            git add .
-#            git config --local user.email "action@github.com"
-#            git config --local user.name "GitHub Action"
-#            git commit -m "Updating Wd data"
-#            git push
-#          else
-#            echo "No changes to commit."
-#            exit 0
-#          fi
 
       - name: Write up issue about timeout
         if: github.TIMEOUT == true
@@ -125,6 +110,7 @@ jobs:
         run: |
           chmod +x datasources/wikidata/config
           . datasources/wikidata/config .
+          echo "New files:"
           ls datasources/wikidata/results/
           file_to_diff="geneProtein_secID2priID.tsv"
           old="datasources/wikidata/data/$file_to_diff"
