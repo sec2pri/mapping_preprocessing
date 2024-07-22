@@ -102,13 +102,17 @@ jobs:
 #            exit 0
 #          fi
 
-      - run: | 
+      - name: Write up issue about timeout
+        if: github.TIMEOUT == true
+        run: | 
           echo "---" >> issue.md 
           echo "title: Wikidata is timing out" >> issue.md 
           echo "assignees: tabbassidaloii" >> issue.md 
           echo "---" >> issue.md 
-          echo "Wikidata query timed out for $${{ github.TIMEOUT_QUERY }}" >> issue.md 
-      - uses: JasonEtco/create-an-issue@v2 
+          echo "Wikidata query timed out for $${{ github.fail_file }}" >> issue.md 
+          cat issue.md
+      - name: Post issue about query timeout
+        uses: JasonEtco/create-an-issue@v2 
         env: 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
         with: 
