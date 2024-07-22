@@ -126,6 +126,7 @@ jobs:
 
   test_data:
     runs-on: ubuntu-22.04
+    needs: query_wikidata
     if: needs.query_wikidata.outputs.TIMEOUT == 'false'
     steps:
       - name: Checkout
