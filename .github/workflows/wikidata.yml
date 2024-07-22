@@ -104,7 +104,7 @@ jobs:
 
       - run: | 
           echo "---" >> issue.md 
-          echo "title: Wikidata is timing out>> issue.md 
+          echo "title: Wikidata is timing out" >> issue.md 
           echo "assignees: tabbassidaloii" >> issue.md 
           echo "---" >> issue.md 
           echo "Wikidata query timed out for $${{ github.TIMEOUT_QUERY }}" >> issue.md 
