@@ -61,17 +61,16 @@ jobs:
               echo "Query Timeout occurred for file: " "$File" 
               echo "Wikidata data will not be updated"
               head -n 20 "$File" 
-              echo "TIMEOUT=true" >>$GITHUB_ENV
-              echo "TIMEOUT=true" >>$GITHUB_OUTPUT
-              fail_file="${fail_file} $File"
+              echo "TIMEOUT=true" >> $GITHUB_ENV
+              echo "fail_file=$File" >> $GITHUB_ENV 
+              done
             else
               echo "No Query Timeout detected for file: " "$File" 
               echo "TIMEOUT=false" >>$GITHUB_ENV
               echo "TIMEOUT=false" >>$GITHUB_OUTPUT
             fi
           done
-          # Store value of fail_file in GITHUB_ENV for the issue
-          echo "TIMEOUT_QUERY=${fail_file}" >> $GITHUB_ENV
+
           ##Remove previous output files (if existing)
           ##find  . -name 'wikidata*' -exec rm {} \;
           ## Set prefix to Wikidata for renaming new data files
