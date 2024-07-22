@@ -112,6 +112,7 @@ jobs:
           echo "Wikidata query timed out for $${{ github.fail_file }}" >> issue.md 
           cat issue.md
       - name: Post issue about query timeout
+        if: github.TIMEOUT == true
         uses: JasonEtco/create-an-issue@v2 
         env: 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
