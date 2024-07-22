@@ -102,7 +102,7 @@ jobs:
         
       - name: RegEx and Diff test
         if:
-          ${{ env.TIMEOUT == 'false' }}
+          ${{ env.FAILED != 'true' }}
         run: |
           chmod +x datasources/wikidata/config
           . datasources/wikidata/config .
