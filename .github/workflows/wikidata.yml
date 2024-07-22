@@ -12,7 +12,7 @@ jobs:
   query_wikidata:
     runs-on: ubuntu-latest
     outputs:
-      TIMEOUT = ${{ steps.queries.outputs.TIMEOUT }}
+      TIMEOUT: ${{ steps.queries.outputs.TIMEOUT }}
     permissions:
       contents: write
       # step 1: checkout the repository
@@ -103,7 +103,7 @@ jobs:
 #          fi
 
   post-issue-timeout: 
-       needs: wikidata
+       needs: query_wikidata
        if: github.TIMEOUT == 'true' 
        name: Post issue about timeout 
        runs-on: ubuntu-latest 
