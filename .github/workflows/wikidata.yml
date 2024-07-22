@@ -63,7 +63,7 @@ jobs:
               head -n 20 "$File" 
               echo "TIMEOUT=true" >> $GITHUB_ENV
               echo "fail_file=$File" >> $GITHUB_ENV 
-              done
+              break
             else
               echo "No Query Timeout detected for file: " "$File" 
               echo "TIMEOUT=false" >>$GITHUB_ENV
