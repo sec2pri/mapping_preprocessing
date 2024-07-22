@@ -102,180 +102,170 @@ jobs:
 #            exit 0
 #          fi
 
-  post-issue-timeout: 
-       needs: query_wikidata
-       if: github.TIMEOUT == 'true' 
-       name: Post issue about timeout 
-       runs-on: ubuntu-latest 
-       permissions: 
-         contents: read 
-         issues: write 
-       steps: 
-         - uses: actions/checkout@v3 
-         - run: | 
-             echo "---" >> issue.md 
-             echo "title: Wikidata is timing out>> issue.md 
-             echo "assignees: tabbassidaloii" >> issue.md 
-             echo "---" >> issue.md 
-             echo "Wikidata query timed out for $${{ github.TIMEOUT_QUERY }}" >> issue.md 
-         - uses: JasonEtco/create-an-issue@v2 
-           env: 
-             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
-           with: 
-             filename: issue.md 
-
-         - name: RegEx and Diff test
-           if:
-             ${{ env.FAILED == 'false' }}
-           run: |
-             chmod +x datasources/Wikidata/config
-             . datasources/Wikidata/config .
-             file_to_diff="geneProtein_secID2priID.tsv"
-             old="datasources/Wikidata/data/$file_to_diff"
-             new="datasources/Wikidata/data/results/$file_to_diff"
-             # remove headers
-             sed -i '1d' "$new"
-             sed -i '1d' "$old"
-             # qc integrity of IDs
-             wget -nc https://raw.githubusercontent.com/bridgedb/datasources/    main/datasources.tsv
-             Wikidata_ID=$(awk -F '\t' '$1 == "Wikidata" {print $10}'    datasources.tsv)
-             # Split the file into two separate files for each column
-             awk -F '\t' '{print $1}' $new > column1.txt
-             awk -F '\t' '{print $2}' $new > column2.txt
-           
-             # Use grep to check if any line in the primary column doesn't     match the pattern
-             if grep -nqvE "$Wikidata_ID" "column1.txt"; then
-               echo "All lines in the primary column match the pattern."
-             else
-               echo "Error: At least one line in the primary column does not     match pattern."
-               grep -nvE "^$Wikidata_ID$" "column1.txt"
-               echo "FAILED=true" >> $GITHUB_ENV
-               exit 1
-             fi
-           
-             # Use grep to check if any line in the secondary column doesn't     match the pattern
-             if grep -nqvE "$Wikidata_ID" "column1.txt"; then
-               echo "All lines in the secondary column match the pattern."
-               
-             else
-               echo "Error: At least one line in the secondary column does not     match pattern."
-               grep -nqvE "$Wikidata_ID" "column2.txt"
-               echo "FAILED=true" >> $GITHUB_ENV
-               exit 1
-             fi
-             # sort them
-             cat "$old" | sort | tr -d "\r" > ids_old.txt
-             cat "$new" | sort | tr -d "\r" > ids_new.txt
-             echo "Performing diff between the sorted lists of IDs"
-             # Perform a diff between the sorted lists of IDs
-             output_file=diff.txt
-             diff -u ids_old.txt ids_new.txt > $output_file || true
-             # retrieve new lines
-             added=$(grep '^+Wikidata' "$output_file" | sed 's/-//g') || true
-             # retrieve removed lines
-             removed=$(grep '^-' "$output_file" | sed 's/-//g') || true
-             # Create temporary files
-             tmp_added=$(mktemp)
-             tmp_withdrawn=$(mktemp)
-             tmp_removed=$(mktemp)
-             # Write the content of the added variable to the temporary file
-             echo "$added" > "$tmp_added"
-             # Retrieve matches and store them in another temporary file
-             grep 'Entry Withdrawn' "$tmp_added" > "$tmp_withdrawn" || true
-             # Append matches to the removed variable
-             if [ -n "$removed" ]; then
-               echo -e "$removed\n$(cat $tmp_withdrawn)" > "$tmp_removed"
-             else
-               cat "$tmp_withdrawn" > "$tmp_removed"
-             fi
-             # Remove matching lines from the added variable
-             sed '/Entry Withdrawn/d' "$tmp_added" > "$tmp_added.tmp" && mv    "$tmp_added.tmp" "$tmp_added"
-             # Read the updated content back into the variables
-             added=$(cat "$tmp_added")
-             removed=$(cat "$tmp_removed")                 
-             # Clean up temporary files
-             rm "$tmp_added" "$tmp_withdrawn" "$tmp_removed"
-             added_filtered=$(comm -23 <(sort <<< "$added") <(sort <<<     "$removed"))
-             removed_filtered=$(comm -23 <(sort <<< "$removed") <(sort <<<     "$added"))
-             added=$added_filtered
-             removed=$removed_filtered
-             # count them
-             count_removed=$(printf "$removed" | wc -l) || true
-             count_added=$(printf "$added" | wc -l) || true
-             # make sure we are not counting empty lines
-             if [ -z "$removed" ]; then
-              count_removed=0
-              removed="None"
-             fi
-             if [ -z "$added" ]; then
-              count_added=0
-              added="None"
-             fi
-             echo ________________________________________________
-             echo "                 removed pairs                    "
-             echo ________________________________________________
-             echo "$removed"
-             echo ________________________________________________
-             echo "                 added pairs                    "
-             echo ________________________________________________
-             echo "$added"
-             echo _________________________________________________
-             echo "What's changed:"
-             echo "- Added id pairs: $count_added"
-             echo "- Removed id pairs: $count_removed"
-             # Store to env to use in issue
-             echo "ADDED=$count_added" >> $GITHUB_ENV
-             echo "REMOVED=$count_removed" >> $GITHUB_ENV
-             count=$(expr $count_added + $count_removed) || true
-             echo "COUNT=$count" >> $GITHUB_ENV
-             total_old=$(cat "$old" | wc -l) || true 
-             change=$((100 * count / total_old))
-             echo "CHANGE=$change" >> $GITHUB_ENV 
-           
-         - name: 'Upload processed data as artifacts'
-           id: artifact-upload
-           uses: actions/upload-artifact@v4
-           with:
-             name: Wikidata_processed
-             path: datasources/Wikidata/data/results/*
-           
-         - uses: JasonEtco/create-an-issue@v2
-           if: ${{ env.COUNT != 0 }}
-           name: Post issue about update availability
-           env:
-             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-             SOURCE: Wikidata
-           with:
-             filename: .github/ISSUE_TEMPLATE/ISSUE_UPDATE.md   
-             update_existing: true
-           
-         - uses: JasonEtco/create-an-issue@v2
-           name: Post issue about failing test
-           if: ${{ env.FAILED == 'true' }}
-           env:
-             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-             SOURCE: Wikidata
-           with:
-             filename: .github/ISSUE_TEMPLATE/ISSUE_FAIL.md
-             update_existing: true
-           
-         - name: Trigger docker release
-           uses: peter-evans/repository-dispatch@v3
-           if: ${{ env.COUNT != 0 }}
-           env:
-             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-             RELEASE_NUMBER: ${{ needs.query_wikidata.outputs.RELEASE_NUMBER }}
-             RELEASE_DATE: ${{ needs.query_wikidata.outputs.DATE_NEW }}
-           with:
-             token: ${{ secrets.PING }}
-             repository: sec2pri/omicsFixID
-             event-type: update-event
-             client-payload: >
-               {
-                 "ref": "${{ github.ref }}",
-                 "sha": "${{ github.sha }}",
-                 "datasource": "Wikidata",
-                 "version": "${{ env.RELEASE_NUMBER }}",
-                 "date": "${{ env.RELEASE_DATE }}",
-                 "processed_data": "https://github.com/sec2pri/    mapping_preprocessing/actions/runs/${{ github.run_id }}/    artifacts/${{ steps.artifact-upload.outputs.artifact-id }}"
-               }
+      - run: | 
+          echo "---" >> issue.md 
+          echo "title: Wikidata is timing out>> issue.md 
+          echo "assignees: tabbassidaloii" >> issue.md 
+          echo "---" >> issue.md 
+          echo "Wikidata query timed out for $${{ github.TIMEOUT_QUERY }}" >> issue.md 
+      - uses: JasonEtco/create-an-issue@v2 
+        env: 
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+        with: 
+          filename: issue.md 
+        
+      - name: RegEx and Diff test
+        if:
+          ${{ env.FAILED == 'false' }}
+        run: |
+          chmod +x datasources/Wikidata/config
+          . datasources/Wikidata/config .
+          file_to_diff="geneProtein_secID2priID.tsv"
+          old="datasources/Wikidata/data/$file_to_diff"
+          new="datasources/Wikidata/data/results/$file_to_diff"
+          # remove headers
+          sed -i '1d' "$new"
+          sed -i '1d' "$old"
+          # qc integrity of IDs
+          wget -nc https://raw.githubusercontent.com/bridgedb/datasources/    main/datasources.tsv
+          Wikidata_ID=$(awk -F '\t' '$1 == "Wikidata" {print $10}'    datasources.tsv)
+          # Split the file into two separate files for each column
+          awk -F '\t' '{print $1}' $new > column1.txt
+          awk -F '\t' '{print $2}' $new > column2.txt
+        
+          # Use grep to check if any line in the primary column doesn't     match the pattern
+          if grep -nqvE "$Wikidata_ID" "column1.txt"; then
+            echo "All lines in the primary column match the pattern."
+          else
+            echo "Error: At least one line in the primary column does not     match pattern."
+            grep -nvE "^$Wikidata_ID$" "column1.txt"
+            echo "FAILED=true" >> $GITHUB_ENV
+            exit 1
+          fi
+        
+          # Use grep to check if any line in the secondary column doesn't     match the pattern
+          if grep -nqvE "$Wikidata_ID" "column1.txt"; then
+            echo "All lines in the secondary column match the pattern."
+            
+          else
+            echo "Error: At least one line in the secondary column does not     match pattern."
+            grep -nqvE "$Wikidata_ID" "column2.txt"
+            echo "FAILED=true" >> $GITHUB_ENV
+            exit 1
+          fi
+          # sort them
+          cat "$old" | sort | tr -d "\r" > ids_old.txt
+          cat "$new" | sort | tr -d "\r" > ids_new.txt
+          echo "Performing diff between the sorted lists of IDs"
+          # Perform a diff between the sorted lists of IDs
+          output_file=diff.txt
+          diff -u ids_old.txt ids_new.txt > $output_file || true
+          # retrieve new lines
+          added=$(grep '^+Wikidata' "$output_file" | sed 's/-//g') || true
+          # retrieve removed lines
+          removed=$(grep '^-' "$output_file" | sed 's/-//g') || true
+          # Create temporary files
+          tmp_added=$(mktemp)
+          tmp_withdrawn=$(mktemp)
+          tmp_removed=$(mktemp)
+          # Write the content of the added variable to the temporary file
+          echo "$added" > "$tmp_added"
+          # Retrieve matches and store them in another temporary file
+          grep 'Entry Withdrawn' "$tmp_added" > "$tmp_withdrawn" || true
+          # Append matches to the removed variable
+          if [ -n "$removed" ]; then
+            echo -e "$removed\n$(cat $tmp_withdrawn)" > "$tmp_removed"
+          else
+            cat "$tmp_withdrawn" > "$tmp_removed"
+          fi
+          # Remove matching lines from the added variable
+          sed '/Entry Withdrawn/d' "$tmp_added" > "$tmp_added.tmp" && mv    "$tmp_added.tmp" "$tmp_added"
+          # Read the updated content back into the variables
+          added=$(cat "$tmp_added")
+          removed=$(cat "$tmp_removed")                 
+          # Clean up temporary files
+          rm "$tmp_added" "$tmp_withdrawn" "$tmp_removed"
+          added_filtered=$(comm -23 <(sort <<< "$added") <(sort <<<     "$removed"))
+          removed_filtered=$(comm -23 <(sort <<< "$removed") <(sort <<<     "$added"))
+          added=$added_filtered
+          removed=$removed_filtered
+          # count them
+          count_removed=$(printf "$removed" | wc -l) || true
+          count_added=$(printf "$added" | wc -l) || true
+          # make sure we are not counting empty lines
+          if [ -z "$removed" ]; then
+           count_removed=0
+           removed="None"
+          fi
+          if [ -z "$added" ]; then
+           count_added=0
+           added="None"
+          fi
+          echo ________________________________________________
+          echo "                 removed pairs                    "
+          echo ________________________________________________
+          echo "$removed"
+          echo ________________________________________________
+          echo "                 added pairs                    "
+          echo ________________________________________________
+          echo "$added"
+          echo _________________________________________________
+          echo "What's changed:"
+          echo "- Added id pairs: $count_added"
+          echo "- Removed id pairs: $count_removed"
+          # Store to env to use in issue
+          echo "ADDED=$count_added" >> $GITHUB_ENV
+          echo "REMOVED=$count_removed" >> $GITHUB_ENV
+          count=$(expr $count_added + $count_removed) || true
+          echo "COUNT=$count" >> $GITHUB_ENV
+          total_old=$(cat "$old" | wc -l) || true 
+          change=$((100 * count / total_old))
+          echo "CHANGE=$change" >> $GITHUB_ENV 
+        
+      - name: 'Upload processed data as artifacts'
+        id: artifact-upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: Wikidata_processed
+          path: datasources/Wikidata/data/results/*
+        
+      - uses: JasonEtco/create-an-issue@v2
+        if: ${{ env.COUNT != 0 }}
+        name: Post issue about update availability
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE: Wikidata
+        with:
+          filename: .github/ISSUE_TEMPLATE/ISSUE_UPDATE.md   
+          update_existing: true
+        
+      - uses: JasonEtco/create-an-issue@v2
+        name: Post issue about failing test
+        if: ${{ env.FAILED == 'true' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE: Wikidata
+        with:
+          filename: .github/ISSUE_TEMPLATE/ISSUE_FAIL.md
+          update_existing: true
+        
+      - name: Trigger docker release
+        uses: peter-evans/repository-dispatch@v3
+        if: ${{ env.COUNT != 0 }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_NUMBER: ${{ needs.query_wikidata.outputs.RELEASE_NUMBER }}
+          RELEASE_DATE: ${{ needs.query_wikidata.outputs.DATE_NEW }}
+        with:
+          token: ${{ secrets.PING }}
+          repository: sec2pri/omicsFixID
+          event-type: update-event
+          client-payload: >
+            {
+              "ref": "${{ github.ref }}",
+              "sha": "${{ github.sha }}",
+              "datasource": "Wikidata",
+              "version": "${{ env.RELEASE_NUMBER }}",
+              "date": "${{ env.RELEASE_DATE }}",
+              "processed_data": "https://github.com/sec2pri/    mapping_preprocessing/actions/runs/${{ github.run_id }}/    artifacts/${{ steps.artifact-upload.outputs.artifact-id }}"
+            }
