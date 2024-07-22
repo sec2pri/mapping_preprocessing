@@ -66,11 +66,9 @@ jobs:
               break
             else
               echo "No Query Timeout detected for file: " "$File" 
-              echo "TIMEOUT=false" >>$GITHUB_ENV
-              echo "TIMEOUT=false" >>$GITHUB_OUTPUT
             fi
           done
-
+          
           ##Remove previous output files (if existing)
           ##find  . -name 'wikidata*' -exec rm {} \;
           ## Set prefix to Wikidata for renaming new data files
@@ -83,8 +81,7 @@ jobs:
           done
           ##Change back to main directory
           cd ../..
-          ##Move and overwrite all files from results folder to data folder, to update previous data
-          mv -f wikidata/results/* wikidata/data/
+
 
       - name: Write up issue about timeout
         if: github.TIMEOUT == true
