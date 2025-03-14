@@ -17,6 +17,7 @@ permissions:
 jobs:
   check_new_data:
     runs-on: ubuntu-latest
+    timeout-minutes: 10 # Consider increasing timeout
     name: Check the date of the latest data
     outputs:
       DATE_NEW: ${{ steps.check_download.outputs.DATE_NEW }}
@@ -47,6 +48,7 @@ jobs:
       DATE_OLD: ${{ needs.check_new_data.outputs.DATE_OLD }}
       DATE_NEW: ${{ needs.check_new_data.outputs.DATE_NEW }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10 # Consider increasing timeout
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
