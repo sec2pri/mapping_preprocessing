@@ -25,4 +25,6 @@ jobs:
           wget https://raw.githubusercontent.com/sec2pri/mapping_preprocessing/refs/heads/main/datasources/chebi/data/ChEBI_secID2priID.tsv
           ##count unique entries in first column
           cut -f1 ChEBI_secID2priID.tsv | sort | uniq | wc -l #for Primary IDs
+          ##Count unique entries in second column
+          cut -f2 ChEBI_secID2priID.tsv | sort | uniq | wc -l #for Secondary IDs
       
