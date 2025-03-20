@@ -29,4 +29,14 @@ jobs:
           echo "Secondary IDs" | cut -f2 ChEBI_secID2priID.tsv | sort | uniq | wc -l #for Secondary IDs
           ##Count total number of lines for matches between Primary and Secondary IDs
           echo "Total ID matches" |wc -l ChEBI_secID2priID.tsv
+      - name: HGNC content
+        run: |
+          ##Download HGNC data
+          wget https://raw.githubusercontent.com/sec2pri/mapping_preprocessing/refs/heads/main/datasources/hgnc/data/HGNC_secID2priID.tsv
+          ##count unique entries in first column
+          echo "Primary IDs" | cut -f1 HGNC_secID2priID.tsv | sort | uniq | wc -l #for Primary IDs
+          ##Count unique entries in third column
+          echo "Secondary IDs" | cut -f3 HGNC_secID2priID.tsv | sort | uniq | wc -l #for Secondary IDs
+          ##Count total number of lines for matches between Primary and Secondary IDs
+          echo "Total ID matches" |wc -l HGNC_secID2priID.tsv
       
