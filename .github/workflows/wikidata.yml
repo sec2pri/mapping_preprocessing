@@ -23,22 +23,21 @@ jobs:
       DATE_OLD: ${{ steps.check_download.outputs.DATE_OLD }}
       NEW_RELEASE: ${{ steps.check_download.outputs.NEW_RELEASE }}
     steps:
-      # step 1: check the release date for the latest hmdb files
+      # step 1: check the release date for the latest Wikidata files
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Check for new hmdb files
+      - name: Check for new Wikidata files
         id: check_download
         run: |
-          ##Register the date from the previous Wikidata download config file 
-          date_old=$date
+          ##Register the date from the previous Wikidata download config file  ##Fake date for now, since the data has not been uploaded yet.
+          date_old=$date -d "yesterday" +"%Y-%m-%d"
         
           ##Make directory if not existing already
           mkdir datasources/wikidata/results
-          ##Define variable to be used in storing and updating output data (to avoid hardcoding for each change) (tba)
           
+          echo 'Accessing the Wikidata data'          
           ## Download outdated IDs for chemicals qLever Style
           curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalAllRedirects.rq -G https://qlever.cs.uni-freiburg.de/wikidata -o datasources/wikidata/results/metabolites_secID2priID_qlever.tsv
-                            
           ## Download outdated IDs for genes and proteins qLever Style
           curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/geneproteinHumanAllRedirects.rq -G https://qlever.cs.uni-freiburg.de/wikidata -o datasources/wikidata/results/geneProtein_secID2priID_qlever.tsv
          
@@ -69,8 +68,13 @@ jobs:
             cat "$f" | sed 's/<http:\/\/www.wikidata.org\/entity\///g' | sed 's/[>]//g' | sed 's/@en//g' > "${prefix}_$f"
             rm "$f"
           done
+
+          ##Fake date for now, since the data has not been uploaded yet.
+          date_new=$date -d "today" +"%Y-%m-%d"
+
+          
           ##Change back to main directory
-          cd ../..
+          #cd ../..
           ##Move and overwrite all files from results folder to data folder, to update previous data
-          mv -f wikidata/results/* wikidata/data/
+          #mv -f wikidata/results/* wikidata/data/
 
