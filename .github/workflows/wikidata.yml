@@ -28,10 +28,10 @@ jobs:
           ## Download outdated IDs for chemicals qLever Style
           curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalRedirects.rq -G https://qlever.cs.uni-freiburg.de/wikidata -o datasources/wikidata/results/metabolites_secID2priID_qlever.tsv
           
-          ## Download all primary IDs for chemicals
+          ## Download all primary IDs for chemicals qLever Style
           curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalAllPrimaryRedirects.rq -G https://qlever.cs.uni-freiburg.de/wikidata -o datasources/wikidata/results/metabolites_priIDs.tsv
-          ## Download alias/synonyms/names for chemicals
-          #curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalPrimarySynonyms.rq -G https://query.wikidata.org/sparql -o datasources/wikidata/results/metabolites_name2synonym.tsv
+          ## Download alias/synonyms/names for chemicals qLever Style
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalPrimarySynonymsRedirects.rq -G https://qlever.cs.uni-freiburg.de/wikidata -o datasources/wikidata/results/metabolites_name2synonym.tsv
           
           ## Download outdated IDs for genes (split from proteins to avoid timeouts) qLever Style
           curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/geneHumanRedirects.rq -G https://qlever.cs.uni-freiburg.de/wikidata -o datasources/wikidata/results/gene_secID2priID_qlever.tsv
