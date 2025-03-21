@@ -30,7 +30,7 @@ jobs:
         id: check_download
         run: |
           ##Register the date from the previous Wikidata download config file  ##Fake date for now, since the data has not been uploaded yet.
-          date_old=$date -d "yesterday" +"%Y-%m-%d"
+          date_old=$date #-d "yesterday" +"%Y-%m-%d"
         
           ##Make directory if not existing already
           mkdir datasources/wikidata/results
@@ -70,7 +70,22 @@ jobs:
           done
 
           ##Fake date for now, since the data has not been uploaded yet.
-          date_new=$date -d "today" +"%Y-%m-%d"
+          date_new=$date #-d "today" +"%Y-%m-%d"
+
+          #Store dates to output
+          echo "DATE_OLD=$date_old" >> $GITHUB_OUTPUT
+          echo "DATE_NEW=$date_new" >> $GITHUB_OUTPUT
+          ##Compare the dates and set variable if date_new is more recent
+          timestamp1=$(date -d "$date_new" +%s)
+          timestamp2=$(date -d "$date_old" +%s)
+          if [ "$timestamp1" -gt "$timestamp2" ]; then
+            echo 'New release available', "$release"
+            echo "NEW_RELEASE=true" >> $GITHUB_OUTPUT
+          else
+            echo 'No new release available'
+          fi
+          echo "Date of latest release: $date_new"
+          echo "Date of release of the current version: $date_old"
 
           
           ##Change back to main directory
