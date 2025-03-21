@@ -15,18 +15,23 @@ permissions:
   issues: write
   
 jobs:
-  wikidata:
+  check_new_data:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      # step 1: checkout the repository
+    name: Check the date of the latest data
+    outputs:
+      DATE_NEW: ${{ steps.check_download.outputs.DATE_NEW }}
+      DATE_OLD: ${{ steps.check_download.outputs.DATE_OLD }}
+      NEW_RELEASE: ${{ steps.check_download.outputs.NEW_RELEASE }}
     steps:
-      - name: Download GitHub repo for the queries
+      # step 1: check the release date for the latest hmdb files
+      - name: Checkout
         uses: actions/checkout@v4
-
-      # step 2: run the SPARQL queries from the Wikidata query subfolder
-      - name: Run the Queries
+      - name: Check for new hmdb files
+        id: check_download
         run: |
+          ##Register the date from the previous Wikidata download config file 
+          date_old=$date
+        
           ##Make directory if not existing already
           mkdir datasources/wikidata/results
           ##Define variable to be used in storing and updating output data (to avoid hardcoding for each change) (tba)
