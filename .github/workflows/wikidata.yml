@@ -28,25 +28,24 @@ jobs:
           ## Download outdated IDs for chemicals qLever Style
           curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalRedirects.rq -G https://qlever.cs.uni-freiburg.de/wikidata -o datasources/wikidata/results/metabolites_secID2priID_qlever.tsv
           
-          ## Download all primary IDs for chemicals
-          #curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalAllPrimary.rq -G https://query.wikidata.org/sparql -o datasources/wikidata/results/metabolites_priIDs.tsv
-          ## Download alias/synonyms/names for chemicals
-          #curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalPrimarySynonyms.rq -G https://query.wikidata.org/sparql -o datasources/wikidata/results/metabolites_name2synonym.tsv
+          ## Download all primary IDs for chemicals qLever Style
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalAllPrimaryRedirects.rq -G https://qlever.cs.uni-freiburg.de/wikidata -o datasources/wikidata/results/metabolites_priIDs_qlever.tsv
+          ## Download alias/synonyms/names for chemicals qLever Style
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalPrimarySynonymsRedirects.rq -G https://qlever.cs.uni-freiburg.de/wikidata -o datasources/wikidata/results/metabolites_name2synonym_qlever.tsv
           
           ## Download outdated IDs for genes (split from proteins to avoid timeouts) qLever Style
           curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/geneHumanRedirects.rq -G https://qlever.cs.uni-freiburg.de/wikidata -o datasources/wikidata/results/gene_secID2priID_qlever.tsv
           ## Download outdated IDs for proteins (split from genes to avoid timeouts) qLever Style
-          
           curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/proteinHumanRedirects.rq -G https://qlever.cs.uni-freiburg.de/wikidata -o datasources/wikidata/results/protein_secID2priID_qlever.tsv
-          ## Download all primary IDs for genes and proteins
-          #curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/geneproteinHumanAllPrimary.rq -G https://query.wikidata.org/sparql -o datasources/wikidata/results/geneProtein_priIDs.tsv
-          ## Download alias/synonyms/names for genes and proteins
-          #curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/geneproteinHumanPrimarySynonyms.rq -G https://query.wikidata.org/sparql -o datasources/wikidata/results/geneProtein_name2synonym.tsv
+          ## Download all primary IDs for genes and proteins qLever Style
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/geneproteinHumanAllPrimaryRedirects.rq -G https://qlever.cs.uni-freiburg.de/wikidata -o datasources/wikidata/results/geneProtein_priIDs_qlever.tsv
+          ## Download alias/synonyms/names for genes and proteins qLever Style
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/geneproteinHumanPrimarySynonymsRedirects.rq -G https://qlever.cs.uni-freiburg.de/wikidata -o datasources/wikidata/results/geneProtein_name2synonym_qlever.tsv
 
           ##Concatenate gene and protein outdated ID data
-          #head -n 1 datasources/wikidata/results/gene_secID2priID.tsv > datasources/wikidata/results/geneProtein_secID2priID.tsv ##Add the header of one file as start
-          #tail -n +2 -q datasources/wikidata/results/gene_secID2priID.tsv >> datasources/wikidata/results/geneProtein_secID2priID.tsv ##Add gene sec. IDs to the file (not overwrite)
-          #tail -n +2 -q datasources/wikidata/results/protein_secID2priID.tsv >> datasources/wikidata/results/geneProtein_secID2priID.tsv ##Add protein sec. IDs to the file (not overwrite)
+          head -n 1 datasources/wikidata/results/gene_secID2priID_qlever.tsv > datasources/wikidata/results/geneProtein_secID2priID_qlever.tsv ##Add the header of one file as start
+          tail -n +2 -q datasources/wikidata/results/gene_secID2priID_qlever.tsv >> datasources/wikidata/results/geneProtein_secID2priID_qlever.tsv ##Add gene sec. IDs to the file (not overwrite)
+          tail -n +2 -q datasources/wikidata/results/protein_secID2priID_qlever.tsv >> datasources/wikidata/results/geneProtein_secID2priID_qlever.tsv ##Add protein sec. IDs to the file (not overwrite)
           
           ##Check new data, fail job if query timeout has occured
           cd datasources/wikidata/results
