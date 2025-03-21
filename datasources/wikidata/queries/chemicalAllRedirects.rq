@@ -1,10 +1,11 @@
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-SELECT ?primaryID ?name ?synonym 
+SELECT DISTINCT ?primaryID ?secondaryID ?name ?synonym
 WHERE
 {
 { ?primaryID p:P31/ps:P31 wd:Q11173 }
@@ -23,9 +24,10 @@ UNION
 UNION
 { ?primaryID p:P279/ps:P279 wd:Q55662747 }
 
-
+        OPTIONAL{?secondaryID owl:sameAs ?primaryID.}		
         OPTIONAL{?primaryID rdfs:label ?name. 
         FILTER(LANG(?name) = "en").}
-        ?primaryID skos:altLabel ?synonym .
-        FILTER(LANG(?synonym) = "en").
+        OPTIONAL{ ?primaryID skos:altLabel ?synonym .
+        FILTER(LANG(?synonym) = "en").}
+
 }
