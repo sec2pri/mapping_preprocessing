@@ -73,40 +73,4 @@ jobs:
           cd ../..
           ##Move and overwrite all files from results folder to data folder, to update previous data
           mv -f wikidata/results/* wikidata/data/
-        # step 3: save the data from the queries
-     # - name: Commit and Push Changes
-     #   run: |
-     #     git pull
-     #     ls
-     #     if [[ `git status --porcelain` ]]; then
-     #       git add .
-     #       git config --local user.email "action@github.com"
-     #       git config --local user.name "GitHub Action"
-     #       git commit -m "Updating Wd data"
-     #       git push
-     #     else
-     #       echo "No changes to commit."
-     #       exit 0
-     #     fi
-  post-issue: 
-       needs: wikidata
-       if: github.DOWNLOAD_FILE == 'true' 
-       name: Post issue about timeout 
-       runs-on: ubuntu-latest 
-       permissions: 
-         contents: read 
-         issues: write 
-       steps: 
-         - uses: actions/checkout@v4 
-         - run: | 
-             echo "---" >> issue.md 
-             echo "title: Wikidata is timing out>> issue.md 
-             echo "assignees: tabbassidaloii" >> issue.md 
-             echo "---" >> issue.md 
-             echo "Wikidata query timed out for $${{ github.FAILED }}" >> issue.md 
-         - uses: JasonEtco/create-an-issue@v2 
-           env: 
-             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
-           with: 
-             filename: issue.md 
 
