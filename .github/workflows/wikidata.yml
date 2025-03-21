@@ -28,7 +28,7 @@ jobs:
           ## Download outdated IDs for chemicals Wikidata Style
           curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalRedirects.rq -G https://query.wikidata.org/sparql -o datasources/wikidata/results/metabolites_secID2priID.tsv
           ## Download outdated IDs for chemicals qLever Style
-          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalRedirects.rq -G https://qlever.cs.uni-freiburg.de/api/wikidata -o datasources/wikidata/results/metabolites_secID2priID_qlever.tsv
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalRedirects.rq -G https://qlever.cs.uni-freiburg.de/wikidata -o datasources/wikidata/results/metabolites_secID2priID_qlever.tsv
           
           ## Download all primary IDs for chemicals
           #curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalAllPrimary.rq -G https://query.wikidata.org/sparql -o datasources/wikidata/results/metabolites_priIDs.tsv
