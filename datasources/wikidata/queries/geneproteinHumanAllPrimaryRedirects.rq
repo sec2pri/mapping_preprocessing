@@ -1,5 +1,11 @@
-SELECT ?primaryID ?primarySymbol ?secondarySymbol WITH {
-SELECT ?primaryID
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+SELECT ?primaryID ?primarySymbol ?secondarySymbol 
 WHERE
 {
 { ?primaryID p:P31/ps:P31 wd:Q7187 }
@@ -9,9 +15,6 @@ UNION
 { ?primaryID p:P279/ps:P279 wd:Q7187 }
 UNION
 { ?primaryID p:P279/ps:P279 wd:Q8054 }
-}
-} AS %RESULTS {
-INCLUDE %RESULTS
 
         ?primaryID rdfs:label ?primarySymbol. 
         FILTER(LANG(?primarySymbol) = "en").
