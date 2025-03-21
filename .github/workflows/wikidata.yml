@@ -36,9 +36,9 @@ jobs:
           #curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalPrimarySynonyms.rq -G https://query.wikidata.org/sparql -o datasources/wikidata/results/metabolites_name2synonym.tsv
           
           ## Download outdated IDs for genes (split from proteins to avoid timeouts)
-          #curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/geneHumanRedirects.rq -G https://query.wikidata.org/sparql -o datasources/wikidata/results/gene_secID2priID.tsv
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/geneHumanRedirects.rq -G https://query.wikidata.org/sparql -o datasources/wikidata/results/gene_secID2priID.tsv
           ## Download outdated IDs for proteins (split from genes to avoid timeouts)
-          #curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/proteinHumanRedirects.rq -G https://query.wikidata.org/sparql -o datasources/wikidata/results/protein_secID2priID.tsv
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/proteinHumanRedirects.rq -G https://query.wikidata.org/sparql -o datasources/wikidata/results/protein_secID2priID.tsv
           ## Download all primary IDs for genes and proteins
           #curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/geneproteinHumanAllPrimary.rq -G https://query.wikidata.org/sparql -o datasources/wikidata/results/geneProtein_priIDs.tsv
           ## Download alias/synonyms/names for genes and proteins
