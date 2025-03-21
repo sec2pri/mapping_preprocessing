@@ -81,20 +81,20 @@ jobs:
           ##Move and overwrite all files from results folder to data folder, to update previous data
           mv -f wikidata/results/* wikidata/data/
         # step 3: save the data from the queries
-      - name: Commit and Push Changes
-        run: |
-          git pull
-          ls
-          if [[ `git status --porcelain` ]]; then
-            git add .
-            git config --local user.email "action@github.com"
-            git config --local user.name "GitHub Action"
-            git commit -m "Updating Wd data"
-            git push
-          else
-            echo "No changes to commit."
-            exit 0
-          fi
+     # - name: Commit and Push Changes
+     #   run: |
+     #     git pull
+     #     ls
+     #     if [[ `git status --porcelain` ]]; then
+     #       git add .
+     #       git config --local user.email "action@github.com"
+     #       git config --local user.name "GitHub Action"
+     #       git commit -m "Updating Wd data"
+     #       git push
+     #     else
+     #       echo "No changes to commit."
+     #       exit 0
+     #     fi
   post-issue: 
        needs: wikidata
        if: github.DOWNLOAD_FILE == 'true' 
