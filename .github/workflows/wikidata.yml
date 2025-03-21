@@ -1,5 +1,5 @@
 # Workflow for downloading and saving Wikidata secondary2primary mappings
-name: wikidata
+name: Check and test Wikidata updates
 
 on:
   workflow_dispatch:
@@ -8,6 +8,12 @@ on:
    - '.github/workflows/wikidata.yml'
   schedule:
     - cron: "0 0 1,15 * *"  # Run the workflow on the 1st and 15th day of each month
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+  issues: write
+  
 jobs:
   wikidata:
     runs-on: ubuntu-latest
