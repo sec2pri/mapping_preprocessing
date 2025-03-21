@@ -33,7 +33,7 @@ jobs:
           ##Extract the date from the hgnc config file 
           date_old=$(grep -E '^date=' datasources/hgnc/config | cut -d'=' -f2)
           echo 'Accessing the hgnc data'
-          wget https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/ -O hgnc_index.html
+          wget https://www.genenames.org/download/archive/quarterly/tsv/ -O hgnc_index.html
           # Extracting the latest complete file
           complete=$(grep -o 'hgnc_complete_set_[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}\.txt' hgnc_index.html | tail -n 1)
           # Extracting the latest withdrawn file
@@ -71,8 +71,8 @@ jobs:
           ##Create temp. folder to store the data in
           mkdir -p datasources/hgnc/data
           ##Download hgnc file
-          wget https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/${WITHDRAWN_NEW}
-          wget https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/${COMPLETE_NEW}
+          wget https://storage.googleapis.com/public-download-files/hgnc/archive/archive/quarterly/tsv/${WITHDRAWN_NEW}
+          wget https://storage.googleapis.com/public-download-files/hgnc/archive/archive/quarterly/tsv/${COMPLETE_NEW}
           mv $WITHDRAWN_NEW $COMPLETE_NEW datasources/hgnc/data
           ##Check file size if available
           ls -trlh datasources/hgnc/data
