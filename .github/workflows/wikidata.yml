@@ -43,9 +43,9 @@ jobs:
           curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/geneproteinHumanPrimarySynonymsRedirects.rq -G https://qlever.cs.uni-freiburg.de/wikidata -o datasources/wikidata/results/geneProtein_name2synonym_qlever.tsv
 
           ##Concatenate gene and protein outdated ID data
-          #head -n 1 datasources/wikidata/results/gene_secID2priID.tsv > datasources/wikidata/results/geneProtein_secID2priID.tsv ##Add the header of one file as start
-          #tail -n +2 -q datasources/wikidata/results/gene_secID2priID.tsv >> datasources/wikidata/results/geneProtein_secID2priID.tsv ##Add gene sec. IDs to the file (not overwrite)
-          #tail -n +2 -q datasources/wikidata/results/protein_secID2priID.tsv >> datasources/wikidata/results/geneProtein_secID2priID.tsv ##Add protein sec. IDs to the file (not overwrite)
+          head -n 1 datasources/wikidata/results/gene_secID2priID_qlever.tsv > datasources/wikidata/results/geneProtein_secID2priID_qlever.tsv ##Add the header of one file as start
+          tail -n +2 -q datasources/wikidata/results/gene_secID2priID_qlever.tsv >> datasources/wikidata/results/geneProtein_secID2priID_qlever.tsv ##Add gene sec. IDs to the file (not overwrite)
+          tail -n +2 -q datasources/wikidata/results/protein_secID2priID_qlever.tsv >> datasources/wikidata/results/geneProtein_secID2priID_qlever.tsv ##Add protein sec. IDs to the file (not overwrite)
           
           ##Check new data, fail job if query timeout has occured
           cd datasources/wikidata/results
