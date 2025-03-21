@@ -31,14 +31,15 @@ outputDir <- paste0("datasources/", tolower(sourceName), "/recentData")
 dir.create(outputDir, showWarnings = FALSE)
 
 ## Download the input files from NCBI (better to download and make a subset for human and mice in bash)
+## Adhering to folder structure as in GitHub Action.
 # fileUrl <- "https://ftp.ncbi.nih.gov/gene/DATA/gene_history.gz"
-# download(fileUrl, paste(inputDir, sourceName, "gene_history.gz", sep = "/"), mode = "wb")
+# download(fileUrl, paste(inputDir, sourceName, "data/gene_history.gz", sep = "/"), mode = "wb")
 # 
 # fileUrl <- "https://ftp.ncbi.nih.gov/gene/DATA/gene_info.gz"
-# download(fileUrl, paste(inputDir, sourceName, "gene_info.gz", sep = "/"), mode = "wb")
+# download(fileUrl, paste(inputDir, sourceName, "data/gene_info.gz", sep = "/"), mode = "wb")
 
 # Read the file that includes the withdrawn ids
-ncbiWDN <- data.table::fread(paste(inputDir, tolower(sourceName), "gene_history.gz", sep = "/"), sep = "\t") %>% 
+ncbiWDN <- data.table::fread(paste(inputDir, tolower(sourceName), "data/gene_history.gz", sep = "/"), sep = "\t") %>% 
   dplyr::filter(`#tax_id` == 9606) %>% #focusing on human
   dplyr::rename(primaryID = GeneID,
                 secondaryID	= Discontinued_GeneID,
@@ -85,7 +86,7 @@ ncbiWDN <- ncbiWDN %>%
                                  " Release: ", sourceVersion, "."))
 
 # Read the file that includes the gene info
-ncbi <- data.table::fread(paste(inputDir, tolower(sourceName), gene_info, sep = "/"), sep = "\t") %>%
+ncbi <- data.table::fread(paste(inputDir, tolower(sourceName), "data/gene_info.gz", sep = "/"), sep = "\t") %>%
   dplyr::filter(`#tax_id` == 9606) %>% #focusing on human
   dplyr::mutate(Symbol_from_nomenclature_authority = ifelse(Symbol_from_nomenclature_authority == Symbol, "-", Symbol_from_nomenclature_authority),
                 Symbol = ifelse(Symbol_from_nomenclature_authority == "-", Symbol, paste0(Symbol, "|", Symbol_from_nomenclature_authority))) %>%
