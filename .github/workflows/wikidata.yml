@@ -28,7 +28,7 @@ jobs:
           ## Download outdated IDs for chemicals Wikidata Style
           curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalRedirects.rq -G https://query.wikidata.org/sparql -o datasources/wikidata/results/metabolites_secID2priID.tsv
           ## Download outdated IDs for chemicals qLever Style
-          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalRedirects.rq -G https://qlever.cs.uni-freiburg.de/api/wikidata -o datasources/wikidata/results/metabolites_secID2priID_qlever.tsv
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalRedirects.rq -G https://qlever.cs.uni-freiburg.de/wikidata -o datasources/wikidata/results/metabolites_secID2priID_qlever.tsv
           
           ## Download all primary IDs for chemicals
           #curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalAllPrimary.rq -G https://query.wikidata.org/sparql -o datasources/wikidata/results/metabolites_priIDs.tsv
@@ -81,20 +81,20 @@ jobs:
           ##Move and overwrite all files from results folder to data folder, to update previous data
           mv -f wikidata/results/* wikidata/data/
         # step 3: save the data from the queries
-      - name: Commit and Push Changes
-        run: |
-          git pull
-          ls
-          if [[ `git status --porcelain` ]]; then
-            git add .
-            git config --local user.email "action@github.com"
-            git config --local user.name "GitHub Action"
-            git commit -m "Updating Wd data"
-            git push
-          else
-            echo "No changes to commit."
-            exit 0
-          fi
+     # - name: Commit and Push Changes
+     #   run: |
+     #     git pull
+     #     ls
+     #     if [[ `git status --porcelain` ]]; then
+     #       git add .
+     #       git config --local user.email "action@github.com"
+     #       git config --local user.name "GitHub Action"
+     #       git commit -m "Updating Wd data"
+     #       git push
+     #     else
+     #       echo "No changes to commit."
+     #       exit 0
+     #     fi
   post-issue: 
        needs: wikidata
        if: github.DOWNLOAD_FILE == 'true' 
