@@ -16,3 +16,5 @@ java/target/maven-status
 datasources/ncbi/gene_history.gz
 datasources/ncbi/gene_info.gz
 mapping_preprocessing.Rproj
+datasources/ncbi/data/gene_history.gz
+datasources/ncbi/data/gene_info.gz
