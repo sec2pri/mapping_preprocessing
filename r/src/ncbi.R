@@ -13,9 +13,11 @@ if(!"data.table" %in% installed.packages()) {
 }
 library(data.table)
 if(!"R.utils" %in% installed.packages()) {
-   install.packages("R.utils")
+   install.packages("R.utils", dependencies = TRUE)
 }
 library(R.utils)
+
+print("All packages installed")
 
 # Retrieve command-line arguments
 args <- commandArgs(trailingOnly = TRUE)
