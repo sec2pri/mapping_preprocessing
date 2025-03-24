@@ -84,6 +84,12 @@ jobs:
           echo "CURRENT_RELEASE_NUMBER=$CURRENT_RELEASE_NUMBER" >> $GITHUB_ENV
           url_release="https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel$RELEASE_NUMBER/SDF/"
           echo "URL_RELEASE=$url_release" >> $GITHUB_ENV
+          
+          ##Adding function to check if file exists in ChEBI FTP download:
+          function validate_url(){ wget --spider $1 >/dev/null 2>&1 | return $?}
+          if validate_url "https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${RELEASE_NUMBER}/SDF/ChEBI_complete_3star.sdf.gz"; then echo Latest Release Available; else echo File NOT available; fi
+          ##add step to skip download and post GitHub issue
+          
           wget "https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${RELEASE_NUMBER}/SDF/ChEBI_complete_3star.sdf.gz"
           ##Unzip gz file:
           gunzip ChEBI_complete_3star.sdf.gz #TODO replace by config var
