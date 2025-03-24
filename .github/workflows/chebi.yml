@@ -87,20 +87,47 @@ jobs:
           
           ##Adding function to check if file exists in ChEBI FTP download:
           function validate_url(){ wget --spider $1 >/dev/null 2>&1 | return $?}
-          if validate_url "https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${RELEASE_NUMBER}/SDF/ChEBI_complete_3star.sdf.gz"; then echo Latest Release Available; else echo File NOT available; fi
+          if validate_url "https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${RELEASE_NUMBER}/SDF/ChEBI_complete_3star.sdf.gz"; then 
+            echo Latest Release Available;
+            wget "https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${RELEASE_NUMBER}/SDF/ChEBI_complete_3star.sdf.gz"
+            ##Unzip gz file:
+            gunzip ChEBI_complete_3star.sdf.gz #TODO replace by config var
+            ##Check file size if available
+            ls
+            ##Print file size
+            # Set up vars from config file
+            chmod +x datasources/chebi/config
+            . datasources/chebi/config .
+            ##Create temp. folder to store the data in
+            mkdir -p mapping_preprocessing/datasources/chebi/data
+          else 
+            echo File NOT available, switching to previous release; 
+            RELEASE_NUMBER_previous=$((RELEASE_NUMBER - 1)) 
+            wget "https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${RELEASE_NUMBER_previous}/SDF/ChEBI_complete_3star.sdf.gz"
+            ##Unzip gz file:
+            gunzip ChEBI_complete_3star.sdf.gz #TODO replace by config var
+            ##Check file size if available
+            ls
+            ##Print file size
+            # Set up vars from config file
+            chmod +x datasources/chebi/config
+            . datasources/chebi/config .
+            ##Create temp. folder to store the data in
+            mkdir -p mapping_preprocessing/datasources/chebi/data
+          fi
           ##add step to skip download and post GitHub issue
           
-          wget "https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${RELEASE_NUMBER}/SDF/ChEBI_complete_3star.sdf.gz"
+          #wget "https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${RELEASE_NUMBER}/SDF/ChEBI_complete_3star.sdf.gz"
           ##Unzip gz file:
-          gunzip ChEBI_complete_3star.sdf.gz #TODO replace by config var
+          #gunzip ChEBI_complete_3star.sdf.gz #TODO replace by config var
           ##Check file size if available
-          ls
+          #ls
           ##Print file size
           # Set up vars from config file
-          chmod +x datasources/chebi/config
-          . datasources/chebi/config .
+          #chmod +x datasources/chebi/config
+          #. datasources/chebi/config .
           ##Create temp. folder to store the data in
-          mkdir -p mapping_preprocessing/datasources/chebi/data
+          #mkdir -p mapping_preprocessing/datasources/chebi/data
      # step 4: run the Java .jar for ChEBI preprocessing 
       - name: Set up Java
         uses: actions/setup-java@v4
