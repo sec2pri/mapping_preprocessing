@@ -31,7 +31,43 @@ jobs:
         run: |
           ##Register the date from the previous Wikidata download config file  ##Fake date for now, since the data has not been uploaded yet.
           date_old=$date #-d "yesterday" +"%Y-%m-%d"
-        
+          ##Execute query for metabdata (TBA)
+          
+          ##Fake date for now, since the data has not been uploaded yet.
+          date_new=$date #-d "today" +"%Y-%m-%d"
+
+          #Store dates to output
+          echo "DATE_OLD=$date_old" >> $GITHUB_OUTPUT
+          echo "DATE_NEW=$date_new" >> $GITHUB_OUTPUT
+          ##Compare the dates and set variable if date_new is more recent
+          timestamp1=$(date -d "$date_new" +%s)
+          timestamp2=$(date -d "$date_old" +%s)
+          if [ "$timestamp1" -gt "$timestamp2" ]; then
+            echo 'New release available', "$release"
+            echo "NEW_RELEASE=true" >> $GITHUB_OUTPUT
+          else
+            echo 'No new release available'
+          fi
+          echo "Date of latest release: $date_new"
+          echo "Date of release of the current version: $date_old"
+
+          
+  test_new_data_processing:
+    name: Processing new data and check updates
+    needs: check_new_data
+    env:
+      DATE_OLD: ${{ needs.check_new_data.outputs.DATE_OLD }}
+      DATE_NEW: ${{ needs.check_new_data.outputs.DATE_NEW }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      # step 2: download the recent data 
+      - name: Download the recent data
+        run: |
+          sudo apt-get install xml-twig-tools
+          ##Store outputs from previous job in environment variables
+          echo "$DATE_NEW=$DATE_NEW" >> $GITHUB_ENV
           ##Make directory if not existing already
           mkdir datasources/wikidata/results
           
@@ -69,27 +105,5 @@ jobs:
             rm "$f"
           done
 
-          ##Fake date for now, since the data has not been uploaded yet.
-          date_new=$date #-d "today" +"%Y-%m-%d"
-
-          #Store dates to output
-          echo "DATE_OLD=$date_old" >> $GITHUB_OUTPUT
-          echo "DATE_NEW=$date_new" >> $GITHUB_OUTPUT
-          ##Compare the dates and set variable if date_new is more recent
-          timestamp1=$(date -d "$date_new" +%s)
-          timestamp2=$(date -d "$date_old" +%s)
-          if [ "$timestamp1" -gt "$timestamp2" ]; then
-            echo 'New release available', "$release"
-            echo "NEW_RELEASE=true" >> $GITHUB_OUTPUT
-          else
-            echo 'No new release available'
-          fi
-          echo "Date of latest release: $date_new"
-          echo "Date of release of the current version: $date_old"
-
           
-          ##Change back to main directory
-          #cd ../..
-          ##Move and overwrite all files from results folder to data folder, to update previous data
-          #mv -f wikidata/results/* wikidata/data/
 
