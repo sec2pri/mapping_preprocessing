@@ -92,12 +92,11 @@ jobs:
               echo "No Query Timeout detected for file: " "$File" 
             fi
           done
-          # Store value of fail_file in GITHUB_ENV for the issue
-          #echo "FAILED=${fail_file}" >> $GITHUB_ENV
-          ##Remove previous output files (if existing)
-          ##find  . -name 'wikidata*' -exec rm {} \;
+          
           ## Set prefix to Wikidata for renaming new data files
           prefix=$(basename "Wikidata") 
+
+          ## Data processing
           for f in *.tsv ##Only for tsv files
           do
             ##Find all new data files | Remove the IRIs (prefix) | remove the IRIs (suffix) | remove language annotation | save the file with new name
