@@ -92,7 +92,10 @@ jobs:
               echo "No Query Timeout detected for file: " "$File" 
             fi
           done
-          
+
+      # step 3: run bash for Wikidata preprocessing 
+      - name: Download the recent data
+        run: |
           ## Set prefix to Wikidata for renaming new data files
           prefix=$(basename "Wikidata") 
 
