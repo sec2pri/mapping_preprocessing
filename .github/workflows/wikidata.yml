@@ -96,6 +96,10 @@ jobs:
       # step 3: run bash for Wikidata preprocessing 
       - name: Download the recent data
         run: |
+          # Set up vars from config file
+          #to_check_from_zenodo=$(grep -E '^to_check_from_zenodo=' datasources/wikidata/config | cut -d'=' -f2)
+          inputFile=metabolites_secID2priID_qlever.tsv ##only metabolites for now
+          
           ## Set prefix to Wikidata for renaming new data files
           prefix=$(basename "Wikidata") 
 
