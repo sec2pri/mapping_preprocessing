@@ -5,6 +5,9 @@
 This repository contains instructions for processing the Wikidata SPARQL queries. Wikidata updated their data throughout the day, and does not include release version.
 Three queries have been constructued, for both the metabolite and chemical compound IDs, and for the gene/protein IDs:
 
+TODO: add queries from Qlever.
+Move content below to previous version running on Wikidata
+
 - Redirects (Sec2Prim mappings)
 - All Primary (to check for existing mappings)
 - Primary synonyms (to find alterntaive names or symbols).

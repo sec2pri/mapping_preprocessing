@@ -1,5 +1,5 @@
 # Workflow for downloading and saving Wikidata secondary2primary mappings
-name: wikidata
+name: Check and test Wikidata updates
 
 on:
   workflow_dispatch:
@@ -8,45 +8,75 @@ on:
    - '.github/workflows/wikidata.yml'
   schedule:
     - cron: "0 0 1,15 * *"  # Run the workflow on the 1st and 15th day of each month
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+  issues: write
+  
 jobs:
-  wikidata:
+  check_new_data:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      # step 1: checkout the repository
+    name: Check the date of the latest data
+    outputs:
+      DATE_NEW: ${{ steps.check_download.outputs.DATE_NEW }}
+      DATE_OLD: ${{ steps.check_download.outputs.DATE_OLD }}
+      NEW_RELEASE: ${{ steps.check_download.outputs.NEW_RELEASE }}
     steps:
-      - name: Download GitHub repo for the queries
+      # step 1: check the release date for the latest Wikidata files
+      - name: Checkout
         uses: actions/checkout@v4
-
-      # step 2: run the SPARQL queries from the Wikidata query subfolder
-      - name: Run the Queries
+      - name: Check for new Wikidata files
+        id: check_download
         run: |
+          ##Register the date from the previous Wikidata download config file  ##Fake date for now, since the data has not been uploaded yet.
+          date_old=$date #-d "yesterday" +"%Y-%m-%d"
+          ##Execute query for metabdata (TBA)
+          
+          ##Fake date for now, since the data has not been uploaded yet.
+          date_new=$date #-d "today" +"%Y-%m-%d"
+
+          #Store dates to output
+          echo "DATE_OLD=$date_old" >> $GITHUB_OUTPUT
+          echo "DATE_NEW=$date_new" >> $GITHUB_OUTPUT
+          ##Compare the dates and set variable if date_new is more recent
+          timestamp1=$(date -d "$date_new" +%s)
+          timestamp2=$(date -d "$date_old" +%s)
+          if [ "$timestamp1" -gt "$timestamp2" ]; then
+            echo 'New release available', "$release"
+            echo "NEW_RELEASE=true" >> $GITHUB_OUTPUT
+          else
+            echo 'No new release available'
+          fi
+          echo "Date of latest release: $date_new"
+          echo "Date of release of the current version: $date_old"
+
+          
+  test_new_data_processing:
+    name: Processing new data and check updates
+    needs: check_new_data
+    env:
+      DATE_OLD: ${{ needs.check_new_data.outputs.DATE_OLD }}
+      DATE_NEW: ${{ needs.check_new_data.outputs.DATE_NEW }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      # step 2: download the recent data 
+      - name: Download the recent data
+        run: |
+          sudo apt-get install xml-twig-tools
+          ##Store outputs from previous job in environment variables
+          #echo "$DATE_NEW=$DATE_NEW" >> $GITHUB_ENV
           ##Make directory if not existing already
           mkdir datasources/wikidata/results
-          ##Define variable to be used in storing and updating output data (to avoid hardcoding for each change) (tba)
           
+          echo 'Accessing the Wikidata data'          
           ## Download outdated IDs for chemicals qLever Style
-          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalRedirects.rq -G https://qlever.cs.uni-freiburg.de/wikidata -o datasources/wikidata/results/metabolites_secID2priID_qlever.tsv
-          
-          ## Download all primary IDs for chemicals qLever Style
-          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalAllPrimaryRedirects.rq -G https://qlever.cs.uni-freiburg.de/wikidata -o datasources/wikidata/results/metabolites_priIDs_qlever.tsv
-          ## Download alias/synonyms/names for chemicals qLever Style
-          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalPrimarySynonymsRedirects.rq -G https://qlever.cs.uni-freiburg.de/wikidata -o datasources/wikidata/results/metabolites_name2synonym_qlever.tsv
-          
-          ## Download outdated IDs for genes (split from proteins to avoid timeouts) qLever Style
-          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/geneHumanRedirects.rq -G https://qlever.cs.uni-freiburg.de/wikidata -o datasources/wikidata/results/gene_secID2priID_qlever.tsv
-          ## Download outdated IDs for proteins (split from genes to avoid timeouts) qLever Style
-          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/proteinHumanRedirects.rq -G https://qlever.cs.uni-freiburg.de/wikidata -o datasources/wikidata/results/protein_secID2priID_qlever.tsv
-          ## Download all primary IDs for genes and proteins qLever Style
-          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/geneproteinHumanAllPrimaryRedirects.rq -G https://qlever.cs.uni-freiburg.de/wikidata -o datasources/wikidata/results/geneProtein_priIDs_qlever.tsv
-          ## Download alias/synonyms/names for genes and proteins qLever Style
-          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/geneproteinHumanPrimarySynonymsRedirects.rq -G https://qlever.cs.uni-freiburg.de/wikidata -o datasources/wikidata/results/geneProtein_name2synonym_qlever.tsv
-
-          ##Concatenate gene and protein outdated ID data
-          head -n 1 datasources/wikidata/results/gene_secID2priID_qlever.tsv > datasources/wikidata/results/geneProtein_secID2priID_qlever.tsv ##Add the header of one file as start
-          tail -n +2 -q datasources/wikidata/results/gene_secID2priID_qlever.tsv >> datasources/wikidata/results/geneProtein_secID2priID_qlever.tsv ##Add gene sec. IDs to the file (not overwrite)
-          tail -n +2 -q datasources/wikidata/results/protein_secID2priID_qlever.tsv >> datasources/wikidata/results/geneProtein_secID2priID_qlever.tsv ##Add protein sec. IDs to the file (not overwrite)
-          
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalAllRedirects.rq -G https://qlever.cs.uni-freiburg.de/wikidata -o datasources/wikidata/results/metabolites_secID2priID_qlever.tsv
+          ## Download outdated IDs for genes and proteins qLever Style
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/geneproteinHumanAllRedirects.rq -G https://qlever.cs.uni-freiburg.de/wikidata -o datasources/wikidata/results/geneProtein_secID2priID_qlever.tsv
+         
           ##Check new data, fail job if query timeout has occured
           cd datasources/wikidata/results
           fail_file=''
@@ -56,62 +86,21 @@ jobs:
               echo "Query Timeout occurred for file: " "$File" 
               echo "Wikidata data will not be updated"
               head -n 20 "$File" 
-              echo "DOWNLOAD_FILE=true" >>$GITHUB_ENV
+              #echo "DOWNLOAD_FILE=true" >>$GITHUB_ENV
               fail_file="${fail_file} $File"
             else
               echo "No Query Timeout detected for file: " "$File" 
             fi
           done
-          # Store value of fail_file in GITHUB_ENV for the issue
-          echo "FAILED=${fail_file}" >> $GITHUB_ENV
-          ##Remove previous output files (if existing)
-          ##find  . -name 'wikidata*' -exec rm {} \;
+          
           ## Set prefix to Wikidata for renaming new data files
-          prefix=$(basename "Wikidata") 
-          for f in *.tsv ##Only for tsv files
-          do
+          #prefix=$(basename "Wikidata") 
+
+          ## Data processing
+          #for f in *.tsv ##Only for tsv files
+          #do
             ##Find all new data files | Remove the IRIs (prefix) | remove the IRIs (suffix) | remove language annotation | save the file with new name
-            cat "$f" | sed 's/<http:\/\/www.wikidata.org\/entity\///g' | sed 's/[>]//g' | sed 's/@en//g' > "${prefix}_$f"
-            rm "$f"
-          done
-          ##Change back to main directory
-          cd ../..
-          ##Move and overwrite all files from results folder to data folder, to update previous data
-          mv -f wikidata/results/* wikidata/data/
-        # step 3: save the data from the queries
-     # - name: Commit and Push Changes
-     #   run: |
-     #     git pull
-     #     ls
-     #     if [[ `git status --porcelain` ]]; then
-     #       git add .
-     #       git config --local user.email "action@github.com"
-     #       git config --local user.name "GitHub Action"
-     #       git commit -m "Updating Wd data"
-     #       git push
-     #     else
-     #       echo "No changes to commit."
-     #       exit 0
-     #     fi
-  post-issue: 
-       needs: wikidata
-       if: github.DOWNLOAD_FILE == 'true' 
-       name: Post issue about timeout 
-       runs-on: ubuntu-latest 
-       permissions: 
-         contents: read 
-         issues: write 
-       steps: 
-         - uses: actions/checkout@v3 
-         - run: | 
-             echo "---" >> issue.md 
-             echo "title: Wikidata is timing out>> issue.md 
-             echo "assignees: tabbassidaloii" >> issue.md 
-             echo "---" >> issue.md 
-             echo "Wikidata query timed out for $${{ github.FAILED }}" >> issue.md 
-         - uses: JasonEtco/create-an-issue@v2 
-           env: 
-             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
-           with: 
-             filename: issue.md 
+            #cat "$f" | sed 's/<http:\/\/www.wikidata.org\/entity\///g' | sed 's/[>]//g' | sed 's/@en//g' > "${prefix}_$f"
+            #rm "$f"
+          #done   
 
