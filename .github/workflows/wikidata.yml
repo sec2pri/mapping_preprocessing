@@ -67,12 +67,14 @@ jobs:
         run: |
           ##Store outputs from previous job in environment variables
           #echo "$DATE_NEW=$DATE_NEW" >> $GITHUB_ENV
-                    
+          ##Add folder to store data in
+          mkdir datasources/wikidata/recentData/   
+          
           echo 'Accessing the Wikidata data'          
           ## Download outdated IDs for chemicals qLever Style
-          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalAllRedirects.rq -G https://qlever.cs.uni-freiburg.de/wikidata -o datasources/wikidata/metabolites_secID2priID_qlever.tsv
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalAllRedirects.rq -G https://qlever.cs.uni-freiburg.de/wikidata -o datasources/wikidata/recentData/metabolites_secID2priID_qlever.tsv
           ## Download outdated IDs for genes and proteins qLever Style
-          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/geneproteinHumanAllRedirects.rq -G https://qlever.cs.uni-freiburg.de/wikidata -o datasources/wikidata/geneProtein_secID2priID_qlever.tsv
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/geneproteinHumanAllRedirects.rq -G https://qlever.cs.uni-freiburg.de/wikidata -o datasources/wikidata/recentData/geneProtein_secID2priID_qlever.tsv
          
           ##Check new data, fail job if query timeout has occured
           fail_file=''
@@ -93,6 +95,7 @@ jobs:
           prefix=$(basename "Wikidata") 
 
           ## Data processing
+          cd datasources/wikidata/recentData
           for f in *.tsv ##Only for tsv files
           do
             ##Find all new data files | Remove the IRIs (prefix) | remove the IRIs (suffix) | remove language annotation | save the file with new name
@@ -100,9 +103,9 @@ jobs:
             rm "$f"
           done
           pwd
-          mkdir datasources/wikidata/recentData/
+          cd ..
           outputDir="datasources/wikidata/recentData/"
-          mv * "$outputDir"
+          #mv * "$outputDir"
 
       # step 3: not needed, no R or Java script to preprocess the data.
       
