@@ -94,15 +94,13 @@ jobs:
           done
           
           ## Set prefix to Wikidata for renaming new data files
-          prefix=$(basename "Wikidata") 
+          #prefix=$(basename "Wikidata") 
 
           ## Data processing
-          for f in *.tsv ##Only for tsv files
-          do
+          #for f in *.tsv ##Only for tsv files
+          #do
             ##Find all new data files | Remove the IRIs (prefix) | remove the IRIs (suffix) | remove language annotation | save the file with new name
-            cat "$f" | sed 's/<http:\/\/www.wikidata.org\/entity\///g' | sed 's/[>]//g' | sed 's/@en//g' > "${prefix}_$f"
-            rm "$f"
-          done
-
-          
+            #cat "$f" | sed 's/<http:\/\/www.wikidata.org\/entity\///g' | sed 's/[>]//g' | sed 's/@en//g' > "${prefix}_$f"
+            #rm "$f"
+          #done   
 
