@@ -69,6 +69,9 @@ jobs:
         with:
           r-version: '4.1' # Specify the R version
           include-recommended: true      
+      - name: Install required R packages
+        run: |
+          Rscript -e 'install.packages(c("downloader", "dplyr", "data.table", "R.utils"), repos="https://cran.rstudio.com")'
       - name: Test ncbi data processing
         id: ncbi_process
         run: |
