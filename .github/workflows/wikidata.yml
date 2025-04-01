@@ -65,20 +65,16 @@ jobs:
       # step 2: download the recent data 
       - name: Download the recent data
         run: |
-          sudo apt-get install xml-twig-tools
           ##Store outputs from previous job in environment variables
           #echo "$DATE_NEW=$DATE_NEW" >> $GITHUB_ENV
-          ##Make directory if not existing already
-          mkdir datasources/wikidata/results
-          
+                    
           echo 'Accessing the Wikidata data'          
           ## Download outdated IDs for chemicals qLever Style
-          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalAllRedirects.rq -G https://qlever.cs.uni-freiburg.de/wikidata -o datasources/wikidata/results/metabolites_secID2priID_qlever.tsv
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalAllRedirects.rq -G https://qlever.cs.uni-freiburg.de/wikidata -o datasources/wikidata/metabolites_secID2priID_qlever.tsv
           ## Download outdated IDs for genes and proteins qLever Style
-          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/geneproteinHumanAllRedirects.rq -G https://qlever.cs.uni-freiburg.de/wikidata -o datasources/wikidata/results/geneProtein_secID2priID_qlever.tsv
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/geneproteinHumanAllRedirects.rq -G https://qlever.cs.uni-freiburg.de/wikidata -o datasources/wikidata/geneProtein_secID2priID_qlever.tsv
          
           ##Check new data, fail job if query timeout has occured
-          cd datasources/wikidata/results
           fail_file=''
           for File in *.tsv ##Only for tsv files
           do
@@ -104,9 +100,9 @@ jobs:
             rm "$f"
           done
           pwd
-          #mkdir datasources/wikidata/recentData/
-          #outputDir="datasources/wikidata/recentData/"
-          #mv * "$outputDir"
+          mkdir datasources/wikidata/recentData/
+          outputDir="datasources/wikidata/recentData/"
+          mv * "$outputDir"
 
       # step 3: not needed, no R or Java script to preprocess the data.
       
