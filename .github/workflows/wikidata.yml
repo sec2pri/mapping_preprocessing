@@ -103,10 +103,10 @@ jobs:
             cat "$f" | sed 's/<http:\/\/www.wikidata.org\/entity\///g' | sed 's/[>]//g' | sed 's/@en//g' > "${prefix}_$f"
             rm "$f"
           done
-
-          mkdir datasources/wikidata/recentData/
-          outputDir="datasources/wikidata/recentData/"
-          mv * "$outputDir"
+          pwd
+          #mkdir datasources/wikidata/recentData/
+          #outputDir="datasources/wikidata/recentData/"
+          #mv * "$outputDir"
 
       # step 3: not needed, no R or Java script to preprocess the data.
       
