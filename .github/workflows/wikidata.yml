@@ -67,7 +67,7 @@ jobs:
         run: |
           sudo apt-get install xml-twig-tools
           ##Store outputs from previous job in environment variables
-          echo "$DATE_NEW=$DATE_NEW" >> $GITHUB_ENV
+          #echo "$DATE_NEW=$DATE_NEW" >> $GITHUB_ENV
           ##Make directory if not existing already
           mkdir datasources/wikidata/results
           
@@ -86,7 +86,7 @@ jobs:
               echo "Query Timeout occurred for file: " "$File" 
               echo "Wikidata data will not be updated"
               head -n 20 "$File" 
-              echo "DOWNLOAD_FILE=true" >>$GITHUB_ENV
+              #echo "DOWNLOAD_FILE=true" >>$GITHUB_ENV
               fail_file="${fail_file} $File"
             else
               echo "No Query Timeout detected for file: " "$File" 
