@@ -19,6 +19,7 @@ if(!"R.utils" %in% installed.packages()) {
 # Retrieve command-line arguments
 args <- commandArgs(trailingOnly = TRUE)
 
+print ("line 22")
 # Set variables
 sourceName = "NCBI"
 sourceVersion = args[1]
@@ -26,6 +27,8 @@ gene_history = args[2]
 gene_info = args[3]
 inputDir = "datasources"
 
+
+print ("line 31")
 # Create output directory
 outputDir <- paste0("datasources/", tolower(sourceName), "/recentData")
 dir.create(outputDir, showWarnings = FALSE)
@@ -37,6 +40,8 @@ dir.create(outputDir, showWarnings = FALSE)
 # fileUrl <- "https://ftp.ncbi.nih.gov/gene/DATA/gene_info.gz"
 # download(fileUrl, paste(inputDir, sourceName, "gene_info.gz", sep = "/"), mode = "wb")
 
+
+print ("line 43")
 # Read the file that includes the withdrawn ids
 ncbiWDN <- data.table::fread(paste(inputDir, tolower(sourceName), gene_history, sep = "/"), sep = "\t") %>% 
   dplyr::filter(`#tax_id` == 9606) %>% #focusing on human
