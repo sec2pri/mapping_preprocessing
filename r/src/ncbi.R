@@ -52,6 +52,7 @@ ncbiWDN <- data.table::fread(paste(inputDir, tolower(sourceName), gene_history, 
   dplyr::mutate(primaryID = ifelse (primaryID == "-", "Entry Withdrawn", primaryID),
                 comment = paste0("Withdrawn date: ", comment, ". ")) %>%
   dplyr::select(primaryID, secondaryID, secondarySymbol, comment)
+print ("line 55")
 
 # Since the data for NCBI is coming form two files, it would be more accurate to add the required information for SSSOM format while prepossessing the files
 # Add the proper predicate: 
@@ -83,7 +84,9 @@ ncbiWDN <- ncbiWDN %>%
                                                                       ifelse(mapping_cardinality_sec2pri == "1:0", "ID (subject) withdrawn/deprecated.", NA)))))),
                 source = "https://ftp.ncbi.nih.gov/gene/DATA/gene_history.gz") %>%
   dplyr::select(primaryID, secondaryID, secondarySymbol, predicateID, mapping_cardinality_sec2pri, comment, source)
-                
+
+print ("line 88")
+
 # Check if the primaryID is withdrawn
 ncbiWDN <- ncbiWDN %>% 
   dplyr::mutate(comment = paste0(ifelse(primaryID %in% secondaryID, paste0(comment, " Object is also withdrawn."), comment),
@@ -110,10 +113,13 @@ ncbiWDN <- ncbiWDN %>%
                                               NA)))) %>%
   dplyr::select(primaryID, primarySymbol, secondaryID, secondarySymbol, predicateID, mapping_cardinality_sec2pri, comment, source)
 
+print ("line 166")
+
 # Write output TSV file for secondary to primary ID mapping
 outputSec2priTsv <- file.path(outputDir, paste(sourceName, "_secID2priID", ".tsv", sep = ""))
 write.table(ncbiWDN, outputSec2priTsv, sep = "\t", row.names = FALSE, quote = FALSE)
-
+print ("line 166")
+rm (outputSec2priTsv)
 # Add a row for each secondary symbol
 s <- strsplit (ncbi$secondarySymbol, split = "\\|") # Consider a separate row for each secondary symbol in case there are multiple secondary symbol
 ncbi <- data.frame(primaryID = rep (ncbi$primaryID, sapply (s, length)),
