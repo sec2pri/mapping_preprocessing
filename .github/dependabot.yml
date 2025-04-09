@@ -9,3 +9,5 @@ updates:
       include: "scope"
     labels:
       - "bump-action"
+    assignees:
+      - "tabassidaloii"
