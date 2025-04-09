@@ -52,12 +52,33 @@ jobs:
           timestamp1=$(date -d "$date_new" +%s)
           timestamp2=$(date -d "$date_old" +%s)
           if [ "$timestamp1" -gt "$timestamp2" ]; then
-            echo 'New release available', "$release"
-            echo "NEW_RELEASE=true" >> $GITHUB_OUTPUT
+            # Check if the file is accessible
+            response=$(curl -o /dev/null -s -w "%{http_code}" "https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${release}/SDF/ChEBI_complete_3star.sdf.gz")
+            curl_exit_code=$?
+
+            if [ $curl_exit_code -ne 0 ]; then
+              echo "Error: curl command failed with exit code $curl_exit_code"
+              echo "FAILED=true" >> "$GITHUB_ENV"
+              echo "Issue with upstream data: Unable to access ChEBI (rel${release})"
+              echo "NEW_RELEASE=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            elif [ "$response" -ne 200 ]; then
+              echo "Non-200 response received: $response"
+              echo "FAILED=true" >> "$GITHUB_ENV"
+              echo "Issue with upstream data: ChEBI (rel${release}) returns a non-200 response"
+              echo "NEW_RELEASE=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            else
+              echo "File is accessible, response code: $response"
+              echo "New release available: $release"
+              echo "NEW_RELEASE=true" >> "$GITHUB_OUTPUT"
+            fi
           else
-            echo 'No new release available'
+            echo "No new release available"
           fi
           echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
+          # Add check for download
+
           ##Clean up
           rm chebi_index.html
   
