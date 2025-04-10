@@ -59,15 +59,16 @@ jobs:
             if [ $curl_exit_code -ne 0 ]; then
               echo "Error: curl command failed with exit code $curl_exit_code"
               echo "FAILED=true" >> "$GITHUB_ENV"
-              echo "Issue with upstream data: Unable to access ChEBI (rel${release})"
+              echo "Issue with upstream data: Unable to access latest ChEBI release (rel${release})"
               echo "NEW_RELEASE=false" >> "$GITHUB_OUTPUT"
-              exit 0
+              #exit 0
             elif [ "$response" -ne 200 ]; then
               echo "Non-200 response received: $response"
               echo "FAILED=true" >> "$GITHUB_ENV"
+              echo "ISSUE=true" >> "$GITHUB_ENV"
               echo "Issue with upstream data: ChEBI (rel${release}) returns a non-200 response"
               echo "NEW_RELEASE=false" >> "$GITHUB_OUTPUT"
-              exit 0
+              #exit 0
             else
               echo "File is accessible, response code: $response"
               echo "New release available: $release"
@@ -81,6 +82,16 @@ jobs:
 
           ##Clean up
           rm chebi_index.html
+
+      - uses: JasonEtco/create-an-issue@v2
+        if: ${{ env.ISSUE == 'true' }}
+        name: Post issue about upstream data availability
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE: ChEBI
+        with:
+          filename: .github/ISSUE_TEMPLATE/ISSUE_DATA.md   
+          update_existing: true
   
   test_sdf_processing:
     name: Test release
