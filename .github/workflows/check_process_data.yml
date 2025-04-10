@@ -18,7 +18,7 @@ on:
         default: 'all'
   pull_request:
     paths:
-      - '.github/workflows/datasource-mapping-updates.yml'
+      - '.github/workflows/check_process_data.yml'
   schedule:
     - cron: "0 0 1,15 * *"  # Run the workflow on the 1st and 15th day of each month
 
