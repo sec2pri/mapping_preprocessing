@@ -51,15 +51,54 @@ jobs:
           ##Compare the dates and set variable if date_new is more recent
           timestamp1=$(date -d "$date_new" +%s)
           timestamp2=$(date -d "$date_old" +%s)
-          if [ "$timestamp1" -gt "$timestamp2" ]; then
-            echo 'New release available', "$release"
-            echo "NEW_RELEASE=true" >> $GITHUB_OUTPUT
+            if [ "$timestamp1" -gt "$timestamp2" ]; then
+            # Retry logic for checking file accessibility
+            max_retries=5
+            retry_count=0
+            success=false
+
+            while [ $retry_count -lt $max_retries ]; do
+              response=$(curl -o /dev/null -s -w "%{http_code}" "https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${release}/SDF/ChEBI_complete_3star.sdf.gz")
+              curl_exit_code=$?
+
+              if [ $curl_exit_code -eq 0 ] && [ "$response" -eq 200 ]; then
+              echo "File is accessible, response code: $response"
+              echo "New release available: $release"
+              echo "NEW_RELEASE=true" >> "$GITHUB_OUTPUT"
+              success=true
+              break
+              else
+              echo "Attempt $((retry_count + 1)) failed. Response code: $response, curl exit code: $curl_exit_code"
+              echo "Retrying in 1 minute..."
+              sleep 60
+              retry_count=$((retry_count + 1))
+              fi
+            done
+
+            if [ "$success" = false ]; then
+              echo "Error: Unable to access latest ChEBI release (rel${release}) after $max_retries attempts"
+              echo "FAILED=true" >> "$GITHUB_ENV"
+              echo "ISSUE=true" >> "$GITHUB_ENV"
+              echo "NEW_RELEASE=false" >> "$GITHUB_OUTPUT"
+            fi
           else
-            echo 'No new release available'
+            echo "No new release available"
           fi
           echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
+          # Add check for download
+
           ##Clean up
           rm chebi_index.html
+
+      - uses: JasonEtco/create-an-issue@v2
+        if: ${{ env.ISSUE == 'true' }}
+        name: Post issue about upstream data availability
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE: ChEBI
+        with:
+          filename: .github/ISSUE_TEMPLATE/ISSUE_DATA.md   
+          update_existing: true
   
   test_sdf_processing:
     name: Test release
