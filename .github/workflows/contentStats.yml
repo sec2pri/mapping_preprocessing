@@ -58,7 +58,7 @@ jobs:
           ##Download UniProt data
           wget https://github.com/sec2pri/mapping_preprocessing/raw/refs/heads/main/datasources/uniprot/data/UniProt_secID2priID.zip
           ##Unzip the file
-          unzip /UniProt_secID2priID.zip
+          unzip UniProt_secID2priID.zip
           ##count unique entries in first column
           echo "Primary IDs" | cut -f1 UniProt_secID2priID.tsv | sort | uniq | wc -l #for Primary IDs
           ##Count unique entries in third column
