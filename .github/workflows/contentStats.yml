@@ -51,4 +51,17 @@ jobs:
           echo "Secondary IDs" | cut -f2 HMDB_secID2priID.tsv | sort | uniq | wc -l #for Secondary IDs
           ##Count total number of lines for matches between Primary and Secondary IDs
           echo "Total ID matches" |wc -l HMDB_secID2priID.tsv
-      
+      - name: Uniprot content
+        run: |
+          ##Install program to unzip
+          sudo apt install unzip
+          ##Download UniProt data
+          wget https://github.com/sec2pri/mapping_preprocessing/raw/refs/heads/main/datasources/uniprot/data/UniProt_secID2priID.zip
+          ##Unzip the file
+          unzip UniProt_secID2priID.zip
+          ##count unique entries in first column
+          echo "Primary IDs" | cut -f1 UniProt_secID2priID.tsv | sort | uniq | wc -l #for Primary IDs
+          ##Count unique entries in third column
+          echo "Secondary IDs" | cut -f2 UniProt_secID2priID.tsv | sort | uniq | wc -l #for Secondary IDs
+          ##Count total number of lines for matches between Primary and Secondary IDs
+          echo "Total ID matches" |wc -l UniProt_secID2priID.tsv     
