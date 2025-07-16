@@ -58,7 +58,7 @@ jobs:
             success=false
 
             while [ $retry_count -lt $max_retries ]; do
-              response=$(curl -o /dev/null -s -w "%{http_code}" "https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${release}/SDF/ChEBI_complete_3star.sdf.gz")
+              response=$(curl -o /dev/null -s -w "%{http_code}" "http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${release}/SDF/ChEBI_complete_3star.sdf.gz")
               curl_exit_code=$?
 
               if [ $curl_exit_code -eq 0 ] && [ "$response" -eq 200 ]; then
@@ -121,9 +121,9 @@ jobs:
           # Store outputs from previous job in environment variables
           echo "RELEASE_NUMBER=$RELEASE_NUMBER" >> $GITHUB_ENV
           echo "CURRENT_RELEASE_NUMBER=$CURRENT_RELEASE_NUMBER" >> $GITHUB_ENV
-          url_release="https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel$RELEASE_NUMBER/SDF/"
+          url_release="http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel$RELEASE_NUMBER/SDF/"
           echo "URL_RELEASE=$url_release" >> $GITHUB_ENV
-          wget "https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${RELEASE_NUMBER}/SDF/ChEBI_complete_3star.sdf.gz"
+          wget "http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${RELEASE_NUMBER}/SDF/ChEBI_complete_3star.sdf.gz"
           ##Unzip gz file:
           gunzip ChEBI_complete_3star.sdf.gz #TODO replace by config var
           ##Check file size if available
