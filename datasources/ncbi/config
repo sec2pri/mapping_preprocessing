@@ -1,5 +1,5 @@
 release=
 date=2023-08-14
 url=https://ftp.ncbi.nih.gov/gene/DATA/
-file_names=NCBI_alias&prev2symbol.tsv,NCBI_priIDs.tsv,NCBI_secID2priID.tsv
+file_names=NCBI_symbol2alia&prev.tsv,NCBI_priIDs.tsv,NCBI_secID2priID.tsv
 to_check_from_zenodo=NCBI_secID2priID.tsv
