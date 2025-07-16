@@ -80,7 +80,7 @@ jobs:
           gene_history="data/gene_history.gz" 
           gene_info="data/gene_info.gz" 
           outputDir="datasources/ncbi/recentData/"
-          mkdir outputDir
+          mkdir -p "$outputDir"
           # Run Java program and capture its exit code
           java -cp java/target/mapping_prerocessing-0.0.1-jar-with-dependencies.jar org.sec2pri.ncbi_txt $sourceVersion $gene_history $gene_info $outputDir
           # Check the exit status of the Java program
