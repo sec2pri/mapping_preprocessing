@@ -31,18 +31,22 @@ public class ncbi_txt {
         	String sourceVersion = args[0];
         	File geneHistoryFile = new File(args[1]);
             File geneInfoFile = new File(args[2]);
+            File outputDir = new File(args[3]);
             setupDatasources();
             System.out.println("[INFO]: args[0] = " + args[0]);
             System.out.println("[INFO]: args[1] = " + args[1]);
             System.out.println("[INFO]: args[2] = " + args[2]);
             System.out.println("[INFO]: sourceName = " + sourceName);
-            File outputDir = new File("datasources/", sourceName.toLowerCase() + "/recentData");;
             System.out.println("[INFO]: outputDir = " + outputDir);
             outputDir.mkdir();
 
             //Create output bridge mapping file
             File outputFile = new File(outputDir, sourceName + "_secID2priID.bridge");
-            createDb(outputFile);
+    		try {
+    			createDb(outputFile);
+    			} catch (IDMapperException e1) {
+    				e1.printStackTrace();
+    				}
 
     		//Create output tsv mapping files
     		////primary ID
@@ -98,7 +102,8 @@ public class ncbi_txt {
             accReader.close();
             
             System.out.println("[INFO]: listOfsec2pri = " + listOfsec2pri);
-
+            
+            
 			//Since the data for NCBI is coming form two files, it would be more accurate to add the required information for SSSOM format while prepossessing the files
 			//Add the proper predicate: 
 			////IAO:0100001 for IDs merged or 1:1 replacement to one and 
@@ -193,34 +198,129 @@ public class ncbi_txt {
                 finalMappedList.add(newRow);
             }
             System.out.println("[INFO]: finalMappedList = " + finalMappedList);
-
             
+            for (List<String> row : finalMappedList) {
+                String primaryID = row.get(0);
+                String secondaryID = row.get(1);
+                String secondarySymbol = row.get(2);
 
-            BufferedReader infoReader = new BufferedReader(new FileReader(geneInfoFile));
-            while ((line = infoReader.readLine()) != null) {
-                if (line.startsWith("#") || line.trim().isEmpty()) continue;
+                if ("Entry Withdrawn".equals(primaryID)) continue;
 
-                String[] fields = line.split("\t", -1);
-                String geneId = fields[1];
-                String geneSymbol = fields[2];
-                String synonyms = fields[4];
+                Xref priX = new Xref(primaryID, dsId);
+                Xref secX = new Xref(secondaryID, dsId, false);
+                Xref secNameX = new Xref(secondarySymbol, dsName, false);
 
-                Xref geneX = new Xref(geneId, dsId);
-                map.putIfAbsent(geneX, new HashSet<>());
-                map.get(geneX).add(new Xref(geneSymbol, dsName, false));
-
-                if (!synonyms.equals("-")) {
-                    for (String syn : synonyms.split("\\|")) {
-                        map.get(geneX).add(new Xref(syn, dsName, false));
-                    }
+                map.putIfAbsent(priX, new HashSet<>());
+                map.get(priX).add(secX);
+                if (secondarySymbol != null && !secondarySymbol.equals("-") && !secondarySymbol.isEmpty()) {
+                    map.get(priX).add(secNameX);
                 }
             }
-            infoReader.close();
+
+
+            BufferedReader infoReader = new BufferedReader(
+            	    new InputStreamReader(new GZIPInputStream(new FileInputStream(geneInfoFile)))
+            		);
+        	String infoHeader = infoReader.readLine();
+        	String[] infoCols = infoHeader.split("\t");
+        	Map<String, Integer> infoIdx = new HashMap<>();
+        	for (int i = 0; i < infoCols.length; i++) {
+        	    infoIdx.put(infoCols[i], i);
+        	}
+
+        	Set<String> nomenclatureSymbols = new HashSet<>();
+
+        	while ((line = infoReader.readLine()) != null) {
+        	    if (line.trim().isEmpty() || line.startsWith("#")) continue;
+
+        	    String[] fields = line.split("\t", -1);
+
+        	    String taxId = fields[infoIdx.get("#tax_id")];
+        	    if (!taxId.equals("9606")) continue; // human genes only
+
+        	    String geneId = fields[infoIdx.get("GeneID")];
+        	    String symbol = fields[infoIdx.get("Symbol")];
+        	    String authoritySymbol = fields[infoIdx.get("Symbol_from_nomenclature_authority")];
+        	    String synonyms = fields[infoIdx.get("Synonyms")];
+
+        	    String primarySymbol = symbol;
+        	    if (!authoritySymbol.equals("-") && !authoritySymbol.equals(symbol)) {
+        	        primarySymbol = symbol + "|" + authoritySymbol;
+        	        nomenclatureSymbols.add(authoritySymbol);
+        	    }
+
+        	    // Add to primary list
+        	    listOfpri.add(Arrays.asList(geneId, primarySymbol));
+
+        	    // Add to alias/synonym mapping
+        	    if (!synonyms.equals("-")) {
+        	        for (String syn : synonyms.split("\\|")) {
+        	            if (syn.trim().isEmpty()) continue;
+        	            String comment;
+        	            if (nomenclatureSymbols.contains(syn)) {
+        	                comment = "The secondary symbol is the nomenclature symbol";
+        	            } else {
+        	                comment = "Unofficial symbol for the gene";
+        	            }
+        	            comment += " Release: " + sourceVersion + ".";
+        	            listOfsymbol2alias.add(Arrays.asList(geneId, primarySymbol, syn, null, null, comment, "https://ftp.ncbi.nih.gov/gene/DATA/gene_info.gz"));
+        	        }
+        	    }
+        	    
+        	    Xref geneX = new Xref(geneId, dsId);
+        	    map.putIfAbsent(geneX, new HashSet<>());
+        	    map.get(geneX).add(new Xref(symbol, dsName, false));
+
+        	    if (!synonyms.equals("-")) {
+        	        for (String syn : synonyms.split("\\|")) {
+        	            if (!syn.trim().isEmpty()) {
+        	                map.get(geneX).add(new Xref(syn.trim(), dsName, false));
+        	            }
+        	        }
+        	    }
+
+        	}
+        	infoReader.close();
+
+        	// Write NCBI_secID2priID.tsv
+        	File sec2priFile = new File(outputDir, sourceName + "_secID2priID.tsv");
+        	BufferedWriter sec2priWriter = new BufferedWriter(new FileWriter(sec2priFile));
+        	sec2priWriter.write("primaryID\tsecondaryID\tsecondarySymbol\tpredicateID\tmapping_cardinality_sec2pri\tcomment\tsource\n");
+        	for (List<String> row : finalMappedList) {
+        	    sec2priWriter.write(String.join("\t", row));
+        	    sec2priWriter.newLine();
+        	}
+        	sec2priWriter.close();
+
+        	// Write NCBI_priIDs.tsv
+        	File priFile = new File(outputDir, sourceName + "_priIDs.tsv");
+        	BufferedWriter priWriter = new BufferedWriter(new FileWriter(priFile));
+        	priWriter.write("primaryID\tprimarySymbol\n");
+        	Set<String> seen = new HashSet<>();
+        	for (List<String> row : listOfpri) {
+        	    String joined = String.join("\t", row);
+        	    if (seen.add(joined)) {
+        	        priWriter.write(joined);
+        	        priWriter.newLine();
+        	    }
+        	}
+        	priWriter.close();
+
+        	// Write NCBI_symbol2alia&prev.tsv
+        	File aliasFile = new File(outputDir, sourceName + "_symbol2alia&prev.tsv");
+        	BufferedWriter aliasWriter = new BufferedWriter(new FileWriter(aliasFile));
+        	aliasWriter.write("primaryID\tprimarySymbol\tsecondarySymbol\tpredicateID\tmapping_cardinality_sec2pri\tcomment\tsource\n");
+        	for (List<String> row : listOfsymbol2alias) {
+        	    aliasWriter.write(String.join("\t", row));
+        	    aliasWriter.newLine();
+        	}
+        	aliasWriter.close();
+
 
             System.out.println("[INFO]: Writing database...");
             addEntries(map);
             newDb.finalize();
-            System.out.println("[INFO]: NCBI BridgeDb database completed.");
+            System.out.println("[INFO]:  Writing TSVs completed.");
         } catch (Exception e) {
             e.printStackTrace();
         }
