@@ -320,7 +320,7 @@ public class ncbi_txt {
             System.out.println("[INFO]: Writing database...");
             addEntries(map);
             newDb.finalize();
-            System.out.println("[INFO]:  Writing TSVs completed.");
+            System.out.println("[INFO]:  Writing TSVs and BridgeDb completed.");
         } catch (Exception e) {
             e.printStackTrace();
         }
