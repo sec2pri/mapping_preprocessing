@@ -35,7 +35,7 @@ jobs:
           ## Read config
           . datasources/chebi/config .
           echo 'Accessing the ChEBI archive'
-          wget https://ftp.ebi.ac.uk/pub/databases/chebi/archive/ -O chebi_index.html
+          wget http://ftp.ebi.ac.uk/pub/databases/chebi/archive/ -O chebi_index.html
           echo "CURRENT_RELEASE_NUMBER=$release" >> $GITHUB_OUTPUT
           ## Check date for last element in index
           ##Extract the date from the latest release (up to the day)
