@@ -44,7 +44,6 @@ jobs:
     name: Processing new data and check updates
     needs: check_new_data
     env:
-      R_MAX_MEM_SIZE: 16G 
       DATE_OLD: ${{ needs.check_new_data.outputs.DATE_OLD }}
       DATE_NEW: ${{ needs.check_new_data.outputs.DATE_NEW }}
     runs-on: ubuntu-latest
@@ -64,36 +63,38 @@ jobs:
           mv gene_info.gz gene_history.gz datasources/ncbi/data
           ##Check file size if available
           ls -trlh datasources/ncbi/data
-      # step 3: run the Rscripts for ncbi preprocessing 
-      - name: Install R
-        uses: r-lib/actions/setup-r@v2
+
+          
+      # step 3: run the jar for ncbi preprocessing 
+      - name: Set up Java
+        uses: actions/setup-java@v4
         with:
-          r-version: '4.1' # Specify the R version
-          include-recommended: true      
-      - name: Install required R packages
+          java-version: '11'
+          distribution: 'adopt'
+          
+      - name: Test ncbi txt data processing
+        id: txt_process
         run: |
-          Rscript -e 'install.packages(c("downloader", "dplyr", "data.table", "R.utils"), repos="https://cran.rstudio.com")'
-      - name: Test ncbi data processing
-        id: ncbi_process
-        run: |
+          # Set up vars from config file
           sourceVersion=$DATE_NEW
           gene_history="data/gene_history.gz" 
           gene_info="data/gene_info.gz" 
-
-          # Run rscripts program and capture its exit code
-          Rscript r/src/ncbi.R $sourceVersion $gene_history $gene_info
-          # Check the exit status of the R script
+          outputDir="datasources/ncbi/recentData/"
+          mkdir outputDir
+          # Run Java program and capture its exit code
+          java -cp java/target/mapping_prerocessing-0.0.1-jar-with-dependencies.jar org.sec2pri.ncbi_txt $sourceVersion $gene_history $gene_info $outputDir
+          # Check the exit status of the Java program
           if [ $? -eq 0 ]; then
-              # script succeeded
-              echo "Successful preprocessing of ncbi data."
+              # Java program succeeded
+              echo "Successful preprocessing of NCBI data."
               echo "FAILED=false" >> $GITHUB_ENV
           else
               # script failed
-              echo "Failed preprocessing of ncbi data."
+              echo "Failed preprocessing of NCBI data."
               echo "FAILED=true" >> $GITHUB_ENV
           fi
       # step 4: compare the new and old data 
-      - name: RegEx and Diff test
+      - name: Diff versions
         if:
           ${{ env.FAILED == 'false' }}
         run: |
