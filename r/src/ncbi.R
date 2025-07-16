@@ -19,7 +19,6 @@ if(!"R.utils" %in% installed.packages()) {
 # Retrieve command-line arguments
 args <- commandArgs(trailingOnly = TRUE)
 
-print ("line 22")
 # Set variables
 sourceName = "NCBI"
 sourceVersion = args[1]
@@ -27,8 +26,6 @@ gene_history = args[2]
 gene_info = args[3]
 inputDir = "datasources"
 
-
-print ("line 31")
 # Create output directory
 outputDir <- paste0("datasources/", tolower(sourceName), "/recentData")
 dir.create(outputDir, showWarnings = FALSE)
@@ -40,8 +37,6 @@ dir.create(outputDir, showWarnings = FALSE)
 # fileUrl <- "https://ftp.ncbi.nih.gov/gene/DATA/gene_info.gz"
 # download(fileUrl, paste(inputDir, sourceName, "gene_info.gz", sep = "/"), mode = "wb")
 
-
-print ("line 43")
 # Read the file that includes the withdrawn ids
 ncbiWDN <- data.table::fread(paste(inputDir, tolower(sourceName), gene_history, sep = "/"), sep = "\t") %>% 
   dplyr::filter(`#tax_id` == 9606) %>% #focusing on human
@@ -52,7 +47,6 @@ ncbiWDN <- data.table::fread(paste(inputDir, tolower(sourceName), gene_history, 
   dplyr::mutate(primaryID = ifelse (primaryID == "-", "Entry Withdrawn", primaryID),
                 comment = paste0("Withdrawn date: ", comment, ". ")) %>%
   dplyr::select(primaryID, secondaryID, secondarySymbol, comment)
-print ("line 55")
 
 # Since the data for NCBI is coming form two files, it would be more accurate to add the required information for SSSOM format while prepossessing the files
 # Add the proper predicate: 
@@ -85,26 +79,23 @@ ncbiWDN <- ncbiWDN %>%
                 source = "https://ftp.ncbi.nih.gov/gene/DATA/gene_history.gz") %>%
   dplyr::select(primaryID, secondaryID, secondarySymbol, predicateID, mapping_cardinality_sec2pri, comment, source)
 
-print ("line 88")
-
 # Check if the primaryID is withdrawn
 ncbiWDN <- ncbiWDN %>% 
   dplyr::mutate(comment = paste0(ifelse(primaryID %in% secondaryID, paste0(comment, " Object is also withdrawn."), comment),
                                  " Release: ", sourceVersion, "."))
-print("line 94")
+
 # Read the file that includes the gene info
 ncbi <- data.table::fread(paste(inputDir, tolower(sourceName), gene_info, sep = "/"), sep = "\t") %>%
   dplyr::filter(`#tax_id` == 9606) %>% #focusing on human
   dplyr::mutate(Symbol_from_nomenclature_authority = ifelse(Symbol_from_nomenclature_authority == Symbol, "-", Symbol_from_nomenclature_authority),
                 Symbol = ifelse(Symbol_from_nomenclature_authority == "-", Symbol, paste0(Symbol, "|", Symbol_from_nomenclature_authority))) %>%
   dplyr::rename(primaryID = GeneID, primarySymbol = Symbol, secondarySymbol = Synonyms)
-print("line 101")
+
 # Genes with different symbols in HGNC
 nomenclature_symbol <- setdiff(unique(ncbi$Symbol_from_nomenclature_authority), "-")
-print("line 104")
 ncbi <- ncbi %>%
   dplyr::select(primaryID, primarySymbol, secondarySymbol)
-print("line 107")  
+
 # Add primary symbol based on the gene info to ncbiWDN
 ncbiWDN <- ncbiWDN %>%
   mutate(primarySymbol = ifelse(primaryID %in% ncbi$primaryID, ncbi$primarySymbol[match(ncbi$primaryID, primaryID)],
@@ -113,13 +104,10 @@ ncbiWDN <- ncbiWDN %>%
                                               NA)))) %>%
   dplyr::select(primaryID, primarySymbol, secondaryID, secondarySymbol, predicateID, mapping_cardinality_sec2pri, comment, source)
 
-print ("line 116")
-
 # Write output TSV file for secondary to primary ID mapping
 outputSec2priTsv <- file.path(outputDir, paste(sourceName, "_secID2priID", ".tsv", sep = ""))
 write.table(ncbiWDN, outputSec2priTsv, sep = "\t", row.names = FALSE, quote = FALSE)
-print ("line 121")
-rm (outputSec2priTsv)
+
 # Add a row for each secondary symbol
 s <- strsplit (ncbi$secondarySymbol, split = "\\|") # Consider a separate row for each secondary symbol in case there are multiple secondary symbol
 ncbi <- data.frame(primaryID = rep (ncbi$primaryID, sapply (s, length)),
