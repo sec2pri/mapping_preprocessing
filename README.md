@@ -1,4 +1,3 @@
-
 <h1 align="center">
   Processing mapping files for the omics FixID tool
 </h1>
