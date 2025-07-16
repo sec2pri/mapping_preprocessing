@@ -110,8 +110,6 @@ jobs:
           echo $column_name
 
           # Unzip the zip file 
-          unzip -l datasources/ncbi/data/NCBI_secID2priID.zip
-
           unzip -o datasources/ncbi/data/NCBI_secID2priID.zip -d datasources/ncbi/data/
           # remove headers
           sed -i '1d' "$new"
