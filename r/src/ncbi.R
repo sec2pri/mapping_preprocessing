@@ -78,20 +78,24 @@ ncbiWDN <- ncbiWDN %>%
                                                                       ifelse(mapping_cardinality_sec2pri == "1:0", "ID (subject) withdrawn/deprecated.", NA)))))),
                 source = "https://ftp.ncbi.nih.gov/gene/DATA/gene_history.gz") %>%
   dplyr::select(primaryID, secondaryID, secondarySymbol, predicateID, mapping_cardinality_sec2pri, comment, source)
+
 # Check if the primaryID is withdrawn
 ncbiWDN <- ncbiWDN %>% 
   dplyr::mutate(comment = paste0(ifelse(primaryID %in% secondaryID, paste0(comment, " Object is also withdrawn."), comment),
                                  " Release: ", sourceVersion, "."))
+
 # Read the file that includes the gene info
 ncbi <- data.table::fread(paste(inputDir, tolower(sourceName), gene_info, sep = "/"), sep = "\t") %>%
   dplyr::filter(`#tax_id` == 9606) %>% #focusing on human
   dplyr::mutate(Symbol_from_nomenclature_authority = ifelse(Symbol_from_nomenclature_authority == Symbol, "-", Symbol_from_nomenclature_authority),
                 Symbol = ifelse(Symbol_from_nomenclature_authority == "-", Symbol, paste0(Symbol, "|", Symbol_from_nomenclature_authority))) %>%
   dplyr::rename(primaryID = GeneID, primarySymbol = Symbol, secondarySymbol = Synonyms)
+
 # Genes with different symbols in HGNC
 nomenclature_symbol <- setdiff(unique(ncbi$Symbol_from_nomenclature_authority), "-")
 ncbi <- ncbi %>%
   dplyr::select(primaryID, primarySymbol, secondarySymbol)
+
 # Add primary symbol based on the gene info to ncbiWDN
 ncbiWDN <- ncbiWDN %>%
   mutate(primarySymbol = ifelse(primaryID %in% ncbi$primaryID, ncbi$primarySymbol[match(ncbi$primaryID, primaryID)],
@@ -103,6 +107,7 @@ ncbiWDN <- ncbiWDN %>%
 # Write output TSV file for secondary to primary ID mapping
 outputSec2priTsv <- file.path(outputDir, paste(sourceName, "_secID2priID", ".tsv", sep = ""))
 write.table(ncbiWDN, outputSec2priTsv, sep = "\t", row.names = FALSE, quote = FALSE)
+
 # Add a row for each secondary symbol
 s <- strsplit (ncbi$secondarySymbol, split = "\\|") # Consider a separate row for each secondary symbol in case there are multiple secondary symbol
 ncbi <- data.frame(primaryID = rep (ncbi$primaryID, sapply (s, length)),
