@@ -33,11 +33,6 @@ public class ncbi_txt {
             File geneInfoFile = new File(args[2]);
             File outputDir = new File(args[3]);
             setupDatasources();
-            System.out.println("[INFO]: args[0] = " + args[0]);
-            System.out.println("[INFO]: args[1] = " + args[1]);
-            System.out.println("[INFO]: args[2] = " + args[2]);
-            System.out.println("[INFO]: sourceName = " + sourceName);
-            System.out.println("[INFO]: outputDir = " + outputDir);
             outputDir.mkdir();
 
             //Create output bridge mapping file
@@ -100,9 +95,7 @@ public class ncbi_txt {
                 listOfsec2pri.add(row);
             }
             accReader.close();
-            
-            System.out.println("[INFO]: listOfsec2pri = " + listOfsec2pri);
-            
+                        
             
 			//Since the data for NCBI is coming form two files, it would be more accurate to add the required information for SSSOM format while prepossessing the files
 			//Add the proper predicate: 
@@ -197,7 +190,6 @@ public class ncbi_txt {
                                                     predicateID, cardinality, comment, source);
                 finalMappedList.add(newRow);
             }
-            System.out.println("[INFO]: finalMappedList = " + finalMappedList);
             
             for (List<String> row : finalMappedList) {
                 String primaryID = row.get(0);
