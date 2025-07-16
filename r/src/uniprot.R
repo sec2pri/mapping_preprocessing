@@ -28,7 +28,7 @@ if(!"R.utils" %in% installed.packages()) {
 args <- commandArgs(trailingOnly = TRUE)
 
 # Set variables
-sourceName = "UniProt"
+sourceName = "uniprot"
 sourceVersion = args[1]
 uniprot_sprot = args[2]
 delac_sp = args[3] 
@@ -36,7 +36,7 @@ sec_ac = args[4]
 inputDir <- "datasources"
 
 # Create output directory
-outputDir <- paste0("datasources/", tolower(sourceName), "/recentData")
+outputDir <- paste0("datasources/", sourceName, "/recentData")
 dir.create(outputDir, showWarnings = FALSE)
 
 # Download the input files from UniProt
