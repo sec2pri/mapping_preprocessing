@@ -98,8 +98,8 @@ jobs:
           cd datasources/wikidata/recentData
           for f in *.tsv ##Only for tsv files
           do
-            ##Find all new data files | Remove the IRIs (prefix) | remove the IRIs (suffix) | remove language annotation | save the file with new name
-            cat "$f" | sed 's/<http:\/\/www.wikidata.org\/entity\///g' | sed 's/[>]//g' | sed 's/@en//g' > "${prefix}_$f"
+            ##Find all new data files | Remove the IRIs (prefix) | remove the IRIs (suffix) | remove the '?' in the column headers | remove language annotation | save the file with new name
+            cat "$f" | sed 's/<http:\/\/www.wikidata.org\/entity\///g' | sed 's/[>]//g' | sed '1s/\?//g' | sed 's/@en//g' > "${prefix}_$f"
             rm "$f"
           done
           pwd
