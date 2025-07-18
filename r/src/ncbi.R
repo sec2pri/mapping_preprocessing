@@ -78,7 +78,7 @@ ncbiWDN <- ncbiWDN %>%
                                                                       ifelse(mapping_cardinality_sec2pri == "1:0", "ID (subject) withdrawn/deprecated.", NA)))))),
                 source = "https://ftp.ncbi.nih.gov/gene/DATA/gene_history.gz") %>%
   dplyr::select(primaryID, secondaryID, secondarySymbol, predicateID, mapping_cardinality_sec2pri, comment, source)
-                
+
 # Check if the primaryID is withdrawn
 ncbiWDN <- ncbiWDN %>% 
   dplyr::mutate(comment = paste0(ifelse(primaryID %in% secondaryID, paste0(comment, " Object is also withdrawn."), comment),
@@ -93,10 +93,9 @@ ncbi <- data.table::fread(paste(inputDir, tolower(sourceName), gene_info, sep = 
 
 # Genes with different symbols in HGNC
 nomenclature_symbol <- setdiff(unique(ncbi$Symbol_from_nomenclature_authority), "-")
-
 ncbi <- ncbi %>%
   dplyr::select(primaryID, primarySymbol, secondarySymbol)
-  
+
 # Add primary symbol based on the gene info to ncbiWDN
 ncbiWDN <- ncbiWDN %>%
   mutate(primarySymbol = ifelse(primaryID %in% ncbi$primaryID, ncbi$primarySymbol[match(ncbi$primaryID, primaryID)],
