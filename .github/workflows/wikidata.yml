@@ -72,11 +72,11 @@ jobs:
           
           echo 'Accessing the Wikidata data'          
           ## Download outdated IDs for chemicals qLever Style
-          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalAllRedirects.rq -G https://qlever.cs.uni-freiburg.de/api/wikidata -o datasources/wikidata/recentData/metabolites_secID2priID_qlever.tsv
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalAllRedirects.rq -G https://qlever.cs.uni-freiburg.de/api/wikidata -o datasources/wikidata/recentData/metabolites_secID2priID.tsv
           ## Download outdated IDs for genes qLever Style
-          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/geneHumanAllRedirects.rq -G https://qlever.cs.uni-freiburg.de/api/wikidata -o datasources/wikidata/recentData/geneProtein_secID2priID_qlever.tsv
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/geneHumanAllRedirects.rq -G https://qlever.cs.uni-freiburg.de/api/wikidata -o datasources/wikidata/recentData/gene_secID2priID_qlever.tsv
           ## Download outdated IDs for proteins qLever Style
-          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/proteinHumanAllRedirects.rq -G https://qlever.cs.uni-freiburg.de/api/wikidata -o datasources/wikidata/recentData/geneProtein_secID2priID_qlever.tsv
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/proteinHumanAllRedirects.rq -G https://qlever.cs.uni-freiburg.de/api/wikidata -o datasources/wikidata/recentData/protein_secID2priID_qlever.tsv
          
           
           ##Check new data, fail job if query timeout has occured
