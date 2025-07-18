@@ -14,9 +14,9 @@ UNION
 
         ?primaryID wdt:P703 wd:Q15978631.		
         OPTIONAL{?secondaryID owl:sameAs ?primaryID.}		
-        OPTIONAL{?primaryID rdfs:label ?name. 
-        FILTER(LANG(?name) = "en").}
-        OPTIONAL{ ?primaryID skos:altLabel ?synonym .
-        FILTER(LANG(?synonym) = "en").}
+        OPTIONAL{?primaryID rdfs:label ?primarySymbol. 
+        FILTER(LANG(?primarySymbol) = "en").}
+        OPTIONAL{ ?primaryID skos:altLabel ?secondarySymbol .
+        FILTER(LANG(?secondarySymbol) = "en").}
 
 }
