@@ -5,7 +5,7 @@ PREFIX ps: <http://www.wikidata.org/prop/statement/>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-SELECT DISTINCT ?primaryID ?secondaryID ?name ?synonym
+SELECT DISTINCT ?primaryID ?secondaryID ?primarySymbol ?secondarySymbol
 WHERE
 {
 { ?primaryID p:P31/ps:P31 wd:Q7187 }
