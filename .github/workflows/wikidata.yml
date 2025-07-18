@@ -103,8 +103,8 @@ jobs:
           do
             ##Find all new data files | Remove the IRIs (prefix) | remove the IRIs (suffix) | remove the '?' in the column headers | remove language annotation | save the file with new name
             cat "$f" | sed 's/<http:\/\/www.wikidata.org\/entity\///g' | sed 's/[>]//g' | sed '1s/\?//g' | sed 's/@en//g' > "${prefix}_secID2priID_$f"
-            ##Split first column with primary IDs in new file (check if data processing still needs to happen)
-            awk '{print $1}' "$f" | sort | uniq > "${prefix}_priIDs_$f"
+            ##Split first column with primary IDs in new file (same processing as previous step)
+            awk '{print $1}' "$f" |  sed 's/<http:\/\/www.wikidata.org\/entity\///g' | sed 's/[>]//g' | sed '1s/\?//g'  | uniq > "${prefix}_priIDs_$f"
             rm "$f"
           done
           pwd
