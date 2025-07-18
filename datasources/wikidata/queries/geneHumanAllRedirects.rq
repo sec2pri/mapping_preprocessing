@@ -11,10 +11,6 @@ WHERE
 { ?primaryID p:P31/ps:P31 wd:Q7187 }
 UNION
 { ?primaryID p:P279/ps:P279 wd:Q7187 }
-UNION
-{ ?primaryID p:P31/ps:P31 wd:Q8054  }
-UNION
-{ ?primaryID p:P279/ps:P279 wd:Q8054}
 
         ?primaryID wdt:P703 wd:Q15978631.		
         OPTIONAL{?secondaryID owl:sameAs ?primaryID.}		
