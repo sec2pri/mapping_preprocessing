@@ -121,3 +121,22 @@ jobs:
           name: wikidata_processed
           path: datasources/wikidata/recentData/*
 
+      - name: Create or update issue
+        if: env.COUNT != 0
+        id: create_issue
+        uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE: "Wikidata"
+        with:
+          filename: .github/ISSUE_TEMPLATE/ISSUE_UPDATE.md
+          update_existing: true
+        
+      - name: Bump issue with comment
+        if: env.COUNT != 0
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ steps.create_issue.outputs.number }}
+          body: |
+            Bump issue to notify about the changes in data.
