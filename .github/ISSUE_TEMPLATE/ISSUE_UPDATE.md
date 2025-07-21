@@ -2,6 +2,8 @@
 title: Update {{ env.SOURCE }} to release {{ env.RELEASE_NUMBER }}
 assignees: tabbassidaloii
 labels: new release
+name: Update source issue
+about: Template for upstream updates.
 ---
 # [New release for {{ env.SOURCE }}]({{ env.URL_RELEASE }}) available.
 
