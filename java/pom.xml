@@ -9,7 +9,7 @@
   <version>0.0.1</version>
 
   <properties>
-    <bridgedb.version>3.0.10</bridgedb.version>
+    <bridgedb.version>3.0.28</bridgedb.version>
   </properties>
 
   <build>
