@@ -115,17 +115,29 @@ jobs:
       # step 3: not needed, no R or Java script to preprocess the data.
       
       # step 4: compare the new and old data and upload as artifact
-      - name: 'Upload processed data as artifacts 1'
+      - name: 'Upload processed data as artifacts all'
         uses: actions/upload-artifact@v4
         with:
           name: wikidata_processed
           path: datasources/wikidata/recentData/
           
-      - name: 'Upload processed data as artifacts 2'
+      - name: 'Upload processed data as artifacts metabolites'
         uses: actions/upload-artifact@v4
         with:
-          name: wikidata_processed_1
-          path: datasources/wikidata/recentData/Wikidata_priIDs_metabolites.tsv
+          name: wikidata_processed_metabolites
+          path: datasources/wikidata/recentData/Wikidata_sec2priIDs_metabolites.tsv
+
+      - name: 'Upload processed data as artifacts protein'
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikidata_processed_protein
+          path: datasources/wikidata/recentData/Wikidata_sec2priIDs_protein.tsv
+          
+      - name: 'Upload processed data as artifacts gene'
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikidata_processed_gene
+          path: datasources/wikidata/recentData/Wikidata_sec2priIDs_gene.tsv  
 
       - name: Create or update issue
         if: env.COUNT != 0
