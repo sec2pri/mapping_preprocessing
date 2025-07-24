@@ -198,9 +198,9 @@ public class ncbi_txt {
 
                 if ("Entry Withdrawn".equals(primaryID)) continue;
 
-                Xref priX = new Xref(primaryID, dsId);
-                Xref secX = new Xref(secondaryID, dsId, false);
-                Xref secNameX = new Xref(secondarySymbol, dsName, false);
+                Xref priX = new Xref(primaryID, dsId, true); //define primary ID as true
+                Xref secX = new Xref(secondaryID, dsId, false); //define secondary ID as false
+                Xref secNameX = new Xref(secondarySymbol, dsName, false); //define secondary Symbols as false
 
                 map.putIfAbsent(priX, new HashSet<>());
                 map.get(priX).add(secX);
