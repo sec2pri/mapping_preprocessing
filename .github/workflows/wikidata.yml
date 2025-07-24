@@ -119,12 +119,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wikidata_processed
-          path: datasources/wikidata/recentData/Wikidata_priIDs_gene.tsv
+          path: datasources/wikidata/recentData/
           
       - name: 'Upload processed data as artifacts 2'
         uses: actions/upload-artifact@v4
         with:
-          name: wikidata_processed
+          name: wikidata_processed_1
           path: datasources/wikidata/recentData/Wikidata_priIDs_metabolites.tsv
 
       - name: Create or update issue
