@@ -6,7 +6,7 @@ on:
       - main
   pull_request:
     branches:
-      - main 
+      - main
 
 jobs:
   test:
@@ -16,17 +16,14 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Set up Java
       uses: actions/setup-java@v4
       with:
         distribution: 'adopt'
         java-version: '11'
-    
-    - name: Build with Maven
-      run: mvn test --file java/pom.xml 
 
-    - name: Build and test Java code
+    - name: Build with Maven
       run: |
         cd java
         mvn clean install assembly:single
