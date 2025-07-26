@@ -28,7 +28,7 @@ public class chebi_sdf {
 	public static String sourceIdCode = "Ce"; //Ce
 	public static String sourceSynonymCode = "O"; //O
 	public static String DbVersion = "1";
-	public static String BridgeDbVersion = "3.0.10";
+	public static String BridgeDbVersion = "3.0.28";
 	private static DataSource dsId;
 	private static DataSource dsSynonym;
 	private static GdbConstruct newDb;

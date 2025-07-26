@@ -20,7 +20,7 @@ public class ncbi_txt {
     public static String sourceIdCode = "L"; // GenBank/RefSeq
     public static String sourceSynonymCode = "O"; // Gene names as synonyms
     public static String DbVersion = "1";
-    public static String BridgeDbVersion = "3.0.10";
+    public static String BridgeDbVersion = "3.0.28";
     private static DataSource dsId;
     private static DataSource dsName;
     private static GdbConstruct newDb;
