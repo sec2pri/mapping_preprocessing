@@ -12,3 +12,4 @@
 # ignore target files #
 java/target/maven-archiver
 java/target/maven-status
+java/target/classes/**/*
