@@ -9,7 +9,7 @@
   <version>0.0.1</version>
 
   <properties>
-    <bridgedb.version>3.0.28</bridgedb.version>
+    <bridgedb.version>3.0.28-java8</bridgedb.version>
   </properties>
 
   <build>
@@ -62,11 +62,6 @@
     <dependency>
       <groupId>org.bridgedb</groupId>
       <artifactId>org.bridgedb.rdb.construct</artifactId>
-      <version>${bridgedb.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bridgedb</groupId>
-      <artifactId>org.bridgedb.tools.qc</artifactId>
       <version>${bridgedb.version}</version>
     </dependency>
     <dependency>
