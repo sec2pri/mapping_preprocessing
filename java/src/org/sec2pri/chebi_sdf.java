@@ -86,7 +86,8 @@ public class chebi_sdf {
 		    Map<Xref, Set<Xref>> map = new HashMap<Xref, Set<Xref>>();
 			int counter = 0;
 			int counter2 = 0;
-			
+
+			Xref priId_B2B = null;
 			while (dataRow != null) {
 				boolean priLine = dataRow.startsWith("> <ChEBI ID>");
 				if (priLine) {//extract row with primary identifier
@@ -100,17 +101,16 @@ public class chebi_sdf {
 					dataRow = file.readLine();
 					priId = dataRow;
 					pri.add(priId);
-					}
-				Xref priId_B2B = new Xref(priId, dsId);
-				map.put(priId_B2B, new HashSet<Xref>());
+					priId_B2B = new Xref(priId, dsId);
+					map.put(priId_B2B, new HashSet<Xref>());
+				}
 
 				if (dataRow.startsWith("> <ChEBI Name>")) {
 					dataRow = file.readLine();//extract row with metabolite name
 					name = dataRow;
-					}
-				Xref Synonym_B2B = new Xref(name, dsSynonym);
-				map.get(priId_B2B).add(Synonym_B2B);
-				
+					Xref Synonym_B2B = new Xref(name, dsSynonym);
+					map.get(priId_B2B).add(Synonym_B2B);
+				}
 
 				boolean secLine = dataRow.startsWith("> <Secondary ChEBI ID>");
 				if (secLine) {//extract rows with secondary identifiers
@@ -132,8 +132,8 @@ public class chebi_sdf {
 						Xref secId_B2B_2 = new Xref(secId, dsId, false); //the first column is the secondary id so idPrimary = false
 						map.get(priId_B2B).add(secId_B2B_2);
 						dataRow = file.readLine();
-						}
 					}
+				}
 				
 				boolean synLine = dataRow.startsWith("> <Synonyms>");
 				if (synLine) {//extract rows with synonyms
@@ -163,19 +163,23 @@ public class chebi_sdf {
 						name2synonym.add("\t");
 						name2synonym.add(syn);
 						dataRow = file.readLine();
-						}
 					}
+				}
+
+				if (dataRow.startsWith("$$$$")) {
+					addEntries(map);
+					map.clear();
+					priId_B2B = null;
+					// finished = true;
+				}
 
 				dataRow = file.readLine();
 				if (counter == 5000) {
+					counter = 0;
 					counter2++;
 					System.out.println("5k mark " + counter2 + ": " + priId);
-					counter = 0;
-					addEntries(map);
-					map.clear();
-					// finished = true;
-					}
 				}
+			}
 	
 			File output_pri_Tsv = new File(outputDir, sourceName + "_priIDs.tsv");
 			FileWriter writer_pri = new FileWriter(output_pri_Tsv); 
