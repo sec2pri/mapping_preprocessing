@@ -39,6 +39,7 @@ public class chebi_sdf {
 		setupDatasources();
 		File outputDir = new File(args[1]);
 		outputDir.mkdir();
+		if (args.length > 2 && args[2] != null) DbVersion = args[2];
 
 		//Create output bridge mapping file
 		File outputFile = new File(outputDir, sourceName + "_secID2priID.bridge");
