@@ -25,7 +25,7 @@ public class ncbi_txt {
     private static DataSource dsName;
     private static GdbConstruct newDb;
 
-    public static void main(String[] args) throws IOException, IDMapperException, SQLException {
+    public static void main(String[] args) throws IOException, IDMapperException, SQLException, ClassNotFoundException {
         try {
     		//Assign the input argument to the corresponding variables
         	String sourceVersion = args[0];
@@ -37,6 +37,9 @@ public class ncbi_txt {
 
             //Create output bridge mapping file
             File outputFile = new File(outputDir, sourceName + "_secID2priID.bridge");
+
+            Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
+
     		try {
     			createDb(outputFile);
     			} catch (IDMapperException e1) {
