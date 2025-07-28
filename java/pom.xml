@@ -9,7 +9,7 @@
   <version>0.0.1</version>
 
   <properties>
-    <bridgedb.version>3.0.10</bridgedb.version>
+    <bridgedb.version>3.0.28-java8</bridgedb.version>
   </properties>
 
   <build>
@@ -20,7 +20,7 @@
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.1</version>
+        <version>3.14.0</version>
         <configuration>
           <archive>
             <manifest>
@@ -33,7 +33,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
-        <version>3.3.0</version>
+        <version>3.7.1</version>
         <configuration>
           <descriptorRefs>
             <descriptorRef>jar-with-dependencies</descriptorRef>
@@ -44,21 +44,6 @@
   </build>
 
   <dependencies>
-    <dependency>
-      <groupId>org.eclipse.rdf4j</groupId>
-      <artifactId>rdf4j-repository-sparql</artifactId>
-      <version>3.1.2</version>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.rdf4j</groupId>
-      <artifactId>rdf4j-queryresultio-sparqljson</artifactId>
-      <version>3.1.2</version>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.rdf4j</groupId>
-      <artifactId>rdf4j-repository-api</artifactId>
-      <version>3.1.2</version>
-    </dependency>
     <dependency>
       <groupId>org.bridgedb</groupId>
       <artifactId>org.bridgedb</artifactId>
@@ -77,11 +62,6 @@
     <dependency>
       <groupId>org.bridgedb</groupId>
       <artifactId>org.bridgedb.rdb.construct</artifactId>
-      <version>${bridgedb.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bridgedb</groupId>
-      <artifactId>org.bridgedb.tools.qc</artifactId>
       <version>${bridgedb.version}</version>
     </dependency>
     <dependency>
