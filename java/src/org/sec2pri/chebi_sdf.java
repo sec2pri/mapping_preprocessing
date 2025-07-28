@@ -33,7 +33,7 @@ public class chebi_sdf {
 	private static DataSource dsSynonym;
 	private static GdbConstruct newDb;
 	
-	public static void main(String[] args) throws IOException, IDMapperException, SQLException {
+	public static void main(String[] args) throws IOException, IDMapperException, SQLException, ClassNotFoundException {
 		//Assign the input argument to the corresponding variables
 		File inputFile = new File(args[0]);
 		setupDatasources();
@@ -42,7 +42,8 @@ public class chebi_sdf {
 
 		//Create output bridge mapping file
 		File outputFile = new File(outputDir, sourceName + "_secID2priID.bridge");
-		
+		Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
+
 		try {
 			createDb(outputFile);
 			} catch (IDMapperException e1) {
