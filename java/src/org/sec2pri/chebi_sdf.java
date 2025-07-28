@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
+import org.bridgedb.BridgeDb;
 import org.bridgedb.DataSource;
 import org.bridgedb.IDMapperException;
 import org.bridgedb.rdb.construct.GdbConstruct;
@@ -28,7 +29,7 @@ public class chebi_sdf {
 	public static String sourceIdCode = "Ce"; //Ce
 	public static String sourceSynonymCode = "O"; //O
 	public static String DbVersion = "1";
-	public static String BridgeDbVersion = "3.0.28";
+	public static String BridgeDbVersion = BridgeDb.getVersion();
 	private static DataSource dsId;
 	private static DataSource dsSynonym;
 	private static GdbConstruct newDb;
