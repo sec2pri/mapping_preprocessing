@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
+import org.bridgedb.BridgeDb;
 import org.bridgedb.DataSource;
 import org.bridgedb.IDMapperException;
 import org.bridgedb.rdb.construct.GdbConstruct;
@@ -28,7 +29,7 @@ public class chebi_sdf {
 	public static String sourceIdCode = "Ce"; //Ce
 	public static String sourceSynonymCode = "O"; //O
 	public static String DbVersion = "1";
-	public static String BridgeDbVersion = "3.0.28";
+	public static String BridgeDbVersion = BridgeDb.getVersion();
 	private static DataSource dsId;
 	private static DataSource dsSynonym;
 	private static GdbConstruct newDb;
@@ -39,6 +40,7 @@ public class chebi_sdf {
 		setupDatasources();
 		File outputDir = new File(args[1]);
 		outputDir.mkdir();
+		if (args.length > 2 && args[2] != null) DbVersion = args[2];
 
 		//Create output bridge mapping file
 		File outputFile = new File(outputDir, sourceName + "_secID2priID.bridge");
@@ -84,9 +86,11 @@ public class chebi_sdf {
 	        
 		    //create BridgeDb mapping file
 		    Map<Xref, Set<Xref>> map = new HashMap<Xref, Set<Xref>>();
+		    Map<Xref, Set<String>> names = new HashMap<Xref, Set<String>>();
 			int counter = 0;
 			int counter2 = 0;
-			
+
+			Xref priId_B2B = null;
 			while (dataRow != null) {
 				boolean priLine = dataRow.startsWith("> <ChEBI ID>");
 				if (priLine) {//extract row with primary identifier
@@ -100,17 +104,15 @@ public class chebi_sdf {
 					dataRow = file.readLine();
 					priId = dataRow;
 					pri.add(priId);
-					}
-				Xref priId_B2B = new Xref(priId, dsId);
-				map.put(priId_B2B, new HashSet<Xref>());
+					priId_B2B = new Xref(priId, dsId);
+					map.put(priId_B2B, new HashSet<Xref>());
+					names.put(priId_B2B, new HashSet<String>());
+				}
 
 				if (dataRow.startsWith("> <ChEBI Name>")) {
 					dataRow = file.readLine();//extract row with metabolite name
-					name = dataRow;
-					}
-				Xref Synonym_B2B = new Xref(name, dsSynonym);
-				map.get(priId_B2B).add(Synonym_B2B);
-				
+					names.get(priId_B2B).add(dataRow);
+				}
 
 				boolean secLine = dataRow.startsWith("> <Secondary ChEBI ID>");
 				if (secLine) {//extract rows with secondary identifiers
@@ -132,8 +134,8 @@ public class chebi_sdf {
 						Xref secId_B2B_2 = new Xref(secId, dsId, false); //the first column is the secondary id so idPrimary = false
 						map.get(priId_B2B).add(secId_B2B_2);
 						dataRow = file.readLine();
-						}
 					}
+				}
 				
 				boolean synLine = dataRow.startsWith("> <Synonyms>");
 				if (synLine) {//extract rows with synonyms
@@ -151,6 +153,7 @@ public class chebi_sdf {
 						name2synonym.add(name);
 						name2synonym.add("\t");
 						name2synonym.add(syn);
+						names.get(priId_B2B).add(syn);
 					}
 
 					dataRow = file.readLine();
@@ -162,20 +165,27 @@ public class chebi_sdf {
 						name2synonym.add(name);
 						name2synonym.add("\t");
 						name2synonym.add(syn);
+						names.get(priId_B2B).add(syn);
 						dataRow = file.readLine();
-						}
 					}
+				}
+
+				if (dataRow.startsWith("$$$$")) {
+					addEntries(map);
+					map.clear();
+					addNames(names);
+					names.clear();
+					priId_B2B = null;
+					// finished = true;
+				}
 
 				dataRow = file.readLine();
 				if (counter == 5000) {
+					counter = 0;
 					counter2++;
 					System.out.println("5k mark " + counter2 + ": " + priId);
-					counter = 0;
-					addEntries(map);
-					map.clear();
-					// finished = true;
-					}
 				}
+			}
 	
 			File output_pri_Tsv = new File(outputDir, sourceName + "_priIDs.tsv");
 			FileWriter writer_pri = new FileWriter(output_pri_Tsv); 
@@ -232,13 +242,13 @@ public class chebi_sdf {
 		newDb.setInfo("DATASOURCEVERSION", DbVersion);
 		newDb.setInfo("BRIDGEDBVERSION", BridgeDbVersion);
 		newDb.setInfo("DATATYPE", "Identifiers");	
-		}
+	}
 	
 	private static void setupDatasources() {
 		DataSourceTxt.init();
 		dsId = DataSource.getExistingBySystemCode(chebi_sdf.sourceIdCode);
 		dsSynonym = DataSource.getExistingBySystemCode(chebi_sdf.sourceSynonymCode);
-		}
+	}
 	
 	private static void addEntries(Map<Xref, Set<Xref>> dbEntries) throws IDMapperException {
 		Set<Xref> addedXrefs = new HashSet<Xref>();
@@ -254,6 +264,15 @@ public class chebi_sdf {
 					}
 				}
 			newDb.commit();
+		}
+	}
+	
+	private static void addNames(Map<Xref, Set<String>> names) throws IDMapperException {
+		for (Xref ref : names.keySet()) {
+			for (String name : names.get(ref)) {
+				newDb.addAttribute(ref, "Synonym", name);
 			}
 		}
-	}	
+		newDb.commit();
+	}
+}

@@ -2,6 +2,7 @@ package org.sec2pri;
 
 import javax.xml.parsers.DocumentBuilderFactory;  
 import javax.xml.parsers.DocumentBuilder;
+import org.bridgedb.BridgeDb;
 import org.bridgedb.DataSource;
 import org.bridgedb.IDMapperException;
 import org.bridgedb.Xref;
@@ -42,7 +43,7 @@ public class hmdb_xml {
 	public static String secSynonymNodeTag = "synonym"; // if the node doesn't have any tag; args[8] = NA 
 	//public static String idOrName = "id";
 	public static String DbVersion = "1";
-	public static String BridgeDbVersion = "3.0.28";
+	public static String BridgeDbVersion = BridgeDb.getVersion();
 	private static DataSource dsId;
 	private static DataSource dsName;
 	private static GdbConstruct newDb;

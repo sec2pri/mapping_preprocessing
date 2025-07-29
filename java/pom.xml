@@ -9,7 +9,7 @@
   <version>0.0.1</version>
 
   <properties>
-    <bridgedb.version>3.0.28</bridgedb.version>
+    <bridgedb.version>3.0.29</bridgedb.version>
     <derby.version>10.15.2.0</derby.version>
   </properties>
 
