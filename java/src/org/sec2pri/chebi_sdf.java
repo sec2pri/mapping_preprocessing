@@ -111,7 +111,8 @@ public class chebi_sdf {
 
 				if (dataRow.startsWith("> <ChEBI Name>")) {
 					dataRow = file.readLine();//extract row with metabolite name
-					names.get(priId_B2B).add(dataRow);
+					name = dataRow;
+					names.get(priId_B2B).add(name);
 				}
 
 				boolean secLine = dataRow.startsWith("> <Secondary ChEBI ID>");
@@ -176,6 +177,7 @@ public class chebi_sdf {
 					addNames(names);
 					names.clear();
 					priId_B2B = null;
+					name = "";
 					// finished = true;
 				}
 
