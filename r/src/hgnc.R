@@ -155,13 +155,13 @@ hgncAlias <- data.frame(
     mapping_cardinality_sec2pri = NA
   )
 
-# Previous symbols (predicate: IAO:0100001 for previous symbols)
+# Previous symbols (predicate: no relevant for symbols and previous names)
 hgncPrev <- hgnc[, c("hgnc_id", "symbol", "prev_symbol")] %>%
   dplyr::mutate(
     comment = ifelse(is.na(prev_symbol),
       "", "Previous symbol: Any symbols that were previously HGNC-approved nomenclature."
     ),
-    predicateID = ifelse(is.na(prev_symbol), NA, "IAO:0100001"),
+    predicateID = NA,
     mapping_cardinality_sec2pri = NA
   ) %>%
   dplyr::rename(secondarySymbol = prev_symbol)
