@@ -107,19 +107,57 @@ jobs:
             awk '{print $1}' "$f" |  sed 's/<http:\/\/www.wikidata.org\/entity\///g' | sed 's/[>]//g' | sed '1s/\?//g'  | uniq > "${prefix}_priIDs_$f"
             rm "$f"
           done
+          ls
           pwd
           cd ..
+          ls
           outputDir="datasources/wikidata/recentData/"
           #mv * "$outputDir"
 
       # step 3: not needed, no R or Java script to preprocess the data.
       
-      # step 4: compare the new and old data 
-      - name: 'Upload processed data as artifacts'
+      # step 4: compare the new and old data and upload as artifact
+      - name: 'Upload processed data as artifacts all'
         uses: actions/upload-artifact@v4
         with:
           name: wikidata_processed
-          path: datasources/wikidata/recentData/*
+          path: datasources/wikidata/recentData/
+          
+      - name: 'Upload processed data as artifacts metabolites all mappings'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Wikidata_secID2priID_metabolites.tsv
+          path: datasources/wikidata/recentData/Wikidata_secID2priID_metabolites.tsv
+
+      - name: 'Upload processed data as artifacts metabolites primary IDs'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Wikidata_priIDs_metabolites.tsv
+          path: datasources/wikidata/recentData/Wikidata_priIDs_metabolites.tsv
+
+      - name: 'Upload processed data as artifacts protein'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Wikidata_secID2priID_protein.tsv
+          path: datasources/wikidata/recentData/Wikidata_secID2priID_protein.tsv
+
+      - name: 'Upload processed data as artifacts protein primary IDs'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Wikidata_priIDs_protein.tsv
+          path: datasources/wikidata/recentData/Wikidata_priIDs_protein.tsv
+          
+      - name: 'Upload processed data as artifacts gene'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Wikidata_secID2priID_gene.tsv
+          path: datasources/wikidata/recentData/Wikidata_secID2priID_gene.tsv
+
+      - name: 'Upload processed data as artifacts gene primary IDs'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Wikidata_priIDs_gene.tsv
+          path: datasources/wikidata/recentData/Wikidata_priIDs_gene.tsv
 
       - name: Create or update issue
         if: env.COUNT != 0
