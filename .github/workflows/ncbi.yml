@@ -144,13 +144,11 @@ jobs:
             exit 1
           fi
           # sort them
-          cat old_tmp.tsv | sort | tr -d "\r" | cut -f 1,3 > ids_old.txt
-          cat new_tmp.tsv | sort | tr -d "\r" | cut -f 1,3 > ids_new.txt
-
+          cat "$old" | sort | tr -d "\r" | cut -f 1,3 > ids_old.txt
+          cat "$new" | sort | tr -d "\r" | cut -f 1,3 > ids_new.txt
           # TODO decide whether to perform diff on symbols too? 
-          ##cat old_tmp.tsv | sort | tr -d "\r" | cut -f 4 > symbols_old.txt
-          ##cat new_tmp.tsv | sort | tr -d "\r" | cut -f 4 > symbols_new.txt
-
+          ##cat "$old" | sort | tr -d "\r" | cut -f 4 > symbols_old.txt
+          ##cat "$new" | sort | tr -d "\r" | cut -f 4 > symbols_new.txt
           echo "Performing diff between the sorted lists of IDs"
 
           # Perform a diff between the sorted lists of IDs

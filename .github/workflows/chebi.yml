@@ -179,17 +179,14 @@ jobs:
           old="datasources/chebi/data/$to_check_from_zenodo"
           new="datasources/chebi/recentData/$to_check_from_zenodo"
           # remove headers
-          cp "$new" new_tmp.tsv
-          cp "$old" old_tmp.tsv
-          sed -i '1d' new_tmp.tsv
-          sed -i '1d' old_tmp.tsv
+          sed -i '1d' "$new"
+          sed -i '1d' "$old"
           # qc integrity of IDs
           wget -nc https://raw.githubusercontent.com/bridgedb/datasources/main/datasources.tsv
           CHEBI_ID=$(awk -F '\t' '$1 == "ChEBI" {print $10}' datasources.tsv)
           # Split the file into two separate files for each column
-          awk -F '\t' '{print $1}' new_tmp.tsv > column1.txt
-          awk -F '\t' '{print $2}' new_tmp.tsv > column2.txt
-
+          awk -F '\t' '{print $1}' $new > column1.txt
+          awk -F '\t' '{print $2}' $new > column2.txt
           # Use grep to check if any line in the primary column doesn't match the pattern
           if grep -nqvE "$CHEBI_ID" "column1.txt"; then
             echo "All lines in the primary column match the pattern."
@@ -199,11 +196,9 @@ jobs:
             echo "FAILED=true" >> $GITHUB_ENV
             exit 1
           fi
-
           # Use grep to check if any line in the secondary column doesn't match the pattern
           if grep -nqvE "$CHEBI_ID" "column1.txt"; then
             echo "All lines in the secondary column match the pattern."
-            
           else
             echo "Error: At least one line in the secondary column does not match pattern."
             grep -nqvE "$CHEBI_ID" "column2.txt"
@@ -211,8 +206,8 @@ jobs:
             exit 1
           fi
           # sort them
-          cat old_tmp.tsv | sort | tr -d "\r" | cut -f 1,3 > ids_old.txt
-          cat new_tmp.tsv | sort | tr -d "\r" | cut -f 1,3 > ids_new.txt
+          cat "$old" | sort | tr -d "\r" > ids_old.txt
+          cat "$new" | sort | tr -d "\r" > ids_new.txt
           echo "Performing diff between the sorted lists of IDs"
           # Perform a diff between the sorted lists of IDs
           output_file=diff.txt
