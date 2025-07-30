@@ -107,8 +107,10 @@ jobs:
             awk '{print $1}' "$f" |  sed 's/<http:\/\/www.wikidata.org\/entity\///g' | sed 's/[>]//g' | sed '1s/\?//g'  | uniq > "${prefix}_priIDs_$f"
             rm "$f"
           done
+          ls
           pwd
           cd ..
+          ls
           outputDir="datasources/wikidata/recentData/"
           #mv * "$outputDir"
 
@@ -125,7 +127,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wikidata_processed_metabolites
-          path: datasources/wikidata/recentData/Wikidata_sec2priIDs_metabolites.tsv
+          path: datasources/wikidata/recentData/**_metabolites.tsv
 
       - name: 'Upload processed data as artifacts protein'
         uses: actions/upload-artifact@v4
