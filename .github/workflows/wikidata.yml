@@ -145,7 +145,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Wikidata_priIDs_protein.tsv
-          path: datasources/wikidata/recentDataWikidata_priIDs_protein.tsv
+          path: datasources/wikidata/recentData/Wikidata_priIDs_protein.tsv
           
       - name: 'Upload processed data as artifacts gene'
         uses: actions/upload-artifact@v4
