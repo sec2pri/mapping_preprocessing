@@ -32,11 +32,11 @@ dir.create(outputDir, showWarnings = FALSE)
 
 # Download the input files from HGNC
 # if (!file.exists(paste(inputDir, sourceName, "/_2023-07-01.txt", sep = "/"))) {
-#   fileUrl <- paste0("https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/withdrawn_", sourceVersion, ".txt")
+#   fileUrl <- paste0("https://www.genenames.org/download/archive/quarterly/tsv/withdrawn_", sourceVersion, ".txt")
 #   download(fileUrl, paste(inputDir, sourceName, "/withdrawn_2023-07-01.txt", sep = "/"), mode = "wb")
 # }
 # if (!file.exists(paste(inputDir, sourceName, "/hgnc__2023-07-01.txt", sep = "/"))) {
-#   fileUrl <- paste0("https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/hgnc_complete_set_", sourceVersion, ".txt")
+#   fileUrl <- paste0("https://www.genenames.org/download/archive/quarterly/tsv/hgnc_complete_set_", sourceVersion, ".txt")
 #   download(fileUrl, paste(inputDir, sourceName, "/hgnc_complete_set_2023-07-01.txt", sep = "/"), mode = "wb")
 # }
 
@@ -99,7 +99,7 @@ hgncWDN <- hgncWDN %>%
         )
       )
     ),
-    source = paste0("https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/", withdrawn)
+    source = paste0("https://www.genenames.org/download/archive/quarterly/tsv/", withdrawn)
   )
 
 # Add a row for each primary ID
@@ -155,13 +155,13 @@ hgncAlias <- data.frame(
     mapping_cardinality_sec2pri = NA
   )
 
-# Previous symbols (predicate: IAO:0100001 for previous symbols)
+# Previous symbols (predicate: no relevant for symbols and previous names)
 hgncPrev <- hgnc[, c("hgnc_id", "symbol", "prev_symbol")] %>%
   dplyr::mutate(
     comment = ifelse(is.na(prev_symbol),
       "", "Previous symbol: Any symbols that were previously HGNC-approved nomenclature."
     ),
-    predicateID = ifelse(is.na(prev_symbol), NA, "IAO:0100001"),
+    predicateID = NA,
     mapping_cardinality_sec2pri = NA
   ) %>%
   dplyr::rename(secondarySymbol = prev_symbol)
@@ -177,7 +177,7 @@ hgncPrev <- data.frame(
 
 hgnc <- rbind(hgncPrev, hgncAlias) %>%
   unique() %>%
-  dplyr::mutate(source = paste0("https://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/archive/quarterly/tsv/", complete_set)) %>%
+  dplyr::mutate(source = paste0("https://www.genenames.org/download/archive/quarterly/tsv/", complete_set)) %>%
   dplyr::select(primaryID, primarySymbol, secondarySymbol, predicateID, mapping_cardinality_sec2pri, comment, source)
 
 # Check the symbols that are not present in hgnc file while they are in hgncWDN: all of those symbols are belong to HGNC IDs that were withdrawn and therefore not present in the complete set
