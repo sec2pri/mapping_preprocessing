@@ -227,7 +227,7 @@ jobs:
         uses: JasonEtco/create-an-issue@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SOURCE: "HMDB"
+          SOURCE: "NCBI"
         with:
           filename: .github/ISSUE_TEMPLATE/ISSUE_UPDATE.md
           update_existing: true
