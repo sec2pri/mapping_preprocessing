@@ -226,7 +226,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: HGNC_secID2priID.tsv
-          path: datasources/hgnc/recentData/HHGNC_secID2priID.tsv
+          path: datasources/hgnc/recentData/HGNC_secID2priID.tsv
 
 
       - name: Create or update issue
