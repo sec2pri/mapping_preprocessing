@@ -176,7 +176,7 @@ jobs:
       - name: 'Upload processed data as artifacts all'
         uses: actions/upload-artifact@v4
         with:
-          name: uniprot_processed
+          name: uniprot_processed.zip
           path: datasources/uniprot/recentData/*
 
       - name: 'Upload processed data as artifacts priIDs'
