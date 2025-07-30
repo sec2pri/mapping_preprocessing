@@ -127,19 +127,19 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wikidata_processed_metabolites
-          path: datasources/wikidata/recentData/**_metabolites.tsv
+          path: datasources/wikidata/recentData/Wikidata_secID2priID_metabolites.tsv
 
       - name: 'Upload processed data as artifacts protein'
         uses: actions/upload-artifact@v4
         with:
           name: wikidata_processed_protein
-          path: datasources/wikidata/recentData/Wikidata_sec2priIDs_protein.tsv
+          path: datasources/wikidata/recentData/Wikidata_secID2priID_protein.tsv
           
       - name: 'Upload processed data as artifacts gene'
         uses: actions/upload-artifact@v4
         with:
           name: wikidata_processed_gene
-          path: datasources/wikidata/recentData/Wikidata_sec2priIDs_gene.tsv  
+          path: datasources/wikidata/recentData/Wikidata_secID2priID_gene.tsv  
 
       - name: Create or update issue
         if: env.COUNT != 0
