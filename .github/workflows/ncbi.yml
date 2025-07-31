@@ -200,7 +200,7 @@ jobs:
       - name: 'Upload processed data as artifacts all'
         uses: actions/upload-artifact@v4
         with:
-          name: ncbi_processed.zip
+          name: ncbi_processed
           path: datasources/ncbi/recentData/*
 
       - name: 'Upload processed data as artifacts priIDs'

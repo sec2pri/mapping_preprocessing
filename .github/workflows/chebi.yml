@@ -259,7 +259,7 @@ jobs:
       - name: 'Upload processed data as artifacts all'
         uses: actions/upload-artifact@v4
         with:
-          name: chebi_processed.zip
+          name: chebi_processed
           path: datasources/chebi/recentData/*
 
       - name: 'Upload processed data as artifacts name2synonym'
