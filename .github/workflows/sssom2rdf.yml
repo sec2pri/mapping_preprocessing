@@ -24,14 +24,19 @@ jobs:
       - name: Validate all SSSOM mapping files #since validator works in individual files, not on a list
         run: |
            echo "Validating all *_mappings.sssom.tsv files under mappings/"
-           find mappings -type f -name '*_mappings.sssom.tsv' | while read file; do
+           find mappings -type f -name '*_mapping.sssom.tsv' | while read file; do
              echo "Validating $file"
              sssom validate "$file"
            done
 
-      - name: Convert SSSOM to RDF (Turtle)
+      - name: Convert SSSOM files to RDF (Turtle)
         run: |
-          sssom convert mappings/**_mappings.sssom.tsv -o mappings/**_mappings.ttl --output-format ttl
+          echo "Converting all *_mappings.sssom.tsv files under mappings/ to RDF"
+          find mappings -type f -name '*_mapping.sssom.tsv' | while read file; do
+            ttl_file="${file%.tsv}.ttl"
+            echo "Converting $file to $ttl_file"
+            sssom convert -i "$file" -o "$ttl_file" --output-format ttl
+          done
 
       - name: Upload RDF Turtle as artifact
         uses: actions/upload-artifact@v4
