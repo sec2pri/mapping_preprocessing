@@ -182,12 +182,8 @@ public class hmdb_xml {
 							NodeList secSynonymList = document.getElementsByTagName(hmdb_xml.secSynonymNode);
 							if (!hmdb_xml.secSynonymNodeTag.equalsIgnoreCase("NA")) { //when there is tag for the node
 								Node node = secSynonymList.item(0); // Retrieve the first item
-								if(node.getTextContent().isEmpty()) {//Going to the next row if there is no synonym 
-//									if(priId.getTextContent().equals("HMDB0120878")) {
-//										System.out.println(priId.getTextContent() + " " + node.getTextContent() + "" + entry);
-//										break;
-//									}
-//									name2synonym.add("NA");
+								if(node.getTextContent().trim().isEmpty()) {//Going to the next row if there is no synonym 
+									name2synonym.add("");
 									listOfname2synonym.add(name2synonym);
 									name2synonym = new ArrayList<>();
 								} 
