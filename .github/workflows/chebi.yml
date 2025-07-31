@@ -157,6 +157,9 @@ jobs:
         run: |
           inputFile="ChEBI_complete_3star.sdf" 
           mkdir new
+          cd java
+          mvn clean install assembly:single
+          cd ../
           outputDir="datasources/chebi/recentData/"
           # Run Java program and capture its exit code
           java -cp java/target/mapping_prerocessing-0.0.1-jar-with-dependencies.jar org.sec2pri.chebi_sdf "$inputFile" "$outputDir" "${RELEASE_NUMBER}"
@@ -179,8 +182,8 @@ jobs:
           old="datasources/chebi/data/$to_check_from_zenodo"
           new="datasources/chebi/recentData/$to_check_from_zenodo"
           # remove headers
-          sed -i '1d' "$new"
-          sed -i '1d' "$old"
+          #sed -i '1d' "$new"
+          #sed -i '1d' "$old"
           # qc integrity of IDs
           wget -nc https://raw.githubusercontent.com/bridgedb/datasources/main/datasources.tsv
           CHEBI_ID=$(awk -F '\t' '$1 == "ChEBI" {print $10}' datasources.tsv)
@@ -254,7 +257,7 @@ jobs:
           echo "COUNT=$count" >> $GITHUB_ENV
           total_old=$(cat "$old" | wc -l) || true 
           change=$((100 * count / total_old))
-          echo "CHANGE=$change" >> $GITHUB_ENV 
+          echo "CHANGE=$change" >> $GITHUB_ENV
 
       - name: 'Upload processed data as artifacts all'
         uses: actions/upload-artifact@v4
