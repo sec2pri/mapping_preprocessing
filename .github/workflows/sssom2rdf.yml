@@ -38,8 +38,9 @@ jobs:
             sssom convert -i "$file" -o "$ttl_file" --output-format ttl
           done
 
-      - name: Upload RDF Turtle as artifact
+      - name: Upload RDF Turtle files as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: sssom_rdf
-          path: mappings/mappings.ttl
+          name: all_sssom_rdf
+          path: |
+            mappings/**/*.ttl
