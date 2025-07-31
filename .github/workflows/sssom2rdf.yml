@@ -53,7 +53,7 @@ jobs:
           find datasources -type f -path '*/mappings/*_mapping.sssom.tsv' | while read file; do
             ttl_file="${file%.tsv}.ttl"
             echo "Converting $file to $ttl_file"
-            sssom convert -i "$file" -o "$ttl_file" --output-format ttl
+            sssom convert "$file" -o "$ttl_file" --output-format ttl
           done
 
       - name: Upload RDF files for next job
