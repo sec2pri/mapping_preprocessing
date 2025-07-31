@@ -25,7 +25,7 @@ jobs:
       - name: Validate all SSSOM mapping files
         run: |
           echo "Validating all *_mapping.sssom.tsv files under mappings/"
-          find mappings -type f -name '*_mapping.sssom.tsv' | while read file; do
+          find datasources -type f -name '*/mappings/*_mapping.sssom.tsv' | while read file; do
             echo "Validating $file"
             sssom validate "$file"
           done
@@ -50,7 +50,7 @@ jobs:
       - name: Convert SSSOM files to RDF (Turtle)
         run: |
           echo "Converting all *_mapping.sssom.tsv files under mappings/ to RDF"
-          find mappings -type f -name '*_mapping.sssom.tsv' | while read file; do
+          find datasources -type f -name '*/mappings/*_mapping.sssom.tsv' | while read file; do
             ttl_file="${file%.tsv}.ttl"
             echo "Converting $file to $ttl_file"
             sssom convert -i "$file" -o "$ttl_file" --output-format ttl
