@@ -2,6 +2,8 @@
 title: Data from {{ env.SOURCE }} latest release {{ env.RELEASE_NUMBER }} is not reachable
 assignees: tabbassidaloii
 labels: new release
+name: Failed request issue template
+about: Template for failing data source requests
 ---
 # [Data from {{ env.SOURCE }}]({{ env.URL_RELEASE }}) release {{ env.URL_RELEASE }} is not reachable
 
