@@ -8,11 +8,11 @@
     <a href="https://github.com/sec2pri/mapping_preprocessing/actions/workflows/chebi.yml">
         <img alt="ChEBI" src="https://github.com/sec2pri/mapping_preprocessing/actions/workflows/chebi.yml/badge.svg" />
     </a>
-    <a href="https://github.com/sec2pri/mapping_preprocessing/actions/workflows/hmdb.yml">
-        <img alt="HMDB" src="https://github.com/sec2pri/mapping_preprocessing/actions/workflows/hmdb.yml/badge.svg" />
-    </a>
     <a href="https://github.com/sec2pri/mapping_preprocessing/actions/workflows/hgnc.yml">
         <img alt="HGNC" src="https://github.com/sec2pri/mapping_preprocessing/actions/workflows/hgnc.yml/badge.svg" />
+    </a>
+    <a href="https://github.com/sec2pri/mapping_preprocessing/actions/workflows/hmdb.yml">
+        <img alt="HMDB" src="https://github.com/sec2pri/mapping_preprocessing/actions/workflows/hmdb.yml/badge.svg" />
     </a>
     <a href='https://github.com/sec2pri/mapping_preprocessing/actions/workflows/ncbi.yml'>
         <img src='https://github.com/sec2pri/mapping_preprocessing/actions/workflows/ncbi.yml/badge.svg' alt="NCBI" />
