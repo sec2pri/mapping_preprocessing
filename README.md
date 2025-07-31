@@ -28,7 +28,7 @@
     </a>
 </p>
 
-In this repository, the details of data processing to create mapping files for the omics FixID tool are explained. Most of the data processing is done in R, and some is done in Java when the input is too large to be processed in R.
+In this repository, the details of data processing to create mapping files for the omics FixID tool are explained. Most of the data processing is done in R, some is done in Java when the input is too large to be processed in R, and one database is processed using Bash.
 
 | Datasource | license | citation |
 |-----------------|-----------------|-----------------|
@@ -37,6 +37,7 @@ In this repository, the details of data processing to create mapping files for t
 | [HGNC](https://github.com/sec2pri/mapping_preprocessing/blob/main/datasources/hgnc/config) | [link](https://www.genenames.org/about/license/) | Seal RL, Braschi B, Gray K, Jones TEM, Tweedie S, Haim-Vilmovsky L, Bruford EA. Genenames.org: the HGNC resources in 2023. Nucleic Acids Res. 2023 Jan 6;51(D1):D1003-D1009. doi: 10.1093/nar/gkac888. PMID: 36243972; PMCID: PMC9825485. |
 | [NCBI](https://github.com/sec2pri/mapping_preprocessing/blob/main/datasources/ncbi/config) | [link](https://www.ncbi.nlm.nih.gov/home/about/policies/) | Sayers EW, Bolton EE, Brister JR, Canese K, Chan J, Comeau DC, Connor R, Funk K, Kelly C, Kim S, Madej T, Marchler-Bauer A, Lanczycki C, Lathrop S, Lu Z, Thibaud-Nissen F, Murphy T, Phan L, Skripchenko Y, Tse T, Wang J, Williams R, Trawick BW, Pruitt KD, Sherry ST. Database resources of the national center for biotechnology information. Nucleic Acids Res. 2022 Jan 7;50(D1):D20-D26. doi: 10.1093/nar/gkab1112. PMID: 34850941; PMCID: PMC8728269. |
 | [UniProt](https://github.com/sec2pri/mapping_preprocessing/blob/main/datasources/uniprot/config) | [CC BY 4.0](https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/LICENSE) | UniProt Consortium. UniProt: the universal protein knowledgebase in 2021. Nucleic Acids Res. 2021 Jan 8;49(D1):D480-D489. doi: 10.1093/nar/gkaa1100. PMID: 33237286; PMCID: PMC7778908. |
+| [Wikidata](https://github.com/sec2pri/mapping_preprocessing/blob/main/datasources/wikidata/config) | [CC0](https://www.wikidata.org/wiki/Wikidata:Licensing) | Vrandecic, D., Krotzsch, M. Wikidata: a free collaborative knowledgebase. Communications of the ACM. 2014. doi: 10.1145/2629489. |
 
 
 --------
