@@ -197,12 +197,29 @@ jobs:
           change=$((100 * count / total_old))
           echo "CHANGE=$change" >> $GITHUB_ENV 
       
-      - name: 'Upload processed data as artifacts'
+      - name: 'Upload processed data as artifacts all'
         uses: actions/upload-artifact@v4
         with:
-          name: ncbi_processed
+          name: ncbi_processed.zip
           path: datasources/ncbi/recentData/*
 
+      - name: 'Upload processed data as artifacts priIDs'
+        uses: actions/upload-artifact@v4
+        with:
+          name: NCBI_priIDs.tsv
+          path: datasources/ncbi/recentData/NCBI_priIDs.tsv
+
+      - name: 'Upload processed data as artifacts secID2priIDs'
+        uses: actions/upload-artifact@v4
+        with:
+          name: NCBI_secID2priID.tsv
+          path: datasources/ncbi/recentData/NCBI_secID2priID.tsv
+
+      - name: 'Upload processed data as artifacts bridgedb file'
+        uses: actions/upload-artifact@v4
+        with:
+          name: NCBI_secID2priID.bridge
+          path: datasources/ncbi/recentData/NCBI_secID2priID.bridge
 
       - name: Create or update issue
         if: env.COUNT != 0
@@ -210,7 +227,7 @@ jobs:
         uses: JasonEtco/create-an-issue@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SOURCE: "HMDB"
+          SOURCE: "NCBI"
         with:
           filename: .github/ISSUE_TEMPLATE/ISSUE_UPDATE.md
           update_existing: true

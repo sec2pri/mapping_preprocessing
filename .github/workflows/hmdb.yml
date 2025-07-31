@@ -203,12 +203,35 @@ jobs:
           change=$((100 * count / total_old))
           echo "CHANGE=$change" >> $GITHUB_ENV 
           
-      - name: 'Upload processed data as artifacts'
+      - name: 'Upload processed data as artifacts all'
         uses: actions/upload-artifact@v4
         with:
-          name: hmdb_processed
+          name: hmdb_processed.zip
           path: datasources/hmdb/recentData/*
 
+      - name: 'Upload processed data as artifacts priIDs'
+        uses: actions/upload-artifact@v4
+        with:
+          name: HMDB_priIDs.tsv
+          path: datasources/hmdb/recentData/HMDB_priIDs.tsv
+
+      - name: 'Upload processed data as artifacts secID2priID'
+        uses: actions/upload-artifact@v4
+        with:
+          name: HMDB_secID2priID.tsv
+          path: datasources/hmdb/recentData/HMDB_secID2priID.tsv
+
+      - name: 'Upload processed data as artifacts name2synonym'
+        uses: actions/upload-artifact@v4
+        with:
+          name: HMDB_name2synonym.tsv
+          path: datasources/hmdb/recentData/HMDB_name2synonym.tsv
+
+      - name: 'Upload processed data as artifacts bridgeDb file'
+        uses: actions/upload-artifact@v4
+        with:
+          name: HMDB_secID2priID.bridge
+          path: datasources/hmdb/recentData/HMDB_secID2priID.bridge
 
       - name: Create or update issue
         if: env.COUNT != 0

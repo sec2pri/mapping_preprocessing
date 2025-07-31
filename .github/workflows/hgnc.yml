@@ -210,11 +210,23 @@ jobs:
           echo "CHANGE=$change" >> $GITHUB_ENV 
 
       
-      - name: 'Upload processed data as artifacts'
+      - name: 'Upload processed data as artifacts all'
         uses: actions/upload-artifact@v4
         with:
-          name: hgnc_processed
-          path: datasources/hgnc/recentData/*
+          name: hgnc_processed.zip
+          path: datasources/hgnc/recentData/*      
+
+      - name: 'Upload processed data as artifacts priIDs'
+        uses: actions/upload-artifact@v4
+        with:
+          name: HGNC_priIDs.tsv
+          path: datasources/hgnc/recentData/HGNC_priIDs.tsv
+
+      - name: 'Upload processed data as artifacts secID2priID'
+        uses: actions/upload-artifact@v4
+        with:
+          name: HGNC_secID2priID.tsv
+          path: datasources/hgnc/recentData/HGNC_secID2priID.tsv
 
 
       - name: Create or update issue
