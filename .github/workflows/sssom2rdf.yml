@@ -2,7 +2,7 @@ name: Convert SSSOM to RDF
 
 on:
   push:        # Run on any push
-  pull_request: # Also run on PRs
+  #pull_request: # Also run on PRs
   workflow_dispatch: # Allow manual trigger
 
 jobs:
@@ -21,9 +21,13 @@ jobs:
       - name: Install sssom
         run: pip install --upgrade pip | pip install sssom
 
-      - name: Validate SSSOM file
+      - name: Validate all SSSOM mapping files #since validator works in individual files, not on a list
         run: |
-          sssom validate mappings/**_mappings.sssom.tsv
+           echo "Validating all *_mappings.sssom.tsv files under mappings/"
+           find mappings -type f -name '*_mappings.sssom.tsv' | while read file; do
+             echo "Validating $file"
+             sssom validate "$file"
+           done
 
       - name: Convert SSSOM to RDF (Turtle)
         run: |
