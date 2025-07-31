@@ -125,8 +125,8 @@ jobs:
           old="datasources/hmdb/data/$to_check_from_zenodo"
           new="datasources/hmdb/recentData/$to_check_from_zenodo"
           # remove headers
-          sed -i '1d' "$new"
-          sed -i '1d' "$old"
+          #sed -i '1d' "$new"
+          #sed -i '1d' "$old"
           # qc integrity of IDs
           wget -nc https://raw.githubusercontent.com/bridgedb/datasources/main/datasources.tsv
           HMDB_ID=$(awk -F '\t' '$1 == "HMDB" {print $10}' datasources.tsv)

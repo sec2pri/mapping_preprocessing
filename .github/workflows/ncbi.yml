@@ -115,8 +115,8 @@ jobs:
           # Unzip the zip file 
           unzip -o datasources/ncbi/data/NCBI_secID2priID.zip -d datasources/ncbi/data/
           # remove headers
-          sed -i '1d' "$new"
-          sed -i '1d' "$old"
+          #sed -i '1d' "$new"
+          #sed -i '1d' "$old"
           # qc integrity of IDs
           wget -nc https://raw.githubusercontent.com/bridgedb/datasources/main/datasources.tsv
           NCBI_ID=$(awk -F '\t' '$1 == "Entrez Gene" {print $10}' datasources.tsv)
