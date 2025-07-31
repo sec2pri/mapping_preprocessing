@@ -1,0 +1,37 @@
+name: Convert SSSOM to RDF
+
+on:
+  push:
+    paths:
+      - 'mappings/*.sssom.tsv'
+  workflow_dispatch:
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install sssom
+        run: pip install sssom
+
+      - name: Validate SSSOM file
+        run: |
+          sssom validate -i mappings/**_mappings.sssom.tsv
+
+      - name: Convert SSSOM to RDF (Turtle)
+        run: |
+          sssom convert -i mappings/**_mappings.sssom.tsv -o mappings/**_mappings.ttl --output-format ttl
+
+      - name: Upload RDF Turtle as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sssom_rdf
+          path: mappings/mappings.ttl
