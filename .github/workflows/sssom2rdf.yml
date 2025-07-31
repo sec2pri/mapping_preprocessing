@@ -1,7 +1,6 @@
 name: Convert SSSOM to RDF
 
 on:
-  on:
   push:        # Run on any push
   pull_request: # Also run on PRs
   workflow_dispatch: # Allow manual trigger
