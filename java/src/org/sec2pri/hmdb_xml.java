@@ -180,17 +180,24 @@ public class hmdb_xml {
 							
 							//Add the synonyms if there is any
 							NodeList secSynonymList = document.getElementsByTagName(hmdb_xml.secSynonymNode);
-							if (!hmdb_xml.secSynonymNodeTag.equalsIgnoreCase("NA")) { //when there is tag for the node
+							
+							if (secSynonymList.getLength() == 0) {
+								// No <synonyms> tag at all
+								name2synonym.add("NA");
+								listOfname2synonym.add(name2synonym);
+								name2synonym = new ArrayList<>();
+								
+							} else if (!hmdb_xml.secSynonymNodeTag.equalsIgnoreCase("NA")) { //when there is tag for the node
 								Node node = secSynonymList.item(0); // Retrieve the first item
-								if(node.getTextContent().isEmpty()) {//Going to the next row if there is no synonym 
-//									if(priId.getTextContent().equals("HMDB0120878")) {
-//										System.out.println(priId.getTextContent() + " " + node.getTextContent() + "" + entry);
-//										break;
-//									}
-									name2synonym.add("NA");
-									listOfname2synonym.add(name2synonym);
-									name2synonym = new ArrayList<>();
-								} 
+//								if(node.getTextContent().isEmpty()) {//Going to the next row if there is no synonym 
+////									if(priId.getTextContent().equals("HMDB0120878")) {
+////										System.out.println(priId.getTextContent() + " " + node.getTextContent() + "" + entry);
+////										break;
+////									}
+//									name2synonym.add("NA");
+//									listOfname2synonym.add(name2synonym);
+//									name2synonym = new ArrayList<>();
+//								} 
 									
 								if (node != null && node.getNodeType() == Node.ELEMENT_NODE) {
 									Element eElement = (Element) node;
