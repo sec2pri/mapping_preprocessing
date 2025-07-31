@@ -157,6 +157,9 @@ jobs:
         run: |
           inputFile="ChEBI_complete_3star.sdf" 
           mkdir new
+          cd java
+          mvn clean install assembly:single
+          cd ../
           outputDir="datasources/chebi/recentData/"
           # Run Java program and capture its exit code
           java -cp java/target/mapping_prerocessing-0.0.1-jar-with-dependencies.jar org.sec2pri.chebi_sdf "$inputFile" "$outputDir" "${RELEASE_NUMBER}"

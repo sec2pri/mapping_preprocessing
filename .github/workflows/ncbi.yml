@@ -75,6 +75,9 @@ jobs:
       - name: Test ncbi txt data processing
         id: txt_process
         run: |
+          cd java
+          mvn clean install assembly:single
+          cd ../
           # Set up vars from config file
           sourceVersion=$DATE_NEW
           gene_history="datasources/ncbi/data/gene_history.gz"
