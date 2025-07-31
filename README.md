@@ -23,6 +23,9 @@
     <a href="https://github.com/sec2pri/mapping_preprocessing/actions/workflows/wikidata.yml">
         <img alt="Wikidata" src="https://github.com/sec2pri/mapping_preprocessing/actions/workflows/wikidata.yml/badge.svg" /> 
     </a>
+   <a href="https://github.com/sec2pri/mapping_preprocessing/actions/workflows/sssom2rdf.yml">
+        <img alt="Wikidata" src="https://github.com/sec2pri/mapping_preprocessing/actions/workflows/sssom2rdf.yml/badge.svg" /> 
+    </a>
 </p>
 
 In this repository, the details of data processing to create mapping files for the omics FixID tool are explained. Most of the data processing is done in R, and some is done in Java when the input is too large to be processed in R.
