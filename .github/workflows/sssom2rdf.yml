@@ -19,15 +19,15 @@ jobs:
           python-version: '3.10'
 
       - name: Install sssom
-        run: pip install sssom
+        run: pip install --upgrade pip | pip install sssom
 
       - name: Validate SSSOM file
         run: |
-          sssom validate -i mappings/**_mappings.sssom.tsv
+          sssom validate mappings/**_mappings.sssom.tsv
 
       - name: Convert SSSOM to RDF (Turtle)
         run: |
-          sssom convert -i mappings/**_mappings.sssom.tsv -o mappings/**_mappings.ttl --output-format ttl
+          sssom convert mappings/**_mappings.sssom.tsv -o mappings/**_mappings.ttl --output-format ttl
 
       - name: Upload RDF Turtle as artifact
         uses: actions/upload-artifact@v4
