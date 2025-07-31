@@ -2,6 +2,8 @@
 title: Failed {{ env.SOURCE }} processing for release {{ env.RELEASE_NUMBER }}
 assignees: tabbassidaloii
 labels: bug
+name: Failed workflow issue template
+about: Template for failing workflows
 ---
 
 Processing failed for the [new release for {{ env.SOURCE }}]({{ env.URL_RELEASE }} ).
