@@ -60,7 +60,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: intermediate_rdf
-          path: mappings/**/*.ttl
+          path: datasources/**/mappings/*.ttl
 
   validate-rdf:
     name: Validate RDF Output
@@ -75,7 +75,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: intermediate_rdf
-          path: mappings
+          path: datasources/**/mappings/*.ttl
 
       - name: Install turtle-validator
         run: npm install -g turtle-validator
