@@ -155,6 +155,9 @@ jobs:
       - name: Test SDF processing
         id: sdf_process
         run: |
+          cd java
+          mvn clean install assembly:single
+          cd ../
           inputFile="ChEBI_complete_3star.sdf" 
           mkdir new
           outputDir="datasources/chebi/recentData/"
@@ -176,8 +179,8 @@ jobs:
         run: |
           chmod +x datasources/chebi/config
           . datasources/chebi/config .
-          old_original = "datasources/chebi/data/$to_check_from_zenodo"
-          new_original = "datasources/chebi/recentData/$to_check_from_zenodo"
+          old_original="datasources/chebi/data/$to_check_from_zenodo"
+          new_original="datasources/chebi/recentData/$to_check_from_zenodo"
           old="datasources/chebi/data/$to_check_from_zenodo_copy"
           new="datasources/chebi/recentData/$to_check_from_zenodo_copy"
           cp $old_original $old

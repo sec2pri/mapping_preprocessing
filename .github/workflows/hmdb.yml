@@ -95,6 +95,9 @@ jobs:
       - name: Test XML processing
         id: sdf_process
         run: |
+          cd java
+          mvn clean install assembly:single
+          cd ../
           # Set up vars from config file
           to_check_from_zenodo=$(grep -E '^to_check_from_zenodo=' datasources/hmdb/config | cut -d'=' -f2)
           inputFile=hmdb_metabolites_split.zip
@@ -119,8 +122,8 @@ jobs:
         run: |
           # Set up vars from config file
           to_check_from_zenodo=$(grep -E '^to_check_from_zenodo=' datasources/hmdb/config | cut -d'=' -f2)
-          old_original = "datasources/hmdb/data/$to_check_from_zenodo"
-          new_original = "datasources/hmdb/recentData/$to_check_from_zenodo"
+          old_original="datasources/hmdb/data/$to_check_from_zenodo"
+          new_original="datasources/hmdb/recentData/$to_check_from_zenodo"
           old="datasources/hmdb/data/$to_check_from_zenodo_copy"
           new="datasources/hmdb/recentData/$to_check_from_zenodo_copy"
           cp $old_original $old
