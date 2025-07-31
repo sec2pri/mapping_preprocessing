@@ -2,6 +2,7 @@ package org.sec2pri;
 
 import javax.xml.parsers.DocumentBuilderFactory;  
 import javax.xml.parsers.DocumentBuilder;
+
 import org.bridgedb.BridgeDb;
 import org.bridgedb.DataSource;
 import org.bridgedb.IDMapperException;
@@ -180,55 +181,47 @@ public class hmdb_xml {
 							
 							//Add the synonyms if there is any
 							NodeList secSynonymList = document.getElementsByTagName(hmdb_xml.secSynonymNode);
-							if (!hmdb_xml.secSynonymNodeTag.equalsIgnoreCase("NA")) { //when there is tag for the node
-								Node node = secSynonymList.item(0); // Retrieve the first item
-								if(node.getTextContent().isEmpty()) {//Going to the next row if there is no synonym 
-//									if(priId.getTextContent().equals("HMDB0120878")) {
-//										System.out.println(priId.getTextContent() + " " + node.getTextContent() + "" + entry);
-//										break;
-//									}
-//									name2synonym.add("NA");
-									listOfname2synonym.add(name2synonym);
-									name2synonym = new ArrayList<>();
-								} 
-									
-								if (node != null && node.getNodeType() == Node.ELEMENT_NODE) {
-									Element eElement = (Element) node;
-									NodeList secSynonyms = eElement.getElementsByTagName(hmdb_xml.secSynonymNodeTag);
-									for (int itr = 0; itr < secSynonyms.getLength(); itr++) {
-										Element secSynonym = (Element) secSynonyms.item(itr);
-										if (itr == 0) {
-											name2synonym.add(secSynonym.getTextContent());
-											//Add the list to list of list for the secondary to primary id mapping in tsv
-											listOfname2synonym.add(name2synonym);
-											name2synonym = new ArrayList<>();											
-											
-										} else {
-											name2synonym.add(priId.getTextContent());
-											name2synonym.add("\t");
-											name2synonym.add(priName.getTextContent());
-											name2synonym.add("\t");
-											name2synonym.add(secSynonym.getTextContent());
-											//Add the list to list of list for the secondary to primary id mapping in tsv
-											listOfname2synonym.add(name2synonym);
-											name2synonym = new ArrayList<>();											
-										}
-										Xref secSynonymRef = new Xref(secSynonym.getTextContent(), dsName, false); //secondary synonyms so idPrimary = false
-										map.get(priIdRef).add(secSynonymRef);
-									}
+							if (!hmdb_xml.secSynonymNodeTag.equalsIgnoreCase("NA")) { // when there is tag for the node
+							    Node node = secSynonymList.item(0); // Retrieve the first item
+							    if (node.getTextContent().isEmpty()) { 
+							        // If there are no synonyms, add "NA" and move to the next row
+							        name2synonym.add("NA"); // You can add "NA" or leave it empty as per your preference
+							        listOfname2synonym.add(name2synonym);  // Add to the list and proceed to next row
+							        name2synonym = new ArrayList<>();      // Reset for the next entry
+							    } else {
+							        if (node != null && node.getNodeType() == Node.ELEMENT_NODE) {
+							            Element eElement = (Element) node;
+							            NodeList secSynonyms = eElement.getElementsByTagName(hmdb_xml.secSynonymNodeTag);
+							            for (int itr = 0; itr < secSynonyms.getLength(); itr++) {
+							                Element secSynonym = (Element) secSynonyms.item(itr);
+							                if (itr == 0) {
+							                    name2synonym.add(secSynonym.getTextContent());
+							                    listOfname2synonym.add(name2synonym);  // Add the synonym to the list
+							                    name2synonym = new ArrayList<>();      // Reset for the next entry
+							                } else {
+							                    name2synonym.add(priId.getTextContent());
+							                    name2synonym.add("\t");
+							                    name2synonym.add(priName.getTextContent());
+							                    name2synonym.add("\t");
+							                    name2synonym.add(secSynonym.getTextContent());
+							                    listOfname2synonym.add(name2synonym);  // Add synonym to the list
+							                    name2synonym = new ArrayList<>();      // Reset for the next entry
+							                }
+							                Xref secSynonymRef = new Xref(secSynonym.getTextContent(), dsName, false); // secondary synonyms so idPrimary = false
+							                map.get(priIdRef).add(secSynonymRef);
+							            }
+							        }
+							    }
+							} else { // when there is no tag for the node
+							    Element secSynonym = (Element) secIdList.item(0); // assumption: there is only one name used by the database
+							    Xref secSynonymRef = new Xref(secSynonym.getTextContent(), dsName);
+							    map.get(priIdRef).add(secSynonymRef);
 
-								} else { //when there is no tag for the node
-									Element secSynonym = (Element) secIdList.item(0); // assumption: there is only one name used by the database
-									Xref secSynonymRef = new Xref(secSynonym.getTextContent(), dsName);
-									map.get(priIdRef).add(secSynonymRef);
-									
-									name2synonym.add(secSynonym.getTextContent());
-									//Add the list to list of list for the secondary to primary id mapping in tsv
-									listOfname2synonym.add(name2synonym);
-									name2synonym = new ArrayList<>();
-									
-								}
+							    name2synonym.add(secSynonym.getTextContent());
+							    listOfname2synonym.add(name2synonym); // Add to list
+							    name2synonym = new ArrayList<>();      // Reset for next entry
 							}
+
 						}
 										
 						counter++;
