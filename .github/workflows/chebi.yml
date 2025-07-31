@@ -181,8 +181,8 @@ jobs:
           . datasources/chebi/config .
           old_original="datasources/chebi/data/$to_check_from_zenodo"
           new_original="datasources/chebi/recentData/$to_check_from_zenodo"
-          old="datasources/chebi/data/$to_check_from_zenodo_copy"
-          new="datasources/chebi/recentData/$to_check_from_zenodo_copy"
+          old="datasources/chebi/data/${to_check_from_zenodo}_copy"
+          new="datasources/chebi/recentData/${to_check_from_zenodo}_copy"
           cp $old_original $old
           cp $new_original $new
           # remove headers
