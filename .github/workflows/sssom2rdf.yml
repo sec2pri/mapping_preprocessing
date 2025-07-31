@@ -1,10 +1,10 @@
 name: Convert SSSOM to RDF
 
 on:
-  push:
-    paths:
-      - 'mappings/*.sssom.tsv'
-  workflow_dispatch:
+  on:
+  push:        # Run on any push
+  pull_request: # Also run on PRs
+  workflow_dispatch: # Allow manual trigger
 
 jobs:
   convert:
