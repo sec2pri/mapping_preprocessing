@@ -111,13 +111,14 @@ jobs:
           new_original="datasources/ncbi/recentData/$to_check_from_zenodo"
           old="datasources/chebi/data/${to_check_from_zenodo}_copy"
           new="datasources/chebi/recentData/${to_check_from_zenodo}_copy"
-          cp $old_original $old
-          cp $new_original $new
+
           column_name="secondaryID"
           echo $column_name
 
           # Unzip the zip file 
           unzip -o datasources/ncbi/data/NCBI_secID2priID.zip -d datasources/ncbi/data/
+          cp $old_original $old
+          cp $new_original $new
           # remove headers
           sed -i '1d' "$new"
           sed -i '1d' "$old"

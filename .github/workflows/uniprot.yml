@@ -108,13 +108,13 @@ jobs:
           new_original="datasources/uniprot/recentData/$to_check_from_zenodo"
           old="datasources/chebi/data/${to_check_from_zenodo}_copy"
           new="datasources/chebi/recentData/${to_check_from_zenodo}_copy"
-          cp $old_original $old
-          cp $new_original $new
+
           column_name="secondaryID"
 
           # Unzip the zip file 
           unzip datasources/uniprot/data/UniProt_secID2priID.zip -d datasources/uniprot/data/
-                    
+          cp $old_original $old
+          cp $new_original $new                    
           # Extract the primaryID and secondaryID column from both files and sort them
           cat "$old" | sort | tr -d "\r" | cut -f 1,2 > ids_old.txt
           cat "$new" | sort | tr -d "\r" | cut -f 1,2 > ids_new.txt
