@@ -104,8 +104,12 @@ jobs:
         run: |
           # Set up vars from config file
           to_check_from_zenodo=$(grep -E '^to_check_from_zenodo=' datasources/uniprot/config | cut -d'=' -f2)
-          old="datasources/uniprot/data/$to_check_from_zenodo"
-          new="datasources/uniprot/recentData/$to_check_from_zenodo"
+          old_original = "datasources/uniprot/data/$to_check_from_zenodo"
+          new_original = "datasources/uniprot/recentData/$to_check_from_zenodo"
+          old="datasources/uniprot/data/$to_check_from_zenodo_copy"
+          new="datasources/uniprot/recentData/$to_check_from_zenodo_copy"
+          cp $old_original $old
+          cp $new_original $new
           column_name="secondaryID"
 
           # Unzip the zip file 

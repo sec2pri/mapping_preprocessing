@@ -176,8 +176,12 @@ jobs:
         run: |
           chmod +x datasources/chebi/config
           . datasources/chebi/config .
-          old="datasources/chebi/data/$to_check_from_zenodo"
-          new="datasources/chebi/recentData/$to_check_from_zenodo"
+          old_original = "datasources/chebi/data/$to_check_from_zenodo"
+          new_original = "datasources/chebi/recentData/$to_check_from_zenodo"
+          old="datasources/chebi/data/$to_check_from_zenodo_copy"
+          new="datasources/chebi/recentData/$to_check_from_zenodo_copy"
+          cp $old_original $old
+          cp $new_original $new
           # remove headers
           sed -i '1d' "$new"
           sed -i '1d' "$old"

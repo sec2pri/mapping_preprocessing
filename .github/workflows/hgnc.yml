@@ -147,8 +147,12 @@ jobs:
         run: |
           # Set up vars from config file
           to_check_from_zenodo=$(grep -E '^to_check_from_zenodo=' datasources/hgnc/config | cut -d'=' -f2)
-          old="datasources/hgnc/data/$to_check_from_zenodo"
-          new="datasources/hgnc/recentData/$to_check_from_zenodo"
+          old_original = "datasources/hgnc/data/$to_check_from_zenodo"
+          new_original = "datasources/hgnc/recentData/$to_check_from_zenodo"
+          old="datasources/hgnc/data/$to_check_from_zenodo_copy"
+          new="datasources/hgnc/recentData/$to_check_from_zenodo_copy"
+          cp $old_original $old
+          cp $new_original $new
           column_name="secondaryID"
           
           # Extract the primaryID and secondaryID column from both files and sort them

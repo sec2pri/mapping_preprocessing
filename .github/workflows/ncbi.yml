@@ -104,8 +104,12 @@ jobs:
         run: |
           # Set up vars from config file
           to_check_from_zenodo=$(grep -E '^to_check_from_zenodo=' datasources/ncbi/config | cut -d'=' -f2)
-          old="datasources/ncbi/data/$to_check_from_zenodo"
-          new="datasources/ncbi/recentData/$to_check_from_zenodo"
+          old_original = "datasources/ncbi/data/$to_check_from_zenodo"
+          new_original = "datasources/ncbi/recentData/$to_check_from_zenodo"
+          old="datasources/ncbi/data/$to_check_from_zenodo_copy"
+          new="datasources/ncbi/recentData/$to_check_from_zenodo_copy"
+          cp $old_original $old
+          cp $new_original $new
           column_name="secondaryID"
           echo $column_name
 
