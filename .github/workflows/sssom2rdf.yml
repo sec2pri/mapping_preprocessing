@@ -1,9 +1,17 @@
 name: Convert SSSOM to RDF
 
 on:
-  push:        # Run on any push
-  #pull_request: # Also run on PRs
-  workflow_dispatch: # Allow manual trigger
+  workflow_dispatch:
+  pull_request: # tests whether it is working on PR
+     paths:
+     - '.github/workflows/sssom2rdf.yml'
+  schedule:
+    - cron: "0 0 1,15 * *"  # Run the workflow on the 1st and 15th day of each month
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+  issues: write
 
 jobs:
   validate-sssom:
