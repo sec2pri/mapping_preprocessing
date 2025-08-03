@@ -55,6 +55,36 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup Java
+        if: matrix.datasource == 'chebi' || matrix.datasource == 'ncbi' || matrix.datasource == 'hmdb'
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+
+      - name: Setup R
+        if: matrix.datasource == 'uniprot' || matrix.datasource == 'hgnc'
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.1'
+          include-recommended: true
+
+      - name: Setup Node.js for HGNC
+        if: matrix.datasource == 'hgnc'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Puppeteer for HGNC
+        if: matrix.datasource == 'hgnc'
+        run: npm install puppeteer
+
+      - name: Install system dependencies
+        run: |
+          if [ "${{ matrix.datasource }}" = "hmdb" ]; then
+            sudo apt-get update && sudo apt-get install -y xml-twig-tools
+          fi
+
       - name: Process ${{ matrix.datasource }} datasource
         run: |
           chmod +x scripts/process_datasource.sh
