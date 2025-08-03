@@ -1,0 +1,138 @@
+name: Check and test datasource updates
+
+on:
+  workflow_dispatch:
+    inputs:
+      datasource:
+        description: 'Datasource to process (chebi, uniprot, ncbi, hmdb, hgnc, or all)'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - chebi
+          - uniprot
+          - ncbi
+          - hmdb
+          - hgnc
+  pull_request:
+    paths:
+      - '.github/workflows/unified-datasource-check.yml'
+      - 'scripts/process-datasource.sh'
+  schedule:
+    - cron: "0 0 1,15 * *"
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+  issues: write
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        run: |
+          if [[ "${{ github.event.inputs.datasource }}" == "all" || "${{ github.event.inputs.datasource }}" == "" ]]; then
+            echo 'matrix=["chebi","uniprot","ncbi","hmdb","hgnc"]' >> $GITHUB_OUTPUT
+          else
+            echo 'matrix=["${{ github.event.inputs.datasource }}"]' >> $GITHUB_OUTPUT
+          fi
+
+  process-datasources:
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        datasource: ${{fromJson(needs.setup.outputs.matrix)}}
+      fail-fast: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup dependencies
+        run: |
+          case "${{ matrix.datasource }}" in
+            uniprot|hgnc)
+              sudo apt-get update
+              sudo apt-get install -y r-base
+              ;;
+            hmdb)
+              sudo apt-get update
+              sudo apt-get install -y xml-twig-tools openjdk-11-jdk maven
+              ;;
+            chebi|ncbi)
+              sudo apt-get update
+              sudo apt-get install -y openjdk-11-jdk maven
+              ;;
+            hgnc)
+              curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+              sudo apt-get install -y nodejs
+              npm install puppeteer
+              ;;
+          esac
+
+      - name: Process datasource
+        id: process
+        run: |
+          chmod +x scripts/process-datasource.sh
+          ./scripts/process-datasource.sh "${{ matrix.datasource }}"
+
+      - name: Set proper datasource name
+        run: |
+          case "${{ matrix.datasource }}" in
+            ncbi) echo "DATASOURCE_NAME=NCBI" >> $GITHUB_ENV ;;
+            chebi) echo "DATASOURCE_NAME=ChEBI" >> $GITHUB_ENV ;;
+            hgnc) echo "DATASOURCE_NAME=HGNC" >> $GITHUB_ENV ;;
+            hmdb) echo "DATASOURCE_NAME=HMDB" >> $GITHUB_ENV ;;
+            uniprot) echo "DATASOURCE_NAME=UniProt" >> $GITHUB_ENV ;;
+          esac
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.datasource }}_processed
+          path: datasources/${{ matrix.datasource }}/recentData/*
+
+      - name: Create or update issue
+        if: env.COUNT != '0'
+        id: create_issue
+        uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE: ${{ env.DATASOURCE_NAME }}
+        with:
+          filename: .github/ISSUE_TEMPLATE/ISSUE_UPDATE.md
+          update_existing: true
+
+      - name: Bump issue with comment
+        if: env.COUNT != '0'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ steps.create_issue.outputs.number }}
+          body: |
+            Bump issue to notify about the changes in data.
+
+      - name: Post issue about failing test
+        if: env.FAILED == 'true'
+        uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE: ${{ env.DATASOURCE_NAME }}
+        with:
+          filename: .github/ISSUE_TEMPLATE/ISSUE_FAIL.md
+          update_existing: true
+
+      - name: Post issue about upstream data availability
+        if: env.ISSUE == 'true'
+        uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE: ${{ env.DATASOURCE_NAME }}
+        with:
+          filename: .github/ISSUE_TEMPLATE/ISSUE_DATA.md
+          update_existing: true
