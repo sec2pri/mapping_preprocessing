@@ -1,0 +1,88 @@
+name: Check and test datasource updates
+
+on:
+  workflow_dispatch:
+    inputs:
+      datasource:
+        description: 'Specific datasource to check (leave empty for all)'
+        required: false
+        type: choice
+        options:
+          - chebi
+          - ncbi
+          - hmdb
+          - uniprot
+          - hgnc
+  pull_request:
+    paths:
+      - '.github/workflows/datasource-updates.yml'
+      - 'scripts/*'
+  schedule:
+    - cron: "0 0 1,15 * *"
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+  issues: write
+
+jobs:
+  setup-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.setup.outputs.matrix }}
+    steps:
+      - name: Setup matrix
+        id: setup
+        run: |
+          if [ "${{ github.event.inputs.datasource }}" != "" ]; then
+            echo "matrix=[\"${{ github.event.inputs.datasource }}\"]" >> $GITHUB_OUTPUT
+          else
+            echo "matrix=[\"chebi\", \"ncbi\", \"hmdb\", \"uniprot\", \"hgnc\"]" >> $GITHUB_OUTPUT
+          fi
+
+  process-datasource:
+    needs: setup-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        datasource: ${{ fromJson(needs.setup-matrix.outputs.matrix) }}
+      fail-fast: false
+    
+    name: Process ${{ matrix.datasource }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Process ${{ matrix.datasource }} datasource
+        run: |
+          chmod +x scripts/process_datasource.sh
+          ./scripts/process_datasource.sh "${{ matrix.datasource }}"
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.datasource }}_processed
+          path: datasources/${{ matrix.datasource }}/recentData/*
+
+      - name: Create or update issue for changes
+        if: env.COUNT != '0' && env.COUNT != ''
+        uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE: ${{ matrix.datasource }}
+        with:
+          filename: .github/ISSUE_TEMPLATE/ISSUE_UPDATE.md
+          update_existing: true
+
+      - name: Create issue for failures
+        if: env.FAILED == 'true'
+        uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE: ${{ matrix.datasource }}
+        with:
+          filename: .github/ISSUE_TEMPLATE/ISSUE_FAIL.md
+          update_existing: true
