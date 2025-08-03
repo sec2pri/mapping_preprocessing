@@ -77,7 +77,7 @@ case "$DATASOURCE" in
             exit 1
         fi
         
-        # Diff logic from chebi.yml
+        # Diff
         old="datasources/chebi/data/$TO_CHECK_FROM_ZENODO"
         new="datasources/chebi/recentData/$TO_CHECK_FROM_ZENODO"
         
@@ -140,7 +140,7 @@ case "$DATASOURCE" in
             exit 1
         fi
         
-        # Diff logic from uniprot.yml
+        
         old="datasources/uniprot/data/$TO_CHECK_FROM_ZENODO"
         new="datasources/uniprot/recentData/$TO_CHECK_FROM_ZENODO"
         
@@ -183,7 +183,7 @@ case "$DATASOURCE" in
             exit 1
         fi
         
-        # Diff logic from ncbi.yml
+        
         old="datasources/ncbi/data/$TO_CHECK_FROM_ZENODO"
         new="datasources/ncbi/recentData/$TO_CHECK_FROM_ZENODO"
         
@@ -250,7 +250,7 @@ case "$DATASOURCE" in
             exit 1
         fi
         
-        # Diff logic from hmdb.yml
+        
         old="datasources/hmdb/data/$TO_CHECK_FROM_ZENODO"
         new="datasources/hmdb/recentData/$TO_CHECK_FROM_ZENODO"
         
@@ -326,7 +326,7 @@ EOF
             exit 1
         fi
         
-        # Diff logic from hgnc.yml
+        
         old="datasources/hgnc/data/$TO_CHECK_FROM_ZENODO"
         new="datasources/hgnc/recentData/$TO_CHECK_FROM_ZENODO"
         
