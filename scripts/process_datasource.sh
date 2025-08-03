@@ -79,7 +79,6 @@ case "$DATASOURCE" in
         
         echo "RELEASE_NUMBER=$release_new" >> "$GITHUB_OUTPUT"
         echo "DATE_OLD=$date_old" >> "$GITHUB_OUTPUT"
-        echo "DATE_NEW=$date_new" >> "$GITHUB_OUTPUT"
         
         # Compare dates and check if new release is available
         timestamp1=$(date -d "$date_new" +%s)
@@ -122,7 +121,7 @@ case "$DATASOURCE" in
             exit 0
         fi
         
-        # Download and process new release
+        # Download and process new release (following original exactly)
         echo "DATE_NEW=$date_new" >> "$GITHUB_ENV"
         echo "RELEASE_NUMBER=$release_new" >> "$GITHUB_ENV"
         echo "CURRENT_RELEASE_NUMBER=$release" >> "$GITHUB_ENV"
@@ -131,13 +130,27 @@ case "$DATASOURCE" in
         
         wget "http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${release_new}/SDF/ChEBI_complete_3star.sdf.gz"
         gunzip ChEBI_complete_3star.sdf.gz
+        ls  # Check file size like original
+        
+        # Set up vars from config file (like original)
+        chmod +x datasources/chebi/config
+        . datasources/chebi/config .
+        
+        # Create directories like original
+        mkdir -p datasources/chebi/recentData  # NOT mapping_preprocessing/datasources/chebi/data
+        mkdir new  # This was missing!
         
         cd java && mvn clean install assembly:single && cd ..
-        mkdir -p datasources/chebi/recentData
-        java -cp java/target/mapping_prerocessing-0.0.1-jar-with-dependencies.jar \
-            org.sec2pri.chebi_sdf "ChEBI_complete_3star.sdf" "datasources/chebi/recentData/" "$release_new"
         
-        if [ $? -eq 0 ]; then
+        inputFile="ChEBI_complete_3star.sdf"
+        outputDir="datasources/chebi/recentData/"
+        
+        # Run Java program exactly like original
+        java -cp java/target/mapping_prerocessing-0.0.1-jar-with-dependencies.jar org.sec2pri.chebi_sdf "$inputFile" "$outputDir" "${release_new}"
+        
+        # Check exit status immediately after Java command
+        java_exit_code=$?
+        if [ $java_exit_code -eq 0 ]; then
             echo "Successful preprocessing of ChEBI data."
             echo "FAILED=false" >> "$GITHUB_ENV"
         else
@@ -197,20 +210,34 @@ case "$DATASOURCE" in
         echo "DATE_NEW=$date_new" >> "$GITHUB_OUTPUT"
         echo "DATE_NEW=$date_new" >> "$GITHUB_ENV"
         
-        # Download data
+        # Download data (follow original exactly)
         mkdir -p datasources/ncbi/data
         wget https://ftp.ncbi.nih.gov/gene/DATA/gene_info.gz
         wget https://ftp.ncbi.nih.gov/gene/DATA/gene_history.gz
-        mv gene_info.gz gene_history.gz datasources/ncbi/data/
+        mv gene_info.gz gene_history.gz datasources/ncbi/data/  # Note: original has no trailing slash
+        ls -trlh datasources/ncbi/data  # Like original
         
-        # Process data
+        # Process data (follow original exactly)
         cd java && mvn clean install assembly:single && cd ..
-        mkdir -p datasources/ncbi/recentData
-        java -cp java/target/mapping_prerocessing-0.0.1-jar-with-dependencies.jar \
-            org.sec2pri.ncbi_txt "$date_new" \
-            "datasources/ncbi/data/gene_history.gz" "datasources/ncbi/data/gene_info.gz" "datasources/ncbi/recentData/"
         
-        if [ $? -eq 0 ]; then
+        # Set up vars exactly like original
+        sourceVersion=$date_new
+        gene_history="datasources/ncbi/data/gene_history.gz"
+        gene_info="datasources/ncbi/data/gene_info.gz"
+        outputDir="datasources/ncbi/recentData/"
+        mkdir -p "$outputDir"
+        
+        # Run Java program exactly like original
+        java -cp java/target/mapping_prerocessing-0.0.1-jar-with-dependencies.jar \
+            org.sec2pri.ncbi_txt "$sourceVersion" "$gene_history" "$gene_info" "$outputDir"
+        
+        # Debug output like original
+        ls -lh "$outputDir" || echo "Output directory missing"
+        ls -lh "$outputDir/NCBI_secID2priID.tsv" || echo "Output file missing"
+        
+        # Check exit status immediately after Java command
+        java_exit_code=$?
+        if [ $java_exit_code -eq 0 ]; then
             echo "Successful preprocessing of NCBI data."
             echo "FAILED=false" >> "$GITHUB_ENV"
         else
