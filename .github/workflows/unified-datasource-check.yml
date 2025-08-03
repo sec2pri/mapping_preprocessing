@@ -56,9 +56,16 @@ jobs:
       - name: Setup dependencies
         run: |
           case "${{ matrix.datasource }}" in
-            uniprot|hgnc)
+            uniprot)
               sudo apt-get update
               sudo apt-get install -y r-base
+              ;;
+            hgnc)
+              sudo apt-get update
+              sudo apt-get install -y r-base
+              curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+              sudo apt-get install -y nodejs
+              npm install puppeteer
               ;;
             hmdb)
               sudo apt-get update
@@ -67,11 +74,6 @@ jobs:
             chebi|ncbi)
               sudo apt-get update
               sudo apt-get install -y openjdk-11-jdk maven
-              ;;
-            hgnc)
-              curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-              sudo apt-get install -y nodejs
-              npm install puppeteer
               ;;
           esac
 
