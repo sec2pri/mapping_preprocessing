@@ -95,16 +95,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.datasource }}_processed
-          path: |
-            datasources/${{ matrix.datasource }}/recentData/*
-            !datasources/${{ matrix.datasource }}/recentData/column_headers.txt
-
-      - name: Upload column headers
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.datasource }}_column_headers
-          path: datasources/${{ matrix.datasource }}/recentData/column_headers.txt
+          path: datasources/${{ matrix.datasource }}/recentData/*
 
       - name: Create or update issue for changes
         if: env.COUNT != '0' && env.COUNT != ''

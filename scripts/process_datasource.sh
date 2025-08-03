@@ -9,15 +9,15 @@ simple_diff() {
     local new="$2"
     local columns="$3"
     
-    # Create headerless versions for comparison
+    # Create headerless versions for comparison ONLY
     local old_headerless="${old}.headerless"
     local new_headerless="${new}.headerless"
     
-    # Remove headers if they exist (skip first line)
+    # Remove headers if they exist (skip first line) for comparison only
     tail -n +2 "$old" > "$old_headerless" 2>/dev/null || cp "$old" "$old_headerless"
     tail -n +2 "$new" > "$new_headerless" 2>/dev/null || cp "$new" "$new_headerless"
     
-    # Extract and sort data
+    # Extract and sort data from headerless versions
     cut -f "$columns" "$old_headerless" | sort | tr -d "\r" > ids_old.txt
     cut -f "$columns" "$new_headerless" | sort | tr -d "\r" > ids_new.txt
     
@@ -29,8 +29,8 @@ simple_diff() {
     count_added=$(echo "$added" | grep -c '^' || echo 0)
     count_removed=$(echo "$removed" | grep -c '^' || echo 0)
     
-    if [ -z "$added" ]; then count_added=0; added="None"; fi
-    if [ -z "$removed" ]; then count_removed=0; removed="None"; fi
+    if [ -z "$added" ]; then count_added=0; fi
+    if [ -z "$removed" ]; then count_removed=0; fi
     
     echo "=== DIFF RESULTS ==="
     echo "Added: $count_added"
@@ -48,6 +48,7 @@ simple_diff() {
         echo "CHANGE=$change_percent"
     } >> "$GITHUB_ENV"
     
+    # Clean up temporary files only
     rm -f ids_old.txt ids_new.txt "$old_headerless" "$new_headerless"
 }
 
