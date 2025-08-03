@@ -3,289 +3,255 @@ set -e
 
 DATASOURCE="$1"
 
-# Simple diff comparison using the original logic
-simple_diff() {
-    local old="$1"
-    local new="$2"
-    local columns="$3"
-    
-    # Create headerless versions for comparison ONLY
-    local old_headerless="${old}.headerless"
-    local new_headerless="${new}.headerless"
-    
-    # Remove headers if they exist (skip first line) for comparison only
-    tail -n +2 "$old" > "$old_headerless" 2>/dev/null || cp "$old" "$old_headerless"
-    tail -n +2 "$new" > "$new_headerless" 2>/dev/null || cp "$new" "$new_headerless"
-    
-    # Extract and sort data from headerless versions
-    cut -f "$columns" "$old_headerless" | sort | tr -d "\r" > ids_old.txt
-    cut -f "$columns" "$new_headerless" | sort | tr -d "\r" > ids_new.txt
-    
-    # Use comm for clean comparison
-    added=$(comm -13 ids_old.txt ids_new.txt)
-    removed=$(comm -23 ids_old.txt ids_new.txt)
-    
-    # Count changes
-    count_added=$(echo "$added" | grep -c '^' || echo 0)
-    count_removed=$(echo "$removed" | grep -c '^' || echo 0)
-    
-    if [ -z "$added" ]; then count_added=0; fi
-    if [ -z "$removed" ]; then count_removed=0; fi
-    
-    echo "=== DIFF RESULTS ==="
-    echo "Added: $count_added"
-    echo "Removed: $count_removed"
-    
-    # Export results
-    total_changes=$((count_added + count_removed))
-    total_old=$(wc -l < "$old_headerless")
-    change_percent=$((total_old > 0 ? 100 * total_changes / total_old : 0))
-    
-    {
-        echo "ADDED=$count_added"
-        echo "REMOVED=$count_removed"
-        echo "COUNT=$total_changes"
-        echo "CHANGE=$change_percent"
-    } >> "$GITHUB_ENV"
-    
-    # Clean up temporary files only
-    rm -f ids_old.txt ids_new.txt "$old_headerless" "$new_headerless"
-}
-
-# Function to save column headers separately
-save_column_headers() {
-    local datasource="$1"
-    local main_file="$2"
-    
-    if [ -f "$main_file" ]; then
-        # Extract header and save to separate file
-        head -n 1 "$main_file" > "datasources/$datasource/recentData/column_headers.txt"
-        echo "Column headers saved to column_headers.txt"
-    fi
-}
-
 case "$DATASOURCE" in
     "chebi")
-        # Original ChEBI logic with proper version checking
-        . datasources/chebi/config
+        # EXACT COPY from original ChEBI workflow - check_new_release job
+        . datasources/chebi/config .
         echo 'Accessing the ChEBI archive'
         wget http://ftp.ebi.ac.uk/pub/databases/chebi/archive/ -O chebi_index.html
-        echo "CURRENT_RELEASE_NUMBER=$release" >> "$GITHUB_OUTPUT"
+        echo "CURRENT_RELEASE_NUMBER=$release" >> $GITHUB_OUTPUT
         
-        # Extract date and release number from latest release
         date_new=$(tail -4 chebi_index.html | head -1 | grep -oP '<td align="right">\K[0-9-]+\s[0-9:]+(?=\s+</td>)' | awk '{print $1}')
-        release_new=$(tail -4 chebi_index.html | head -1 | grep -oP '(?<=a href="rel)\d\d\d')
+        release=$(tail -4 chebi_index.html | head -1 | grep -oP '(?<=a href="rel)\d\d\d')
+        echo "RELEASE_NUMBER=$release" >> $GITHUB_OUTPUT
         date_old=$date
+        echo "DATE_OLD=$date_old" >> $GITHUB_OUTPUT
+        echo "DATE_NEW=$date_new" >> $GITHUB_OUTPUT
         
-        echo "RELEASE_NUMBER=$release_new" >> "$GITHUB_OUTPUT"
-        echo "DATE_OLD=$date_old" >> "$GITHUB_OUTPUT"
-        
-        # Compare dates and check if new release is available
         timestamp1=$(date -d "$date_new" +%s)
         timestamp2=$(date -d "$date_old" +%s)
-        
         if [ "$timestamp1" -gt "$timestamp2" ]; then
-            # Retry logic for checking file accessibility (from original)
+            # Retry logic for checking file accessibility
             max_retries=5
             retry_count=0
             success=false
 
             while [ $retry_count -lt $max_retries ]; do
-                response=$(curl -o /dev/null -s -w "%{http_code}" "http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${release_new}/SDF/ChEBI_complete_3star.sdf.gz")
-                curl_exit_code=$?
+              response=$(curl -o /dev/null -s -w "%{http_code}" "http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${release}/SDF/ChEBI_complete_3star.sdf.gz")
+              curl_exit_code=$?
 
-                if [ $curl_exit_code -eq 0 ] && [ "$response" -eq 200 ]; then
-                    echo "File is accessible, response code: $response"
-                    echo "New release available: $release_new"
-                    echo "NEW_RELEASE=true" >> "$GITHUB_OUTPUT"
-                    success=true
-                    break
-                else
-                    echo "Attempt $((retry_count + 1)) failed. Response code: $response, curl exit code: $curl_exit_code"
-                    echo "Retrying in 1 minute..."
-                    sleep 60
-                    retry_count=$((retry_count + 1))
-                fi
+              if [ $curl_exit_code -eq 0 ] && [ "$response" -eq 200 ]; then
+              echo "File is accessible, response code: $response"
+              echo "New release available: $release"
+              echo "NEW_RELEASE=true" >> "$GITHUB_OUTPUT"
+              success=true
+              break
+              else
+              echo "Attempt $((retry_count + 1)) failed. Response code: $response, curl exit code: $curl_exit_code"
+              echo "Retrying in 1 minute..."
+              sleep 60
+              retry_count=$((retry_count + 1))
+              fi
             done
 
             if [ "$success" = false ]; then
-                echo "Error: Unable to access latest ChEBI release (rel${release_new}) after $max_retries attempts"
-                echo "FAILED=true" >> "$GITHUB_ENV"
-                echo "ISSUE=true" >> "$GITHUB_ENV"
-                exit 1
+              echo "Error: Unable to access latest ChEBI release (rel${release}) after $max_retries attempts"
+              echo "FAILED=true" >> "$GITHUB_ENV"
+              echo "ISSUE=true" >> "$GITHUB_ENV"
+              echo "NEW_RELEASE=false" >> "$GITHUB_OUTPUT"
+              exit 1
             fi
         else
             echo "No new release available"
-            echo "NEW_RELEASE=false" >> "$GITHUB_OUTPUT"
             echo "COUNT=0" >> "$GITHUB_ENV"
             exit 0
         fi
-        
-        # Download and process new release (following original exactly)
-        echo "DATE_NEW=$date_new" >> "$GITHUB_ENV"
-        echo "RELEASE_NUMBER=$release_new" >> "$GITHUB_ENV"
-        echo "CURRENT_RELEASE_NUMBER=$release" >> "$GITHUB_ENV"
-        url_release="http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel$release_new/SDF/"
-        echo "URL_RELEASE=$url_release" >> "$GITHUB_ENV"
-        
-        wget "http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${release_new}/SDF/ChEBI_complete_3star.sdf.gz"
+        echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
+        rm chebi_index.html
+
+        # EXACT COPY from original ChEBI workflow - test_sdf_processing job
+        echo "$DATE_NEW=$DATE_NEW" >> $GITHUB_ENV
+        echo $RELEASE_NUMBER
+        echo "RELEASE_NUMBER=$RELEASE_NUMBER" >> $GITHUB_ENV
+        echo "CURRENT_RELEASE_NUMBER=$CURRENT_RELEASE_NUMBER" >> $GITHUB_ENV
+        url_release="http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel$RELEASE_NUMBER/SDF/"
+        echo "URL_RELEASE=$url_release" >> $GITHUB_ENV
+        wget "http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${RELEASE_NUMBER}/SDF/ChEBI_complete_3star.sdf.gz"
         gunzip ChEBI_complete_3star.sdf.gz
-        ls  # Check file size like original
-        
-        # Set up vars from config file (like original)
+        ls
         chmod +x datasources/chebi/config
         . datasources/chebi/config .
-        
-        # Create directories like original
-        mkdir -p datasources/chebi/recentData  # NOT mapping_preprocessing/datasources/chebi/data
-        mkdir new  # This was missing!
-        
-        cd java && mvn clean install assembly:single && cd ..
-        
-        inputFile="ChEBI_complete_3star.sdf"
+        mkdir -p mapping_preprocessing/datasources/chebi/data
+
+        inputFile="ChEBI_complete_3star.sdf" 
+        mkdir new
+        cd java
+        mvn clean install assembly:single
+        cd ../
         outputDir="datasources/chebi/recentData/"
-        
-        # Run Java program exactly like original
-        java -cp java/target/mapping_prerocessing-0.0.1-jar-with-dependencies.jar org.sec2pri.chebi_sdf "$inputFile" "$outputDir" "${release_new}"
-        
-        # Check exit status immediately after Java command
-        java_exit_code=$?
-        if [ $java_exit_code -eq 0 ]; then
+        java -cp java/target/mapping_prerocessing-0.0.1-jar-with-dependencies.jar org.sec2pri.chebi_sdf "$inputFile" "$outputDir" "${RELEASE_NUMBER}"
+        if [ $? -eq 0 ]; then
             echo "Successful preprocessing of ChEBI data."
-            echo "FAILED=false" >> "$GITHUB_ENV"
+            echo "FAILED=false" >> $GITHUB_ENV
         else
             echo "Failed preprocessing of ChEBI data."
-            echo "FAILED=true" >> "$GITHUB_ENV"
+            echo "FAILED=true" >> $GITHUB_ENV
             exit 1
         fi
-        
-        # Compare versions with ID validation (from original)
-        . datasources/chebi/config
+
+        # EXACT COPY from original ChEBI workflow - RegEx and Diff test
+        chmod +x datasources/chebi/config
+        . datasources/chebi/config .
         old="datasources/chebi/data/$to_check_from_zenodo"
         new="datasources/chebi/recentData/$to_check_from_zenodo"
-        
-        # Save column headers before comparison
-        save_column_headers "chebi" "$new"
-        
-        # QC integrity of IDs (use headerless version)
         wget -nc https://raw.githubusercontent.com/bridgedb/datasources/main/datasources.tsv
         CHEBI_ID=$(awk -F '\t' '$1 == "ChEBI" {print $10}' datasources.tsv)
-        
-        # Split the file into two separate files for each column (skip header)
-        tail -n +2 "$new" | awk -F '\t' '{print $1}' > column1.txt
-        tail -n +2 "$new" | awk -F '\t' '{print $2}' > column2.txt
+        awk -F '\t' '{print $1}' $new > column1.txt
+        awk -F '\t' '{print $2}' $new > column2.txt
 
-        # Use grep to check if any line in the primary column doesn't match the pattern
         if ! grep -qvE "$CHEBI_ID" "column1.txt"; then
-            echo "All lines in the primary column match the pattern."
+          echo "All lines in the primary column match the pattern."
         else
-            echo "Error: At least one line in the primary column does not match pattern."
-            grep -nvE "$CHEBI_ID" "column1.txt"
-            echo "FAILED=true" >> "$GITHUB_ENV"
-            exit 1
+          echo "Error: At least one line in the primary column does not match pattern."
+          grep -nvE "^$CHEBI_ID$" "column1.txt"
+          echo "FAILED=true" >> $GITHUB_ENV
+          exit 1
         fi
 
-        # Use grep to check if any line in the secondary column doesn't match the pattern
-        if ! grep -qvE "$CHEBI_ID" "column2.txt"; then
-            echo "All lines in the secondary column match the pattern."
+        if ! grep -qvE "$CHEBI_ID" "column1.txt"; then
+          echo "All lines in the secondary column match the pattern."
         else
-            echo "Error: At least one line in the secondary column does not match pattern."
-            grep -nvE "$CHEBI_ID" "column2.txt"
-            echo "FAILED=true" >> "$GITHUB_ENV"
-            exit 1
+          echo "Error: At least one line in the secondary column does not match pattern."
+          grep -nqvE "$CHEBI_ID" "column2.txt"
+          echo "FAILED=true" >> $GITHUB_ENV
+          exit 1
         fi
-        
-        simple_diff "$old" "$new" "1,2"
-        
-        rm -f chebi_index.html column1.txt column2.txt
+
+        cat "$old" | sort | tr -d "\r" > ids_old.txt
+        cat "$new" | sort | tr -d "\r" > ids_new.txt
+        echo "Performing diff between the sorted lists of IDs"
+        output_file=diff.txt
+        diff -u ids_old.txt ids_new.txt > $output_file || true
+        added=$(grep '^+CHEBI' "$output_file" | sed 's/-//g') || true
+        removed=$(grep '^-' "$output_file" | sed 's/-//g') || true
+        added_filtered=$(comm -23 <(sort <<< "$added") <(sort <<< "$removed"))
+        removed_filtered=$(comm -23 <(sort <<< "$removed") <(sort <<< "$added"))
+        added=$added_filtered
+        removed=$removed_filtered
+        count_removed=$(printf "$removed" | wc -l) || true
+        count_added=$(printf "$added" | wc -l) || true
+        if [ -z "$removed" ]; then
+         count_removed=0
+         removed="None"
+        fi
+        if [ -z "$added" ]; then
+         count_added=0
+         added="None"
+        fi
+        echo "ADDED=$count_added" >> $GITHUB_ENV
+        echo "REMOVED=$count_removed" >> $GITHUB_ENV
+        count=$(expr $count_added + $count_removed) || true
+        echo "COUNT=$count" >> $GITHUB_ENV
+        total_old=$(cat "$old" | wc -l) || true 
+        change=$((100 * count / total_old))
+        echo "CHANGE=$change" >> $GITHUB_ENV
+
+        rm -f chebi_index.html column1.txt column2.txt ids_old.txt ids_new.txt diff.txt
         ;;
-        
+
     "ncbi")
-        # Original NCBI logic
+        # EXACT COPY from original NCBI workflow - check_new_data job
         date_old=$(grep -E '^date=' datasources/ncbi/config | cut -d'=' -f2)
+        echo 'Accessing the ncbi data'
         last_modified=$(curl -sI https://ftp.ncbi.nih.gov/gene/DATA/gene_history.gz | grep -i Last-Modified)
         date_new=$(echo $last_modified | cut -d':' -f2- | xargs -I {} date -d "{}" +%Y-%m-%d)
-        
-        echo "DATE_OLD=$date_old" >> "$GITHUB_OUTPUT"
-        echo "DATE_NEW=$date_new" >> "$GITHUB_OUTPUT"
-        echo "DATE_NEW=$date_new" >> "$GITHUB_ENV"
-        
-        # Download data (follow original exactly)
+        echo "DATE_OLD=$date_old" >> $GITHUB_OUTPUT
+        echo "DATE_NEW=$date_new" >> $GITHUB_OUTPUT
+        echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
+
+        # EXACT COPY from original NCBI workflow - test_new_data_processing job
+        echo "$DATE_NEW=$DATE_NEW" >> $GITHUB_ENV
         mkdir -p datasources/ncbi/data
         wget https://ftp.ncbi.nih.gov/gene/DATA/gene_info.gz
         wget https://ftp.ncbi.nih.gov/gene/DATA/gene_history.gz
-        mv gene_info.gz gene_history.gz datasources/ncbi/data/  # Note: original has no trailing slash
-        ls -trlh datasources/ncbi/data  # Like original
-        
-        # Process data (follow original exactly)
-        cd java && mvn clean install assembly:single && cd ..
-        
-        # Set up vars exactly like original
-        sourceVersion=$date_new
+        mv gene_info.gz gene_history.gz datasources/ncbi/data
+        ls -trlh datasources/ncbi/data
+
+        cd java
+        mvn clean install assembly:single
+        cd ../
+        sourceVersion=$DATE_NEW
         gene_history="datasources/ncbi/data/gene_history.gz"
         gene_info="datasources/ncbi/data/gene_info.gz"
         outputDir="datasources/ncbi/recentData/"
         mkdir -p "$outputDir"
-        
-        # Run Java program exactly like original
         java -cp java/target/mapping_prerocessing-0.0.1-jar-with-dependencies.jar \
             org.sec2pri.ncbi_txt "$sourceVersion" "$gene_history" "$gene_info" "$outputDir"
         
-        # Debug output like original
         ls -lh "$outputDir" || echo "Output directory missing"
         ls -lh "$outputDir/NCBI_secID2priID.tsv" || echo "Output file missing"
-        
-        # Check exit status immediately after Java command
-        java_exit_code=$?
-        if [ $java_exit_code -eq 0 ]; then
+        if [ $? -eq 0 ]; then
             echo "Successful preprocessing of NCBI data."
-            echo "FAILED=false" >> "$GITHUB_ENV"
+            echo "FAILED=false" >> $GITHUB_ENV
         else
             echo "Failed preprocessing of NCBI data."
-            echo "FAILED=true" >> "$GITHUB_ENV"
+            echo "FAILED=true" >> $GITHUB_ENV
             exit 1
         fi
-        
-        # Compare versions with ID validation
+
+        # EXACT COPY from original NCBI workflow - Diff versions step
         to_check_from_zenodo=$(grep -E '^to_check_from_zenodo=' datasources/ncbi/config | cut -d'=' -f2)
         old="datasources/ncbi/data/$to_check_from_zenodo"
         new="datasources/ncbi/recentData/$to_check_from_zenodo"
-        
-        unzip -o datasources/ncbi/data/NCBI_secID2priID.zip -d datasources/ncbi/data/ || true
-        
-        # Save column headers before comparison
-        save_column_headers "ncbi" "$new"
-        
-        # QC integrity of IDs (use headerless version)
+        column_name="secondaryID"
+        echo $column_name
+
+        unzip -o datasources/ncbi/data/NCBI_secID2priID.zip -d datasources/ncbi/data/
         wget -nc https://raw.githubusercontent.com/bridgedb/datasources/main/datasources.tsv
         NCBI_ID=$(awk -F '\t' '$1 == "Entrez Gene" {print $10}' datasources.tsv)
-        
-        # Split the file into two separate files for each column (skip header)
-        tail -n +2 "$new" | awk -F '\t' '{print $1}' > column1.txt
-        tail -n +2 "$new" | awk -F '\t' '{print $2}' > column2.txt
-
-        # Use grep to check if any line in the primary column doesn't match the pattern
+        awk -F '\t' '{print $1}' $new > column1.txt
+        awk -F '\t' '{print $2}' $new > column2.txt
+                
         if ! grep -qvE "$NCBI_ID" "column1.txt"; then
-            echo "All lines in the primary column match the pattern."
+          echo "All lines in the primary column match the pattern."
         else
-            echo "Error: At least one line in the primary column does not match pattern."
-            grep -nvE "$NCBI_ID" "column1.txt"
-            echo "FAILED=true" >> "$GITHUB_ENV"
-            exit 1
+          echo "Error: At least one line in the primary column does not match pattern."
+          grep -nvE "^$NCBI_ID$" "column1.txt"
+          echo "FAILED=true" >> $GITHUB_ENV
+          exit 1
+        fi
+                
+        if ! grep -qvE "$NCBI_ID" "column1.txt"; then
+          echo "All lines in the secondary column match the pattern."
+        else
+          echo "Error: At least one line in the secondary column does not match pattern."
+          grep -nqvE "$NCBI_ID" "column2.txt"
+          echo "FAILED=true" >> $GITHUB_ENV
+          exit 1
         fi
 
-        # Use grep to check if any line in the secondary column doesn't match the pattern
-        if ! grep -qvE "$NCBI_ID" "column2.txt"; then
-            echo "All lines in the secondary column match the pattern."
-        else
-            echo "Error: At least one line in the secondary column does not match pattern."
-            grep -nvE "$NCBI_ID" "column2.txt"
-            echo "FAILED=true" >> "$GITHUB_ENV"
-            exit 1
+        cat "$old" | sort | tr -d "\r" | cut -f 1,3 > ids_old.txt
+        cat "$new" | sort | tr -d "\r" | cut -f 1,3 > ids_new.txt
+
+        echo "Performing diff between the sorted lists of IDs"
+        output_file=diff.txt
+        diff -u ids_old.txt ids_new.txt > $output_file || true
+        added=$(grep '^+' "$output_file" | sed 's/+//g') || true
+        removed=$(grep '^-' "$output_file" | sed 's/-//g') || true
+        added_filtered=$(comm -23 <(sort <<< "$added") <(sort <<< "$removed"))
+        removed_filtered=$(comm -23 <(sort <<< "$removed") <(sort <<< "$added"))
+        added=$added_filtered
+        removed=$removed_filtered
+        count_removed=$(printf "$removed" | wc -l) || true
+        count_added=$(printf "$added" | wc -l) || true
+
+        if [ -z "$removed" ]; then
+         count_removed=0
+         removed="None"
         fi
-        
-        simple_diff "$old" "$new" "1,3"
-        rm -f column1.txt column2.txt
+        if [ -z "$added" ]; then
+         count_added=0
+         added="None"
+        fi
+        echo "ADDED=$count_added" >> $GITHUB_ENV
+        echo "REMOVED=$count_removed" >> $GITHUB_ENV
+        count=$(expr $count_added + $count_removed) || true
+        echo "COUNT=$count" >> $GITHUB_ENV
+        total_old=$(cat "$old" | wc -l) || true 
+        change=$((100 * count / total_old))
+        echo "CHANGE=$change" >> $GITHUB_ENV
+
+        rm -f column1.txt column2.txt ids_old.txt ids_new.txt diff.txt
         ;;
         
     "hmdb")

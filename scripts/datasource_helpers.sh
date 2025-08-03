@@ -91,5 +91,3 @@ EOF
     echo "WITHDRAWN_NEW=$withdrawn" >> $GITHUB_OUTPUT
     rm hgnc_index.html download.js
 }
-
-# Additional helper functions for download_datasource_data, setup_environment, process_datasource_data...
