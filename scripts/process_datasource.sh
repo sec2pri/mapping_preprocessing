@@ -9,9 +9,17 @@ simple_diff() {
     local new="$2"
     local columns="$3"
     
+    # Create headerless versions for comparison
+    local old_headerless="${old}.headerless"
+    local new_headerless="${new}.headerless"
+    
+    # Remove headers if they exist (skip first line)
+    tail -n +2 "$old" > "$old_headerless" 2>/dev/null || cp "$old" "$old_headerless"
+    tail -n +2 "$new" > "$new_headerless" 2>/dev/null || cp "$new" "$new_headerless"
+    
     # Extract and sort data
-    cut -f "$columns" "$old" | sort | tr -d "\r" > ids_old.txt
-    cut -f "$columns" "$new" | sort | tr -d "\r" > ids_new.txt
+    cut -f "$columns" "$old_headerless" | sort | tr -d "\r" > ids_old.txt
+    cut -f "$columns" "$new_headerless" | sort | tr -d "\r" > ids_new.txt
     
     # Use comm for clean comparison
     added=$(comm -13 ids_old.txt ids_new.txt)
@@ -30,7 +38,7 @@ simple_diff() {
     
     # Export results
     total_changes=$((count_added + count_removed))
-    total_old=$(wc -l < "$old")
+    total_old=$(wc -l < "$old_headerless")
     change_percent=$((total_old > 0 ? 100 * total_changes / total_old : 0))
     
     {
@@ -40,45 +48,142 @@ simple_diff() {
         echo "CHANGE=$change_percent"
     } >> "$GITHUB_ENV"
     
-    rm -f ids_old.txt ids_new.txt
+    rm -f ids_old.txt ids_new.txt "$old_headerless" "$new_headerless"
+}
+
+# Function to save column headers separately
+save_column_headers() {
+    local datasource="$1"
+    local main_file="$2"
+    
+    if [ -f "$main_file" ]; then
+        # Extract header and save to separate file
+        head -n 1 "$main_file" > "datasources/$datasource/recentData/column_headers.txt"
+        echo "Column headers saved to column_headers.txt"
+    fi
 }
 
 case "$DATASOURCE" in
     "chebi")
-        # Original ChEBI logic
+        # Original ChEBI logic with proper version checking
         . datasources/chebi/config
+        echo 'Accessing the ChEBI archive'
         wget http://ftp.ebi.ac.uk/pub/databases/chebi/archive/ -O chebi_index.html
+        echo "CURRENT_RELEASE_NUMBER=$release" >> "$GITHUB_OUTPUT"
+        
+        # Extract date and release number from latest release
         date_new=$(tail -4 chebi_index.html | head -1 | grep -oP '<td align="right">\K[0-9-]+\s[0-9:]+(?=\s+</td>)' | awk '{print $1}')
-        release=$(tail -4 chebi_index.html | head -1 | grep -oP '(?<=a href="rel)\d\d\d')
+        release_new=$(tail -4 chebi_index.html | head -1 | grep -oP '(?<=a href="rel)\d\d\d')
         date_old=$date
         
+        echo "RELEASE_NUMBER=$release_new" >> "$GITHUB_OUTPUT"
         echo "DATE_OLD=$date_old" >> "$GITHUB_OUTPUT"
         echo "DATE_NEW=$date_new" >> "$GITHUB_OUTPUT"
-        echo "RELEASE_NUMBER=$release" >> "$GITHUB_OUTPUT"
         
-        # Download and process
-        wget "http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${release}/SDF/ChEBI_complete_3star.sdf.gz"
+        # Compare dates and check if new release is available
+        timestamp1=$(date -d "$date_new" +%s)
+        timestamp2=$(date -d "$date_old" +%s)
+        
+        if [ "$timestamp1" -gt "$timestamp2" ]; then
+            # Retry logic for checking file accessibility (from original)
+            max_retries=5
+            retry_count=0
+            success=false
+
+            while [ $retry_count -lt $max_retries ]; do
+                response=$(curl -o /dev/null -s -w "%{http_code}" "http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${release_new}/SDF/ChEBI_complete_3star.sdf.gz")
+                curl_exit_code=$?
+
+                if [ $curl_exit_code -eq 0 ] && [ "$response" -eq 200 ]; then
+                    echo "File is accessible, response code: $response"
+                    echo "New release available: $release_new"
+                    echo "NEW_RELEASE=true" >> "$GITHUB_OUTPUT"
+                    success=true
+                    break
+                else
+                    echo "Attempt $((retry_count + 1)) failed. Response code: $response, curl exit code: $curl_exit_code"
+                    echo "Retrying in 1 minute..."
+                    sleep 60
+                    retry_count=$((retry_count + 1))
+                fi
+            done
+
+            if [ "$success" = false ]; then
+                echo "Error: Unable to access latest ChEBI release (rel${release_new}) after $max_retries attempts"
+                echo "FAILED=true" >> "$GITHUB_ENV"
+                echo "ISSUE=true" >> "$GITHUB_ENV"
+                exit 1
+            fi
+        else
+            echo "No new release available"
+            echo "NEW_RELEASE=false" >> "$GITHUB_OUTPUT"
+            echo "COUNT=0" >> "$GITHUB_ENV"
+            exit 0
+        fi
+        
+        # Download and process new release
+        echo "DATE_NEW=$date_new" >> "$GITHUB_ENV"
+        echo "RELEASE_NUMBER=$release_new" >> "$GITHUB_ENV"
+        echo "CURRENT_RELEASE_NUMBER=$release" >> "$GITHUB_ENV"
+        url_release="http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel$release_new/SDF/"
+        echo "URL_RELEASE=$url_release" >> "$GITHUB_ENV"
+        
+        wget "http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${release_new}/SDF/ChEBI_complete_3star.sdf.gz"
         gunzip ChEBI_complete_3star.sdf.gz
         
         cd java && mvn clean install assembly:single && cd ..
         mkdir -p datasources/chebi/recentData
         java -cp java/target/mapping_prerocessing-0.0.1-jar-with-dependencies.jar \
-            org.sec2pri.chebi_sdf "ChEBI_complete_3star.sdf" "datasources/chebi/recentData/" "$release"
+            org.sec2pri.chebi_sdf "ChEBI_complete_3star.sdf" "datasources/chebi/recentData/" "$release_new"
         
         if [ $? -eq 0 ]; then
+            echo "Successful preprocessing of ChEBI data."
             echo "FAILED=false" >> "$GITHUB_ENV"
         else
+            echo "Failed preprocessing of ChEBI data."
             echo "FAILED=true" >> "$GITHUB_ENV"
             exit 1
         fi
         
-        # Compare versions - original ChEBI uses basic diff
+        # Compare versions with ID validation (from original)
         . datasources/chebi/config
         old="datasources/chebi/data/$to_check_from_zenodo"
         new="datasources/chebi/recentData/$to_check_from_zenodo"
+        
+        # Save column headers before comparison
+        save_column_headers "chebi" "$new"
+        
+        # QC integrity of IDs (use headerless version)
+        wget -nc https://raw.githubusercontent.com/bridgedb/datasources/main/datasources.tsv
+        CHEBI_ID=$(awk -F '\t' '$1 == "ChEBI" {print $10}' datasources.tsv)
+        
+        # Split the file into two separate files for each column (skip header)
+        tail -n +2 "$new" | awk -F '\t' '{print $1}' > column1.txt
+        tail -n +2 "$new" | awk -F '\t' '{print $2}' > column2.txt
+
+        # Use grep to check if any line in the primary column doesn't match the pattern
+        if ! grep -qvE "$CHEBI_ID" "column1.txt"; then
+            echo "All lines in the primary column match the pattern."
+        else
+            echo "Error: At least one line in the primary column does not match pattern."
+            grep -nvE "$CHEBI_ID" "column1.txt"
+            echo "FAILED=true" >> "$GITHUB_ENV"
+            exit 1
+        fi
+
+        # Use grep to check if any line in the secondary column doesn't match the pattern
+        if ! grep -qvE "$CHEBI_ID" "column2.txt"; then
+            echo "All lines in the secondary column match the pattern."
+        else
+            echo "Error: At least one line in the secondary column does not match pattern."
+            grep -nvE "$CHEBI_ID" "column2.txt"
+            echo "FAILED=true" >> "$GITHUB_ENV"
+            exit 1
+        fi
+        
         simple_diff "$old" "$new" "1,2"
         
-        rm -f chebi_index.html
+        rm -f chebi_index.html column1.txt column2.txt
         ;;
         
     "ncbi")
@@ -89,6 +194,7 @@ case "$DATASOURCE" in
         
         echo "DATE_OLD=$date_old" >> "$GITHUB_OUTPUT"
         echo "DATE_NEW=$date_new" >> "$GITHUB_OUTPUT"
+        echo "DATE_NEW=$date_new" >> "$GITHUB_ENV"
         
         # Download data
         mkdir -p datasources/ncbi/data
@@ -104,22 +210,58 @@ case "$DATASOURCE" in
             "datasources/ncbi/data/gene_history.gz" "datasources/ncbi/data/gene_info.gz" "datasources/ncbi/recentData/"
         
         if [ $? -eq 0 ]; then
+            echo "Successful preprocessing of NCBI data."
             echo "FAILED=false" >> "$GITHUB_ENV"
         else
+            echo "Failed preprocessing of NCBI data."
             echo "FAILED=true" >> "$GITHUB_ENV"
             exit 1
         fi
         
-        # Compare versions
+        # Compare versions with ID validation
         to_check_from_zenodo=$(grep -E '^to_check_from_zenodo=' datasources/ncbi/config | cut -d'=' -f2)
         old="datasources/ncbi/data/$to_check_from_zenodo"
         new="datasources/ncbi/recentData/$to_check_from_zenodo"
+        
         unzip -o datasources/ncbi/data/NCBI_secID2priID.zip -d datasources/ncbi/data/ || true
+        
+        # Save column headers before comparison
+        save_column_headers "ncbi" "$new"
+        
+        # QC integrity of IDs (use headerless version)
+        wget -nc https://raw.githubusercontent.com/bridgedb/datasources/main/datasources.tsv
+        NCBI_ID=$(awk -F '\t' '$1 == "Entrez Gene" {print $10}' datasources.tsv)
+        
+        # Split the file into two separate files for each column (skip header)
+        tail -n +2 "$new" | awk -F '\t' '{print $1}' > column1.txt
+        tail -n +2 "$new" | awk -F '\t' '{print $2}' > column2.txt
+
+        # Use grep to check if any line in the primary column doesn't match the pattern
+        if ! grep -qvE "$NCBI_ID" "column1.txt"; then
+            echo "All lines in the primary column match the pattern."
+        else
+            echo "Error: At least one line in the primary column does not match pattern."
+            grep -nvE "$NCBI_ID" "column1.txt"
+            echo "FAILED=true" >> "$GITHUB_ENV"
+            exit 1
+        fi
+
+        # Use grep to check if any line in the secondary column doesn't match the pattern
+        if ! grep -qvE "$NCBI_ID" "column2.txt"; then
+            echo "All lines in the secondary column match the pattern."
+        else
+            echo "Error: At least one line in the secondary column does not match pattern."
+            grep -nvE "$NCBI_ID" "column2.txt"
+            echo "FAILED=true" >> "$GITHUB_ENV"
+            exit 1
+        fi
+        
         simple_diff "$old" "$new" "1,3"
+        rm -f column1.txt column2.txt
         ;;
         
     "hmdb")
-        # Original HMDB logic
+        # Original HMDB logic with version checking
         date_old=$(grep -E '^date=' datasources/hmdb/config | cut -d'=' -f2)
         wget http://www.hmdb.ca/system/downloads/current/hmdb_metabolites.zip
         unzip hmdb_metabolites.zip
@@ -127,6 +269,20 @@ case "$DATASOURCE" in
         
         echo "DATE_OLD=$date_old" >> "$GITHUB_OUTPUT"
         echo "DATE_NEW=$date_new" >> "$GITHUB_OUTPUT"
+        echo "DATE_NEW=$date_new" >> "$GITHUB_ENV"
+        
+        # Compare dates and set variable if date_new is more recent
+        timestamp1=$(date -d "$date_new" +%s)
+        timestamp2=$(date -d "$date_old" +%s)
+        if [ "$timestamp1" -gt "$timestamp2" ]; then
+            echo "New release available"
+            echo "NEW_RELEASE=true" >> "$GITHUB_OUTPUT"
+        else
+            echo "No new release available"
+            echo "NEW_RELEASE=false" >> "$GITHUB_OUTPUT"
+            echo "COUNT=0" >> "$GITHUB_ENV"
+            exit 0
+        fi
         
         # Process XML
         mkdir hmdb
@@ -141,17 +297,52 @@ case "$DATASOURCE" in
             org.sec2pri.hmdb_xml "hmdb_metabolites_split.zip" "datasources/hmdb/recentData/"
         
         if [ $? -eq 0 ]; then
+            echo "Successful preprocessing of HMDB data."
             echo "FAILED=false" >> "$GITHUB_ENV"
         else
+            echo "Failed preprocessing of HMDB data."
             echo "FAILED=true" >> "$GITHUB_ENV"
             exit 1
         fi
         
-        # Compare versions
+        # Compare versions with ID validation
         to_check_from_zenodo=$(grep -E '^to_check_from_zenodo=' datasources/hmdb/config | cut -d'=' -f2)
         old="datasources/hmdb/data/$to_check_from_zenodo"
         new="datasources/hmdb/recentData/$to_check_from_zenodo"
+        
+        # Save column headers before comparison
+        save_column_headers "hmdb" "$new"
+        
+        # QC integrity of IDs (use headerless version)
+        wget -nc https://raw.githubusercontent.com/bridgedb/datasources/main/datasources.tsv
+        HMDB_ID=$(awk -F '\t' '$1 == "HMDB" {print $10}' datasources.tsv)
+        
+        # Split the file into two separate files for each column (skip header)
+        tail -n +2 "$new" | awk -F '\t' '{print $1}' > column1.txt
+        tail -n +2 "$new" | awk -F '\t' '{print $2}' > column2.txt
+
+        # Use grep to check if any line in the primary column doesn't match the pattern
+        if ! grep -qvE "$HMDB_ID" "column1.txt"; then
+            echo "All lines in the primary column match the pattern."
+        else
+            echo "Error: At least one line in the primary column does not match pattern."
+            grep -nvE "$HMDB_ID" "column1.txt"
+            echo "FAILED=true" >> "$GITHUB_ENV"
+            exit 1
+        fi
+
+        # Use grep to check if any line in the secondary column doesn't match the pattern
+        if ! grep -qvE "$HMDB_ID" "column2.txt"; then
+            echo "All lines in the secondary column match the pattern."
+        else
+            echo "Error: At least one line in the secondary column does not match pattern."
+            grep -nvE "$HMDB_ID" "column2.txt"
+            echo "FAILED=true" >> "$GITHUB_ENV"
+            exit 1
+        fi
+        
         simple_diff "$old" "$new" "1,2"
+        rm -f column1.txt column2.txt
         ;;
         
     "hgnc")
@@ -205,6 +396,10 @@ EOF
         to_check_from_zenodo=$(grep -E '^to_check_from_zenodo=' datasources/hgnc/config | cut -d'=' -f2)
         old="datasources/hgnc/data/$to_check_from_zenodo"
         new="datasources/hgnc/recentData/$to_check_from_zenodo"
+        
+        # Save column headers before comparison
+        save_column_headers "hgnc" "$new"
+        
         simple_diff "$old" "$new" "1,3"
         
         rm -f hgnc_index.html download.js
@@ -245,6 +440,10 @@ EOF
         old="datasources/uniprot/data/$to_check_from_zenodo"
         new="datasources/uniprot/recentData/$to_check_from_zenodo"
         unzip -q datasources/uniprot/data/UniProt_secID2priID.zip -d datasources/uniprot/data/ || true
+        
+        # Save column headers before comparison
+        save_column_headers "uniprot" "$new"
+        
         simple_diff "$old" "$new" "1,2"
         
         rm -f uniprot_index.html
