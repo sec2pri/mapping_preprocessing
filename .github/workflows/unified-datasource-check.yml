@@ -100,6 +100,32 @@ jobs:
           name: ${{ matrix.datasource }}_processed
           path: datasources/${{ matrix.datasource }}/recentData/*
 
+      - name: Upload priIDs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.DATASOURCE_NAME }}_priIDs.tsv
+          path: datasources/${{ matrix.datasource }}/recentData/${{ env.DATASOURCE_NAME }}_priIDs.tsv
+
+      - name: Upload secID2priID artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.DATASOURCE_NAME }}_secID2priID.tsv
+          path: datasources/${{ matrix.datasource }}/recentData/${{ env.DATASOURCE_NAME }}_secID2priID.tsv
+
+      - name: Upload bridge artifact
+        if: matrix.datasource == 'chebi' || matrix.datasource == 'ncbi' || matrix.datasource == 'hmdb'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.DATASOURCE_NAME }}_secID2priID.bridge
+          path: datasources/${{ matrix.datasource }}/recentData/${{ env.DATASOURCE_NAME }}_secID2priID.bridge
+
+      - name: Upload name2synonym artifact
+        if: matrix.datasource == 'chebi' || matrix.datasource == 'hmdb'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.DATASOURCE_NAME }}_name2synonym.tsv
+          path: datasources/${{ matrix.datasource }}/recentData/${{ env.DATASOURCE_NAME }}_name2synonym.tsv
+
       - name: Create or update issue
         if: env.COUNT != '0'
         id: create_issue
