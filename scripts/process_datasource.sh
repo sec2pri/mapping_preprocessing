@@ -9,14 +9,14 @@ case "$DATASOURCE" in
         . datasources/chebi/config .
         echo 'Accessing the ChEBI archive'
         wget http://ftp.ebi.ac.uk/pub/databases/chebi/archive/ -O chebi_index.html
-        echo "CURRENT_RELEASE_NUMBER=$release" >> $GITHUB_OUTPUT
+        echo "CURRENT_RELEASE_NUMBER=$release" >> "$GITHUB_OUTPUT"
         
         date_new=$(tail -4 chebi_index.html | head -1 | grep -oP '<td align="right">\K[0-9-]+\s[0-9:]+(?=\s+</td>)' | awk '{print $1}')
-        release=$(tail -4 chebi_index.html | head -1 | grep -oP '(?<=a href="rel)\d\d\d')
-        echo "RELEASE_NUMBER=$release" >> $GITHUB_OUTPUT
+        release_new=$(tail -4 chebi_index.html | head -1 | grep -oP '(?<=a href="rel)\d\d\d')
         date_old=$date
-        echo "DATE_OLD=$date_old" >> $GITHUB_OUTPUT
-        echo "DATE_NEW=$date_new" >> $GITHUB_OUTPUT
+        echo "RELEASE_NUMBER=$release_new" >> "$GITHUB_OUTPUT"
+        echo "DATE_OLD=$date_old" >> "$GITHUB_OUTPUT"
+        echo "DATE_NEW=$date_new" >> "$GITHUB_OUTPUT"
         
         timestamp1=$(date -d "$date_new" +%s)
         timestamp2=$(date -d "$date_old" +%s)
@@ -27,12 +27,12 @@ case "$DATASOURCE" in
             success=false
 
             while [ $retry_count -lt $max_retries ]; do
-              response=$(curl -o /dev/null -s -w "%{http_code}" "http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${release}/SDF/ChEBI_complete_3star.sdf.gz")
+              response=$(curl -o /dev/null -s -w "%{http_code}" "http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${release_new}/SDF/ChEBI_complete_3star.sdf.gz")
               curl_exit_code=$?
 
               if [ $curl_exit_code -eq 0 ] && [ "$response" -eq 200 ]; then
               echo "File is accessible, response code: $response"
-              echo "New release available: $release"
+              echo "New release available: $release_new"
               echo "NEW_RELEASE=true" >> "$GITHUB_OUTPUT"
               success=true
               break
@@ -45,7 +45,7 @@ case "$DATASOURCE" in
             done
 
             if [ "$success" = false ]; then
-              echo "Error: Unable to access latest ChEBI release (rel${release}) after $max_retries attempts"
+              echo "Error: Unable to access latest ChEBI release (rel${release_new}) after $max_retries attempts"
               echo "FAILED=true" >> "$GITHUB_ENV"
               echo "ISSUE=true" >> "$GITHUB_ENV"
               echo "NEW_RELEASE=false" >> "$GITHUB_OUTPUT"
@@ -60,18 +60,17 @@ case "$DATASOURCE" in
         rm chebi_index.html
 
         # EXACT COPY from original ChEBI workflow - test_sdf_processing job
-        echo "$DATE_NEW=$DATE_NEW" >> $GITHUB_ENV
-        echo $RELEASE_NUMBER
-        echo "RELEASE_NUMBER=$RELEASE_NUMBER" >> $GITHUB_ENV
-        echo "CURRENT_RELEASE_NUMBER=$CURRENT_RELEASE_NUMBER" >> $GITHUB_ENV
-        url_release="http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel$RELEASE_NUMBER/SDF/"
+        echo "DATE_NEW=$date_new" >> $GITHUB_ENV
+        echo "RELEASE_NUMBER=$release_new" >> $GITHUB_ENV
+        echo "CURRENT_RELEASE_NUMBER=$release" >> $GITHUB_ENV
+        url_release="http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel$release_new/SDF/"
         echo "URL_RELEASE=$url_release" >> $GITHUB_ENV
-        wget "http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${RELEASE_NUMBER}/SDF/ChEBI_complete_3star.sdf.gz"
+        wget "http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${release_new}/SDF/ChEBI_complete_3star.sdf.gz"
         gunzip ChEBI_complete_3star.sdf.gz
         ls
         chmod +x datasources/chebi/config
         . datasources/chebi/config .
-        mkdir -p mapping_preprocessing/datasources/chebi/data
+        mkdir -p datasources/chebi/recentData
 
         inputFile="ChEBI_complete_3star.sdf" 
         mkdir new
@@ -79,7 +78,7 @@ case "$DATASOURCE" in
         mvn clean install assembly:single
         cd ../
         outputDir="datasources/chebi/recentData/"
-        java -cp java/target/mapping_prerocessing-0.0.1-jar-with-dependencies.jar org.sec2pri.chebi_sdf "$inputFile" "$outputDir" "${RELEASE_NUMBER}"
+        java -cp java/target/mapping_prerocessing-0.0.1-jar-with-dependencies.jar org.sec2pri.chebi_sdf "$inputFile" "$outputDir" "${release_new}"
         if [ $? -eq 0 ]; then
             echo "Successful preprocessing of ChEBI data."
             echo "FAILED=false" >> $GITHUB_ENV
