@@ -5,7 +5,7 @@ DATASOURCE="$1"
 
 case "$DATASOURCE" in
     "chebi")
-        # EXACT COPY from original ChEBI workflow - check_new_release job
+        # 
         . datasources/chebi/config .
         echo 'Accessing the ChEBI archive'
         wget http://ftp.ebi.ac.uk/pub/databases/chebi/archive/ -O chebi_index.html
@@ -59,7 +59,7 @@ case "$DATASOURCE" in
         echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
         rm chebi_index.html
 
-        # EXACT COPY from original ChEBI workflow - test_sdf_processing job
+        # 
         echo "DATE_NEW=$date_new" >> $GITHUB_ENV
         echo "RELEASE_NUMBER=$release_new" >> $GITHUB_ENV
         echo "CURRENT_RELEASE_NUMBER=$release" >> $GITHUB_ENV
@@ -88,7 +88,6 @@ case "$DATASOURCE" in
             exit 1
         fi
 
-        # EXACT COPY from original ChEBI workflow - RegEx and Diff test
         chmod +x datasources/chebi/config
         . datasources/chebi/config .
         old="datasources/chebi/data/$to_check_from_zenodo"
@@ -149,7 +148,7 @@ case "$DATASOURCE" in
         ;;
 
     "ncbi")
-        # EXACT COPY from original NCBI workflow - check_new_data job
+        # 
         date_old=$(grep -E '^date=' datasources/ncbi/config | cut -d'=' -f2)
         echo 'Accessing the ncbi data'
         last_modified=$(curl -sI https://ftp.ncbi.nih.gov/gene/DATA/gene_history.gz | grep -i Last-Modified)
@@ -158,8 +157,8 @@ case "$DATASOURCE" in
         echo "DATE_NEW=$date_new" >> $GITHUB_OUTPUT
         echo "Date of latest release: $date_new", "Date of release of the current version: $date_old"
 
-        # EXACT COPY from original NCBI workflow - test_new_data_processing job
-        echo "$DATE_NEW=$DATE_NEW" >> $GITHUB_ENV
+        # 
+        echo "DATE_NEW=$date_new" >> $GITHUB_ENV
         mkdir -p datasources/ncbi/data
         wget https://ftp.ncbi.nih.gov/gene/DATA/gene_info.gz
         wget https://ftp.ncbi.nih.gov/gene/DATA/gene_history.gz
@@ -169,7 +168,7 @@ case "$DATASOURCE" in
         cd java
         mvn clean install assembly:single
         cd ../
-        sourceVersion=$DATE_NEW
+        sourceVersion=$date_new
         gene_history="datasources/ncbi/data/gene_history.gz"
         gene_info="datasources/ncbi/data/gene_info.gz"
         outputDir="datasources/ncbi/recentData/"
@@ -188,7 +187,7 @@ case "$DATASOURCE" in
             exit 1
         fi
 
-        # EXACT COPY from original NCBI workflow - Diff versions step
+        # 
         to_check_from_zenodo=$(grep -E '^to_check_from_zenodo=' datasources/ncbi/config | cut -d'=' -f2)
         old="datasources/ncbi/data/$to_check_from_zenodo"
         new="datasources/ncbi/recentData/$to_check_from_zenodo"
@@ -254,7 +253,6 @@ case "$DATASOURCE" in
         ;;
         
     "hmdb")
-        # Original HMDB logic with version checking
         date_old=$(grep -E '^date=' datasources/hmdb/config | cut -d'=' -f2)
         wget http://www.hmdb.ca/system/downloads/current/hmdb_metabolites.zip
         unzip hmdb_metabolites.zip
@@ -302,9 +300,7 @@ case "$DATASOURCE" in
         to_check_from_zenodo=$(grep -E '^to_check_from_zenodo=' datasources/hmdb/config | cut -d'=' -f2)
         old="datasources/hmdb/data/$to_check_from_zenodo"
         new="datasources/hmdb/recentData/$to_check_from_zenodo"
-        
-        # Save column headers before comparison
-        save_column_headers "hmdb" "$new"
+
         
         # QC integrity of IDs (use headerless version)
         wget -nc https://raw.githubusercontent.com/bridgedb/datasources/main/datasources.tsv
@@ -389,9 +385,7 @@ EOF
         to_check_from_zenodo=$(grep -E '^to_check_from_zenodo=' datasources/hgnc/config | cut -d'=' -f2)
         old="datasources/hgnc/data/$to_check_from_zenodo"
         new="datasources/hgnc/recentData/$to_check_from_zenodo"
-        
-        # Save column headers before comparison
-        save_column_headers "hgnc" "$new"
+
         
         simple_diff "$old" "$new" "1,3"
         
@@ -434,8 +428,6 @@ EOF
         new="datasources/uniprot/recentData/$to_check_from_zenodo"
         unzip -q datasources/uniprot/data/UniProt_secID2priID.zip -d datasources/uniprot/data/ || true
         
-        # Save column headers before comparison
-        save_column_headers "uniprot" "$new"
         
         simple_diff "$old" "$new" "1,2"
         
