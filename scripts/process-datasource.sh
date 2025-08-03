@@ -30,6 +30,8 @@ case "$DATASOURCE" in
         
         echo "DATE_NEW=$DATE_NEW" >> $GITHUB_ENV
         echo "DATE_OLD=$DATE_OLD" >> $GITHUB_ENV
+        echo "RELEASE_NUMBER=$RELEASE_NUMBER" >> $GITHUB_ENV
+        echo "URL_RELEASE=http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel$RELEASE_NUMBER/SDF/" >> $GITHUB_ENV
         
         timestamp1=$(date -d "$DATE_NEW" +%s)
         timestamp2=$(date -d "$DATE_OLD" +%s)
@@ -77,12 +79,10 @@ case "$DATASOURCE" in
             exit 1
         fi
         
-        # Diff
-        old="datasources/chebi/data/$TO_CHECK_FROM_ZENODO"
-        new="datasources/chebi/recentData/$TO_CHECK_FROM_ZENODO"
-        
+        # Validation for ChEBI
         wget -nc https://raw.githubusercontent.com/bridgedb/datasources/main/datasources.tsv
         CHEBI_ID=$(awk -F '\t' '$1 == "ChEBI" {print $10}' datasources.tsv)
+        new="datasources/chebi/recentData/$TO_CHECK_FROM_ZENODO"
         awk -F '\t' '{print $1}' $new > column1.txt
         awk -F '\t' '{print $2}' $new > column2.txt
         
@@ -94,7 +94,7 @@ case "$DATASOURCE" in
             exit 1
         fi
         
-        if grep -nqvE "$CHEBI_ID" "column1.txt"; then
+        if grep -nqvE "$CHEBI_ID" "column2.txt"; then
             echo "All lines in the secondary column match the pattern."
         else
             echo "Error: At least one line in the secondary column does not match pattern."
@@ -102,15 +102,10 @@ case "$DATASOURCE" in
             exit 1
         fi
         
-        cat "$old" | sort | tr -d "\r" > ids_old.txt
-        cat "$new" | sort | tr -d "\r" > ids_new.txt
-        diff -u ids_old.txt ids_new.txt > diff.txt || true
-        added=$(grep '^+CHEBI' "diff.txt" | sed 's/+//g') || true
-        removed=$(grep '^-' "diff.txt" | sed 's/-//g') || true
-        added_filtered=$(comm -23 <(sort <<< "$added") <(sort <<< "$removed"))
-        removed_filtered=$(comm -23 <(sort <<< "$removed") <(sort <<< "$added"))
-        added=$added_filtered
-        removed=$removed_filtered
+        # Set columns for diff
+        OLD_COLUMNS="1,2"
+        NEW_COLUMNS="1,2"
+        DIFF_PATTERN="^+CHEBI"
         ;;
         
     uniprot)
@@ -122,6 +117,7 @@ case "$DATASOURCE" in
         
         echo "DATE_NEW=$DATE_NEW" >> $GITHUB_ENV
         echo "DATE_OLD=$DATE_OLD" >> $GITHUB_ENV
+        echo "URL_RELEASE=https://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete/" >> $GITHUB_ENV
         
         # Download data
         mkdir -p datasources/uniprot/data
@@ -140,20 +136,13 @@ case "$DATASOURCE" in
             exit 1
         fi
         
-        
-        old="datasources/uniprot/data/$TO_CHECK_FROM_ZENODO"
-        new="datasources/uniprot/recentData/$TO_CHECK_FROM_ZENODO"
-        
+        # Unzip old data
         unzip datasources/uniprot/data/UniProt_secID2priID.zip -d datasources/uniprot/data/
-        cat "$old" | sort | tr -d "\r" | cut -f 1,2 > ids_old.txt
-        cat "$new" | sort | tr -d "\r" | cut -f 1,2 > ids_new.txt
-        diff -u ids_old.txt ids_new.txt > diff.txt || true
-        added=$(grep '^+' "diff.txt" | sed 's/+//g') || true
-        removed=$(grep '^-' "diff.txt" | sed 's/-//g') || true
-        added_filtered=$(comm -23 <(sort <<< "$added") <(sort <<< "$removed"))
-        removed_filtered=$(comm -23 <(sort <<< "$removed") <(sort <<< "$added"))
-        added=$added_filtered
-        removed=$removed_filtered
+        
+        # Set columns for diff
+        OLD_COLUMNS="1,2"
+        NEW_COLUMNS="1,2"
+        DIFF_PATTERN="^+"
         ;;
         
     ncbi)
@@ -164,6 +153,7 @@ case "$DATASOURCE" in
         
         echo "DATE_NEW=$DATE_NEW" >> $GITHUB_ENV
         echo "DATE_OLD=$DATE_OLD" >> $GITHUB_ENV
+        echo "URL_RELEASE=https://ftp.ncbi.nih.gov/gene/DATA/" >> $GITHUB_ENV
         
         # Download data
         mkdir -p datasources/ncbi/data
@@ -183,13 +173,11 @@ case "$DATASOURCE" in
             exit 1
         fi
         
-        
-        old="datasources/ncbi/data/$TO_CHECK_FROM_ZENODO"
-        new="datasources/ncbi/recentData/$TO_CHECK_FROM_ZENODO"
-        
+        # Validation for NCBI
         unzip -o datasources/ncbi/data/NCBI_secID2priID.zip -d datasources/ncbi/data/
         wget -nc https://raw.githubusercontent.com/bridgedb/datasources/main/datasources.tsv
         NCBI_ID=$(awk -F '\t' '$1 == "Entrez Gene" {print $10}' datasources.tsv)
+        new="datasources/ncbi/recentData/$TO_CHECK_FROM_ZENODO"
         awk -F '\t' '{print $1}' $new > column1.txt
         awk -F '\t' '{print $2}' $new > column2.txt
         
@@ -201,7 +189,7 @@ case "$DATASOURCE" in
             exit 1
         fi
         
-        if grep -nqvE "$NCBI_ID" "column1.txt"; then
+        if grep -nqvE "$NCBI_ID" "column2.txt"; then
             echo "All lines in the secondary column match the pattern."
         else
             echo "Error: At least one line in the secondary column does not match pattern."
@@ -209,15 +197,10 @@ case "$DATASOURCE" in
             exit 1
         fi
         
-        cat "$old" | sort | tr -d "\r" | cut -f 1,3 > ids_old.txt
-        cat "$new" | sort | tr -d "\r" | cut -f 1,3 > ids_new.txt
-        diff -u ids_old.txt ids_new.txt > diff.txt || true
-        added=$(grep '^+' "diff.txt" | sed 's/+//g') || true
-        removed=$(grep '^-' "diff.txt" | sed 's/-//g') || true
-        added_filtered=$(comm -23 <(sort <<< "$added") <(sort <<< "$removed"))
-        removed_filtered=$(comm -23 <(sort <<< "$removed") <(sort <<< "$added"))
-        added=$added_filtered
-        removed=$removed_filtered
+        # Set columns for diff
+        OLD_COLUMNS="1,3"
+        NEW_COLUMNS="1,3"
+        DIFF_PATTERN="^+"
         ;;
         
     hmdb)
@@ -229,6 +212,7 @@ case "$DATASOURCE" in
         
         echo "DATE_NEW=$DATE_NEW" >> $GITHUB_ENV
         echo "DATE_OLD=$DATE_OLD" >> $GITHUB_ENV
+        echo "URL_RELEASE=http://www.hmdb.ca/system/downloads/current/" >> $GITHUB_ENV
         
         # Process downloaded data
         mkdir hmdb
@@ -250,12 +234,10 @@ case "$DATASOURCE" in
             exit 1
         fi
         
-        
-        old="datasources/hmdb/data/$TO_CHECK_FROM_ZENODO"
-        new="datasources/hmdb/recentData/$TO_CHECK_FROM_ZENODO"
-        
+        # Validation for HMDB
         wget -nc https://raw.githubusercontent.com/bridgedb/datasources/main/datasources.tsv
         HMDB_ID=$(awk -F '\t' '$1 == "HMDB" {print $10}' datasources.tsv)
+        new="datasources/hmdb/recentData/$TO_CHECK_FROM_ZENODO"
         awk -F '\t' '{print $1}' $new > column1.txt
         awk -F '\t' '{print $2}' $new > column2.txt
         
@@ -267,7 +249,7 @@ case "$DATASOURCE" in
             exit 1
         fi
         
-        if grep -nqvE "$HMDB_ID" "column1.txt"; then
+        if grep -nqvE "$HMDB_ID" "column2.txt"; then
             echo "All lines in the secondary column match the pattern."
         else
             echo "Error: At least one line in the secondary column does not match pattern."
@@ -275,15 +257,10 @@ case "$DATASOURCE" in
             exit 1
         fi
         
-        cat "$old" | sort | tr -d "\r" > ids_old.txt
-        cat "$new" | sort | tr -d "\r" > ids_new.txt
-        diff -u ids_old.txt ids_new.txt > diff.txt || true
-        added=$(grep '^+' "diff.txt" | sed 's/+//g') || true
-        removed=$(grep '^-' "diff.txt" | sed 's/-//g') || true
-        added_filtered=$(comm -23 <(sort <<< "$added") <(sort <<< "$removed"))
-        removed_filtered=$(comm -23 <(sort <<< "$removed") <(sort <<< "$added"))
-        added=$added_filtered
-        removed=$removed_filtered
+        # Set columns for diff
+        OLD_COLUMNS="1,2"
+        NEW_COLUMNS="1,2"
+        DIFF_PATTERN="^+"
         ;;
         
     hgnc)
@@ -309,6 +286,7 @@ EOF
         echo "DATE_OLD=$DATE_OLD" >> $GITHUB_ENV
         echo "COMPLETE_NEW=$COMPLETE_NEW" >> $GITHUB_ENV
         echo "WITHDRAWN_NEW=$WITHDRAWN_NEW" >> $GITHUB_ENV
+        echo "URL_RELEASE=https://www.genenames.org/download/archive/quarterly/tsv/" >> $GITHUB_ENV
         
         # Download data
         mkdir -p datasources/hgnc/data
@@ -326,23 +304,38 @@ EOF
             exit 1
         fi
         
-        
-        old="datasources/hgnc/data/$TO_CHECK_FROM_ZENODO"
-        new="datasources/hgnc/recentData/$TO_CHECK_FROM_ZENODO"
-        
-        cat "$old" | sort | tr -d "\r" | cut -f 1,3 > ids_old.txt
-        cat "$new" | sort | tr -d "\r" | cut -f 1,3 > ids_new.txt
-        diff -u ids_old.txt ids_new.txt > diff.txt || true
-        added=$(grep '^+' "diff.txt" | sed 's/+//g') || true
-        removed=$(grep '^-' "diff.txt" | sed 's/-//g') || true
-        added_filtered=$(comm -23 <(sort <<< "$added") <(sort <<< "$removed"))
-        removed_filtered=$(comm -23 <(sort <<< "$removed") <(sort <<< "$added"))
-        added=$added_filtered
-        removed=$removed_filtered
+        # Set columns for diff
+        OLD_COLUMNS="1,3"
+        NEW_COLUMNS="1,3"
+        DIFF_PATTERN="^+"
         ;;
 esac
 
-# Common counting logic (same for all datasources)
+# Unified diff logic for all datasources
+old="datasources/$DATASOURCE/data/$TO_CHECK_FROM_ZENODO"
+new="datasources/$DATASOURCE/recentData/$TO_CHECK_FROM_ZENODO"
+
+# Extract specified columns and sort
+cat "$old" | sort | tr -d "\r" | cut -f $OLD_COLUMNS > ids_old.txt
+cat "$new" | sort | tr -d "\r" | cut -f $NEW_COLUMNS > ids_new.txt
+
+echo "Performing diff between the sorted lists of IDs"
+
+# Perform diff
+diff -u ids_old.txt ids_new.txt > diff.txt || true
+
+# Process diff results - use pattern specific to datasource
+added=$(grep "$DIFF_PATTERN" "diff.txt" | sed 's/+//g') || true
+removed=$(grep '^-' "diff.txt" | sed 's/-//g') || true
+
+# Filter using comm to remove duplicates
+added_filtered=$(comm -23 <(sort <<< "$added") <(sort <<< "$removed")) || true
+removed_filtered=$(comm -23 <(sort <<< "$removed") <(sort <<< "$added")) || true
+
+added=$added_filtered
+removed=$removed_filtered
+
+# Count changes
 count_removed=$(printf "$removed" | wc -l) || true
 count_added=$(printf "$added" | wc -l) || true
 

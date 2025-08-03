@@ -1,5 +1,5 @@
 ---
-title: Update {{ env.SOURCE }} to release {{ env.RELEASE_NUMBER }}
+title: Update {{ env.SOURCE }} data from {{ env.DATE_NEW }}
 assignees: tabbassidaloii
 labels: new release
 name: Update source issue
