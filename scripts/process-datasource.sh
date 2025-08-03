@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-
+#GITHUB_ENV="gh.env" uncomment for local testing
 DATASOURCE=$1
 if [[ -z "$DATASOURCE" ]]; then
     echo "Error: Datasource parameter required"
@@ -198,8 +198,8 @@ case "$DATASOURCE" in
         fi
         
         # Set columns for diff
-        OLD_COLUMNS="1,3"
-        NEW_COLUMNS="1,3"
+        OLD_COLUMNS="1,2"
+        NEW_COLUMNS="1,2"
         DIFF_PATTERN="^+"
         ;;
         
