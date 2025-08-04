@@ -84,7 +84,7 @@ jobs:
           chmod +x scripts/process-datasource.sh
           ./scripts/process-datasource.sh "${{ matrix.datasource }}"
 
-      - name: Set proper datasource name
+      - name: Set proper datasource name and release number
         run: |
           case "${{ matrix.datasource }}" in
             ncbi) echo "DATASOURCE_NAME=NCBI" >> $GITHUB_ENV ;;
@@ -93,6 +93,9 @@ jobs:
             hmdb) echo "DATASOURCE_NAME=HMDB" >> $GITHUB_ENV ;;
             uniprot) echo "DATASOURCE_NAME=UniProt" >> $GITHUB_ENV ;;
           esac
+          if [ -z "${RELEASE_NUMBER}" ]; then
+            echo "RELEASE_NUMBER=${DATE_NEW}" >> $GITHUB_ENV
+          fi
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -131,9 +134,9 @@ jobs:
         id: create_issue
         uses: JasonEtco/create-an-issue@v2
         env:
-          GITHUB_TOKEN: ${{ secrets.        GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SOURCE: ${{ env.DATASOURCE_NAME }}
-          RELEASE_NUMBER: ${{ env.        RELEASE_NUMBER }}
+          RELEASE_NUMBER: ${{ env.RELEASE_NUMBER }}
           DATE_NEW: ${{ env.DATE_NEW }}
           ADDED: ${{ env.ADDED }}
           REMOVED: ${{ env.REMOVED }}
