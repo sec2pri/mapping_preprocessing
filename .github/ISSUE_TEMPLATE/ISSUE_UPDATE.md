@@ -1,5 +1,5 @@
 ---
-title: Update {{ env.SOURCE }} data from {{ env.DATE_NEW }}
+title: Update {{ env.SOURCE }} to release {{ env.RELEASE_NUMBER }}
 assignees: tabbassidaloii
 labels: new release
 name: Update source issue
@@ -17,3 +17,4 @@ Date of release: {{ env.DATE_NEW }}.
 ## Retrieve processed data
 
 The processed data is available in [the action log page](https://github.com/sec2pri/mapping_preprocessing/actions/runs/{{ env.GITHUB_RUN_ID }}) as an artifact.
+
