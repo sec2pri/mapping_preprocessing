@@ -131,11 +131,19 @@ jobs:
         id: create_issue
         uses: JasonEtco/create-an-issue@v2
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.        GITHUB_TOKEN }}
           SOURCE: ${{ env.DATASOURCE_NAME }}
+          RELEASE_NUMBER: ${{ env.        RELEASE_NUMBER }}
+          DATE_NEW: ${{ env.DATE_NEW }}
+          ADDED: ${{ env.ADDED }}
+          REMOVED: ${{ env.REMOVED }}
+          CHANGE: ${{ env.CHANGE }}
+          URL_RELEASE: ${{ env.URL_RELEASE }}
+          GITHUB_RUN_ID: ${{ github.run_id }}          
         with:
           filename: .github/ISSUE_TEMPLATE/ISSUE_UPDATE.md
           update_existing: true
+          
 
       - name: Bump issue with comment
         if: env.COUNT != '0'
