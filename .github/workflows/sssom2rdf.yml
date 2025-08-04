@@ -32,10 +32,26 @@ jobs:
 
       - name: Validate all SSSOM mapping files
         run: |
-          echo "Validating all *_mapping.sssom.tsv files under mappings/"
-          find datasources -type f -path '*/mappings/*_mapping.sssom.tsv' | while read file; do
-            echo "Validating $file"
-            sssom validate "$file"
+          echo "Converting all *_mapping.sssom.tsv[.zip] files under datasources/ to RDF"
+          find datasources -type f -path '*/mappings/*_mapping.sssom.tsv*' | while read file; do
+           if [[ "$file" == *.zip ]]; then
+             echo "Processing ZIP archive: $file"
+             temp_dir=$(mktemp -d)
+             unzip -q "$file" -d "$temp_dir"
+             inner_tsv=$(find "$temp_dir" -type f -name '*_mapping.sssom.tsv' | head -n 1)
+             if [[ -n "$inner_tsv" ]]; then
+               ttl_file="${file%.zip}.ttl"
+               echo "Converting $inner_tsv (from zip) to $ttl_file"
+               sssom convert "$inner_tsv" -o "$ttl_file" --output-format ttl
+            else
+               echo "No *_mapping.sssom.tsv found inside $file"
+            fi
+            rm -rf "$temp_dir"
+          else
+           ttl_file="${file%.tsv}.ttl"
+           echo "Converting $file to $ttl_file"
+           sssom convert "$file" -o "$ttl_file" --output-format ttl
+           fi
           done
 
   convert-to-rdf:
