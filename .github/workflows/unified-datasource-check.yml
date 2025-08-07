@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       datasource:
-        description: 'Datasource to process (chebi, uniprot, ncbi, hmdb, hgnc, or all)'
+        description: 'Datasource to process (chebi, uniprot, ncbi, hmdb, hgnc, wikidata, or all)'
         required: true
         default: 'all'
         type: choice
@@ -15,6 +15,7 @@ on:
           - ncbi
           - hmdb
           - hgnc
+          - wikidata
   pull_request:
     paths:
       - '.github/workflows/unified-datasource-check.yml'
@@ -37,7 +38,7 @@ jobs:
       - id: set-matrix
         run: |
           if [[ "${{ github.event.inputs.datasource }}" == "all" || "${{ github.event.inputs.datasource }}" == "" ]]; then
-            echo 'matrix=["chebi","uniprot","ncbi","hmdb","hgnc"]' >> $GITHUB_OUTPUT
+            echo 'matrix=["chebi","uniprot","ncbi","hmdb","hgnc", "wikidata"]' >> $GITHUB_OUTPUT
           else
             echo 'matrix=["${{ github.event.inputs.datasource }}"]' >> $GITHUB_OUTPUT
           fi
@@ -69,6 +70,9 @@ jobs:
               sudo apt-get update
               sudo apt-get install -y openjdk-11-jdk maven
               ;;
+            wikidata)
+              sudo apt-get update
+              ;;
           esac
 
       - name: Setup R for R-based datasources
@@ -92,6 +96,7 @@ jobs:
             hgnc) echo "DATASOURCE_NAME=HGNC" >> $GITHUB_ENV ;;
             hmdb) echo "DATASOURCE_NAME=HMDB" >> $GITHUB_ENV ;;
             uniprot) echo "DATASOURCE_NAME=UniProt" >> $GITHUB_ENV ;;
+            wikidata) echo "DATASOURCE_NAME=Wikidata" >> $GITHUB_ENV ;;
           esac
           if [ -z "${RELEASE_NUMBER}" ]; then
             echo "RELEASE_NUMBER=${DATE_NEW}" >> $GITHUB_ENV
