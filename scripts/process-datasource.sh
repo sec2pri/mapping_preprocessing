@@ -312,11 +312,18 @@ EOF
 
     wikidata)
         # Wikidata workflow logic
-        DATE_NEW=$(curl -s https://dumps.wikimedia.org/wikidatawiki/entities/ | grep 'latest-all.ttl.bz2' | awk '{print $3}')
+        #DATE_NEW=$(curl -s https://dumps.wikimedia.org/wikidatawiki/entities/ | grep 'latest-all.ttl.bz2' | awk '{print $3}')
         
-        echo "DATE_NEW=$DATE_NEW" >> $GITHUB_ENV
-        echo "DATE_OLD=$DATE_OLD" >> $GITHUB_ENV
-
+        #echo "DATE_NEW=$DATE_NEW" >> $GITHUB_ENV
+        #echo "DATE_OLD=$DATE_OLD" >> $GITHUB_ENV
+        
+        echo 'Accessing the wikidata data'
+        ## Download outdated IDs for chemicals qLever Style
+        curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalAllRedirects.rq -G https://qlever.cs.uni-freiburg.de/api/wikidata -o datasources/wikidata/recentData/metabolites.tsv
+        ## Download outdated IDs for genes qLever Style
+        curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/geneHumanAllRedirects.rq -G https://qlever.cs.uni-freiburg.de/api/wikidata -o datasources/wikidata/recentData/gene.tsv
+        ## Download outdated IDs for proteins qLever Style
+        curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/proteinHumanAllRedirects.rq -G https://qlever.cs.uni-freiburg.de/api/wikidata -o datasources/wikidata/recentData/protein.tsv
         ;;
 esac
 
