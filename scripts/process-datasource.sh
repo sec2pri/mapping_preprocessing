@@ -312,10 +312,10 @@ EOF
 
     wikidata)
         # Wikidata workflow logic
-        #DATE_NEW=$(curl -s https://dumps.wikimedia.org/wikidatawiki/entities/ | grep 'latest-all.ttl.bz2' | awk '{print $3}')
+        DATE_NEW=$(curl -s https://dumps.wikimedia.org/wikidatawiki/entities/ | grep 'latest-all.ttl.bz2' | awk '{print $3}')
         
-        #echo "DATE_NEW=$DATE_NEW" >> $GITHUB_ENV
-        #echo "DATE_OLD=$DATE_OLD" >> $GITHUB_ENV
+        echo "DATE_NEW=$DATE_NEW" >> $GITHUB_ENV
+        echo "DATE_OLD=$DATE_OLD" >> $GITHUB_ENV
 
         ##Add folder to store data in
         mkdir datasources/wikidata/recentData/   
@@ -335,7 +335,7 @@ EOF
             echo "Query Timeout occurred for file: " "$File" 
             echo "Wikidata data will not be updated"
             head -n 20 "$File" 
-            #echo "DOWNLOAD_FILE=true" >>$GITHUB_ENV
+            echo "DOWNLOAD_FILE=true" >>$GITHUB_ENV
             fail_file="${fail_file} $File"
           else
             echo "No Query Timeout detected for file: " "$File" 
