@@ -309,6 +309,15 @@ EOF
         NEW_COLUMNS="1,3"
         DIFF_PATTERN="^+"
         ;;
+
+    wikidata)
+        # Wikidata workflow logic
+        DATE_NEW=$(curl -s https://dumps.wikimedia.org/wikidatawiki/entities/ | grep 'latest-all.ttl.bz2' | awk '{print $3}')
+        
+        echo "DATE_NEW=$DATE_NEW" >> $GITHUB_ENV
+        echo "DATE_OLD=$DATE_OLD" >> $GITHUB_ENV
+
+        ;;
 esac
 
 # Unified diff logic for all datasources
