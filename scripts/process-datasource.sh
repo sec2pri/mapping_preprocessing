@@ -316,7 +316,9 @@ EOF
         
         #echo "DATE_NEW=$DATE_NEW" >> $GITHUB_ENV
         #echo "DATE_OLD=$DATE_OLD" >> $GITHUB_ENV
-        
+
+        ##Add folder to store data in
+        mkdir datasources/wikidata/recentData/   
         echo 'Accessing the wikidata data'
         ## Download outdated IDs for chemicals qLever Style
         curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalAllRedirects.rq -G https://qlever.cs.uni-freiburg.de/api/wikidata -o datasources/wikidata/recentData/metabolites.tsv
@@ -324,6 +326,41 @@ EOF
         curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/geneHumanAllRedirects.rq -G https://qlever.cs.uni-freiburg.de/api/wikidata -o datasources/wikidata/recentData/gene.tsv
         ## Download outdated IDs for proteins qLever Style
         curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/proteinHumanAllRedirects.rq -G https://qlever.cs.uni-freiburg.de/api/wikidata -o datasources/wikidata/recentData/protein.tsv
+
+        ##Check new data, fail job if query timeout has occured
+        fail_file=''
+        for File in *.tsv ##Only for tsv files
+        do
+          if grep -q TimeoutException "$File"; then
+            echo "Query Timeout occurred for file: " "$File" 
+            echo "Wikidata data will not be updated"
+            head -n 20 "$File" 
+            #echo "DOWNLOAD_FILE=true" >>$GITHUB_ENV
+            fail_file="${fail_file} $File"
+          else
+            echo "No Query Timeout detected for file: " "$File" 
+          fi
+        done
+         
+        ## Set prefix to Wikidata for renaming new data files
+        prefix=$(basename "Wikidata") 
+
+        ## Data processing
+        cd datasources/wikidata/recentData
+        for f in *.tsv ##Only for tsv files
+        do
+          ##Find all new data files | Remove the IRIs (prefix) | remove the IRIs (suffix) | remove the '?' in the column headers | remove language annotation | save the file with new name
+          cat "$f" | sed 's/<http:\/\/www.wikidata.org\/entity\///g' | sed 's/[>]//g' | sed '1s/\?//g' | sed 's/@en//g' > "${prefix}_secID2priID_$f"
+          ##Split first column with primary IDs in new file (same processing as previous step)
+          awk '{print $1}' "$f" |  sed 's/<http:\/\/www.wikidata.org\/entity\///g' | sed 's/[>]//g' | sed '1s/\?//g'  | uniq > "${prefix}_priIDs_$f"
+          rm "$f"
+        done
+        ls
+        pwd
+        cd ..
+        ls
+        outputDir="datasources/wikidata/recentData/"
+        #mv * "$outputDir"
         ;;
 esac
 
