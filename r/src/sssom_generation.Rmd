@@ -1,0 +1,451 @@
+---
+title: "SSSOM file generation"
+output: html_notebook
+editor_options: 
+  chunk_output_type: console
+---
+
+## Setting up the environment 
+```{r}
+#Empty the environment
+rm(list = ls())
+#Load required packages
+if(!"dplyr" %in% installed.packages()) {
+  install.packages("dplyr")
+}
+library(dplyr)
+if(!"data.table" %in% installed.packages()) {
+  install.packages("data.table")
+}
+library(data.table)
+#Load/write required functions
+source("E://sec2pri/omicsFixID/inst/apps/r/global.R")
+
+mapping_date = "2025-08-11"
+
+write_sssom_tsv <- function(input_data, output_file, curie_map, source = "", comment = "", mapping_set_id = "", mapping_set_description = "", mapping_date = "") {
+  # Write the CURIE map as comments in the output file
+  curie_comments <- paste0("# curie_map:\n")
+  for (curie in names(curie_map)) {
+    curie_comments <-
+      paste0(curie_comments, "#   ", curie, " \"", curie_map[[curie]], "\"\n")
+  }
+  if (source != "")
+    curie_comments <-
+      paste0(curie_comments, "# mapping_provider: \"", source, "\"\n")
+  if (any(colnames(input_data) == "source") &&
+      length(unique(input_data$source[!is.na(input_data$source)])) == 1) {
+    source = unique(input_data$source[input_data$source != "NA"][!is.na(input_data$source)])
+    curie_comments <-
+      paste0(curie_comments, "# source: \"", source, "\"\n#\n")
+    input_data$source = NULL
+  }
+  if (mapping_set_id != "")
+    curie_comments <-
+      paste0(curie_comments, "# mapping_set_id: \"", mapping_set_id, "\"\n")
+  if (mapping_set_description != "")
+    curie_comments <-
+      paste0(curie_comments, "# mapping_set_description: \"", mapping_set_description, "\"\n")
+  curie_comments <- paste0(curie_comments,
+                           "# license: \"https://creativecommons.org/publicdomain/zero/1.0/\"\n")
+  if (mapping_date != "")
+    curie_comments <-
+    paste0(curie_comments, "# mapping_date: \"", mapping_date, "\"\n")
+  if (comment != "")
+    curie_comments <-
+    paste0(curie_comments, "# comment: \"", comment, "\"\n\n")
+  # Write the SSSOM data frame and CURIE map comments to the output file
+  writeLines(curie_comments, con = output_file, sep = "")
+  write.table(
+    input_data,
+    file = output_file,
+    sep = "\t",
+    quote = FALSE,
+    row.names = FALSE,
+    append = TRUE
+  )
+}
+```
+
+# chebi
+```{r}
+ChEBI_secID2priID <- fread("E://sec2pri/mapping_preprocessing/artifacts/chebi_processed/ChEBI_secID2priID.tsv")
+head(ChEBI_secID2priID)
+ChEBI_secID2priID <- add_mapping_cardinality(ChEBI_secID2priID)
+ChEBI_secID2priID <- add_predicate(ChEBI_secID2priID)
+ChEBI_name2synonym <- fread("E://sec2pri/mapping_preprocessing/artifacts/chebi_processed/ChEBI_name2synonym.tsv", header = T)
+head(ChEBI_name2synonym)
+ChEBI_secID2priID <- ChEBI_secID2priID %>%
+  full_join(ChEBI_name2synonym, by = "primaryID", relationship = "many-to-many") %>%
+  dplyr::rename(
+    subject_id = primaryID,
+    subject_label = name,
+    object_id = secondaryID,
+    object_label = synonym) %>%
+  select(subject_id, subject_label, predicate_id, object_id, object_label, mapping_cardinality)
+head(ChEBI_secID2priID)
+curie_map <- c(
+  "ChEBI:" = "http://purl.obolibrary.org/obo/CHEBI_",
+  "IAO:" = "http://purl.obolibrary.org/obo/IAO_",
+  "oboInOwl:" = "http://www.geneontology.org/formats/oboInOwl#"
+)
+sourceVersion <- get_source_version()
+source_metadata <- sourceVersion$metadata[sourceVersion$datasource == "ChEBI"]
+comment = "object_label represents a synonym name by which the subject_label is also known."
+mapping_set_id =  "omicsfixid_chebi_01"
+mapping_set_description = "Secondary to primary ID mappings for ChEBI database, generated for the omicsFixID project."
+write_sssom_tsv(
+  ChEBI_secID2priID,
+  "E://sec2pri/mapping_preprocessing/artifacts/chebi_secID2priID_mapping.sssom.tsv",
+  curie_map = curie_map,
+  source = source_metadata,
+  comment = comment,
+  mapping_set_id = mapping_set_id,
+  mapping_set_description = mapping_set_description,
+  mapping_date = mapping_date
+)
+```
+
+## hmdb 
+```{r}
+hmdb_secID2priID <- fread("E://sec2pri/mapping_preprocessing/artifacts/hmdb_processed/HMDB_secID2priID.tsv") %>%
+  filter(primaryID != secondaryID)
+head(hmdb_secID2priID)
+hmdb_secID2priID <- add_mapping_cardinality(hmdb_secID2priID)
+hmdb_secID2priID <- add_predicate(hmdb_secID2priID)
+hmdb_name2synonym <- fread("E://sec2pri/mapping_preprocessing/artifacts/hmdb_processed/hmdb_name2synonym.tsv", header = T, sep = "\t",
+                           fill=TRUE)
+head(hmdb_name2synonym)
+hmdb_secID2priID <- hmdb_secID2priID %>%
+  full_join(hmdb_name2synonym, by = "primaryID", relationship = "many-to-many") %>%
+  dplyr::rename(
+    subject_id = primaryID,
+    subject_label = name,
+    object_id = secondaryID,
+    object_label = synonym) %>%
+  select(subject_id, subject_label, predicate_id, object_id, object_label, mapping_cardinality)
+head(hmdb_secID2priID)
+curie_map <- c(
+  "HMDB:" = "http://www.hmdb.ca/metabolites/",
+  "IAO:" = "http://purl.obolibrary.org/obo/IAO_",
+  "oboInOwl:" = "http://www.geneontology.org/formats/oboInOwl#"
+)
+sourceVersion <- get_source_version()
+source_metadata <- sourceVersion$metadata[sourceVersion$datasource == "HMDB"]
+comment = "object_label represents a synonym name by which the subject_label is also known."
+mapping_set_id =  "omicsfixid_hmdb_01"
+mapping_set_description = "Secondary to primary ID mappings for HMDB database, generated for the omicsFixID project."
+write_sssom_tsv(
+  hmdb_secID2priID,
+  "E://sec2pri/mapping_preprocessing/artifacts/hmdb_secID2priID_mapping.sssom.tsv",
+  curie_map = curie_map,
+  source = source_metadata,
+  comment = comment,
+  mapping_set_id = mapping_set_id,
+  mapping_set_description = mapping_set_description,
+  mapping_date = mapping_date
+)
+```
+
+## Wikidata Metabolites 
+```{r}
+Wikidata_metabolites <- fread("E://sec2pri/mapping_preprocessing/artifacts/wikidata_processed/Wikidata_secID2priID_metabolites.tsv", header = T)
+head(Wikidata_metabolites)
+Wikidata_secID2priID_metabolites <- add_mapping_cardinality(
+  Wikidata_metabolites %>%
+    filter(secondaryID != "") %>%
+    select(primaryID, secondaryID) %>%
+    unique())
+Wikidata_secID2priID_metabolites <- add_predicate(Wikidata_secID2priID_metabolites)
+head(Wikidata_secID2priID_metabolites)
+Wikidata_metabolites <- Wikidata_metabolites %>% select(!secondaryID) %>%
+  full_join(Wikidata_secID2priID_metabolites, by = "primaryID", relationship = "many-to-many") %>%
+  dplyr::rename(
+    subject_id = primaryID,
+    subject_label = name,
+    object_id = secondaryID,
+    object_label = synonym) %>%
+  select(subject_id, subject_label, predicate_id, object_id, object_label, mapping_cardinality)
+head(Wikidata_metabolites)
+curie_map <- c(
+  "Wikidata:" = "https://bioregistry.io/wikidata:",
+  "IAO:" = "http://purl.obolibrary.org/obo/IAO_",
+  "oboInOwl:" = "http://www.geneontology.org/formats/oboInOwl#"
+)
+Wikidata_metabolites [Wikidata_metabolites$subject_id=="Q100140569", ]
+sourceVersion <- get_source_version()
+source_metadata <- sourceVersion$metadata[sourceVersion$datasource == "Wikidata"]
+comment = "object_label represents an alternative name by which the subject_label is also known."
+mapping_set_id =  "omicsfixid_wikidata_metabolites_01"
+mapping_set_description = "Secondary to primary ID mappings for metabolites in Wikidara database, generated for the omicsFixID project."
+write_sssom_tsv(
+  Wikidata_metabolites,
+  "E://sec2pri/mapping_preprocessing/artifacts/wikidata_metabolites_secID2priID_mapping.sssom.tsv",
+  curie_map = curie_map,
+  source = source_metadata,
+  comment = comment,
+  mapping_set_id = mapping_set_id,
+  mapping_set_description = mapping_set_description,
+  mapping_date = mapping_date
+)
+
+```
+
+## Wikidata genes 
+```{r}
+Wikidata_genes <- fread("E://sec2pri/mapping_preprocessing/artifacts/wikidata_processed/Wikidata_secID2priID_gene.tsv", header = T)
+head(Wikidata_genes)
+Wikidata_secID2priID_genes <- add_mapping_cardinality(
+  Wikidata_genes %>%
+    filter(secondaryID != "") %>%
+    select(primaryID, secondaryID) %>%
+    unique())
+Wikidata_secID2priID_genes <- add_predicate(Wikidata_secID2priID_genes)
+head(Wikidata_secID2priID_genes)
+Wikidata_genes <- Wikidata_genes %>% select(!secondaryID) %>%
+  full_join(Wikidata_secID2priID_genes, by = "primaryID", relationship = "many-to-many") %>%
+  dplyr::rename(
+    subject_id = primaryID,
+    subject_label = primarySymbol,
+    object_id = secondaryID,
+    object_label = secondarySymbol) %>%
+  select(subject_id, subject_label, predicate_id, object_id, object_label, mapping_cardinality)
+head(Wikidata_genes)
+curie_map <- c(
+  "Wikidata:" = "https://bioregistry.io/wikidata:",
+  "IAO:" = "http://purl.obolibrary.org/obo/IAO_",
+  "oboInOwl:" = "http://www.geneontology.org/formats/oboInOwl#"
+)
+sourceVersion <- get_source_version()
+source_metadata <- sourceVersion$metadata[sourceVersion$datasource == "Wikidata"]
+comment = "object_label represents an alternative symbol by which the subject_label is also known."
+mapping_set_id =  "omicsfixid_wikidata_genes_01"
+mapping_set_description = "Secondary to primary ID mappings for genes in Wikidara database, generated for the omicsFixID project."
+
+write_sssom_tsv(
+  Wikidata_genes,
+  "E://sec2pri/mapping_preprocessing/artifacts/wikidata_genes_secID2priID_mapping.sssom.tsv",
+  curie_map = curie_map,
+  source = source_metadata,
+  comment = comment,
+  mapping_set_id = mapping_set_id,
+  mapping_set_description = mapping_set_description,
+  mapping_date = mapping_date
+)
+```
+
+## Wikidata proteins 
+```{r}
+Wikidata_proteins <- fread("E://sec2pri/mapping_preprocessing/artifacts/wikidata_processed/Wikidata_secID2priID_protein.tsv", header = T)
+head(Wikidata_proteins)
+Wikidata_secID2priID_proteins <- add_mapping_cardinality(
+  Wikidata_proteins %>%
+    filter(secondaryID != "") %>%
+    select(primaryID, secondaryID) %>%
+    unique())
+Wikidata_secID2priID_proteins <- add_predicate(Wikidata_secID2priID_proteins)
+head(Wikidata_secID2priID_proteins)
+Wikidata_proteins <- Wikidata_proteins %>% select(!secondaryID) %>%
+  full_join(Wikidata_secID2priID_proteins, by = "primaryID", relationship = "many-to-many") %>%
+  dplyr::rename(
+    subject_id = primaryID,
+    subject_label = name,
+    object_id = secondaryID,
+    object_label = synonym) %>%
+  select(subject_id, subject_label, predicate_id, object_id, object_label, mapping_cardinality)
+head(Wikidata_proteins)
+curie_map <- c(
+  "Wikidata:" = "https://bioregistry.io/wikidata:",
+  "IAO:" = "http://purl.obolibrary.org/obo/IAO_",
+  "oboInOwl:" = "http://www.geneontology.org/formats/oboInOwl#"
+)
+sourceVersion <- get_source_version()
+source_metadata <- sourceVersion$metadata[sourceVersion$datasource == "Wikidata"]
+comment = "object_label represents an alternative name by which the subject_label is also known."
+mapping_set_id =  "omicsfixid_wikidata_proteins_01"
+mapping_set_description = "Secondary to primary ID mappings for proteins in Wikidara database, generated for the omicsFixID project."
+
+write_sssom_tsv(
+  Wikidata_proteins,
+  "E://sec2pri/mapping_preprocessing/artifacts/wikidata_proteins_secID2priID_mapping.sssom.tsv",
+  curie_map = curie_map,
+  source = source_metadata,
+  comment = comment,
+  mapping_set_id = mapping_set_id,
+  mapping_set_description = mapping_set_description,
+  mapping_date = mapping_date
+)
+```
+
+## hgnc 
+```{r}
+hgnc_secID2priID <- fread("E://sec2pri/mapping_preprocessing/artifacts/hgnc_processed/HGNC_secID2priID.tsv", header = T) %>%
+  rename(comment_secID2priID = comment,
+         source_secID2priID = source)
+head(hgnc_secID2priID)
+hgnc_ewd_1 <- hgnc_secID2priID %>%
+  filter(primaryID == "Entry Withdrawn") %>%
+  rename(comment = comment_secID2priID,
+         source = source_secID2priID)
+head(hgnc_ewd_1)
+table(hgnc_ewd_1$secondaryID %in% hgnc_secID2priID$primaryID)
+hgnc_ewd_2 <- hgnc_secID2priID %>%
+  filter(primaryID %in% hgnc_ewd_1$secondaryID) %>% #both mentioned primary and secondary in the file
+  rename(comment = comment_secID2priID,
+         source = source_secID2priID)
+head(hgnc_ewd_2)
+hgnc_ewd <- rbind(hgnc_ewd_1, hgnc_ewd_2)
+hgnc_secID2priID <- hgnc_secID2priID %>%
+  filter(! primaryID %in% hgnc_ewd$primaryID)
+head(hgnc_secID2priID)
+hgnc_symbol2alia <- fread("E://sec2pri/mapping_preprocessing/artifacts/hgnc_processed/HGNC_symbol2alia&prev.tsv", header = T)  %>%
+  rename(comment_symbol2alia = comment,
+         source_symbol2alia = source)
+head(hgnc_symbol2alia)
+table(hgnc_ewd_1$secondaryID %in% hgnc_symbol2alia$primaryID)
+hgnc_secID2priID_unique <- hgnc_secID2priID[! hgnc_secID2priID$secondarySymbol %in% hgnc_symbol2alia$secondarySymbol,]
+hgnc_secID2priID_unique <- rbind(
+  hgnc_ewd,
+  hgnc_secID2priID_unique%>%
+    rename(comment = comment_secID2priID,
+           source = source_secID2priID))
+hgnc_secID2priID <- hgnc_secID2priID[! hgnc_secID2priID$secondarySymbol %in% hgnc_secID2priID_unique$secondarySymbol,]
+hgnc_secID2priID <- hgnc_secID2priID %>%
+  full_join(hgnc_symbol2alia %>% select(!c(predicateID, mapping_cardinality_sec2pri)), by = c("primaryID", "primarySymbol", "secondarySymbol"), relationship = "many-to-many") %>%
+  dplyr::rename(
+    subject_id = primaryID,
+    subject_label = primarySymbol,
+    predicate_id = predicateID,
+    object_id = secondaryID,
+    object_label = secondarySymbol,
+    mapping_cardinality = mapping_cardinality_sec2pri) %>%
+  mutate(source = gsub("NA", "", paste(source_secID2priID, source_symbol2alia)),
+         comment = gsub("NA", "", paste(comment_secID2priID, comment_symbol2alia))) %>%
+  select(subject_id, subject_label, predicate_id, object_id, object_label, mapping_cardinality, comment, source)
+head(hgnc_secID2priID)
+hgnc_secID2priID <- rbind(
+  hgnc_secID2priID,
+  hgnc_secID2priID_unique %>%
+    dplyr::rename(
+      subject_id = primaryID,
+      subject_label = primarySymbol,
+      predicate_id = predicateID,
+      object_id = secondaryID,
+      object_label = secondarySymbol,
+      mapping_cardinality = mapping_cardinality_sec2pri)
+)
+curie_map <- c(
+  "HGNC:" = "http://identifiers.org/hgnc/",
+  "IAO:" = "http://purl.obolibrary.org/obo/IAO_",
+  "oboInOwl:" = "http://www.geneontology.org/formats/oboInOwl#"
+)
+sourceVersion <- get_source_version()
+source_metadata <- sourceVersion$metadata[sourceVersion$datasource == "HGNC"]
+comment = "object_label represents an alternative symbol by which the subject_label is also known."
+mapping_set_id =  "omicsfixid_hgnc_01"
+mapping_set_description = "Secondary to primary ID mappings for HGNC database, generated for the omicsFixID project."
+
+write_sssom_tsv(
+  hgnc_secID2priID,
+  "E://sec2pri/mapping_preprocessing/artifacts/hgnc_secID2priID_mapping.sssom.tsv",
+  curie_map = curie_map,
+  source = source_metadata,
+  comment = comment,
+  mapping_set_id = mapping_set_id,
+  mapping_set_description = mapping_set_description,
+  mapping_date = mapping_date
+)
+```
+
+## ncbi 
+```{r}
+NCBI_secID2priID <- fread("E://sec2pri/mapping_preprocessing/artifacts/ncbi_processed/NCBI_secID2priID.tsv", header = T) %>%
+  mutate(primaryID = as.character(primaryID),
+         comment = gsub(" Release.*", "", comment)) %>%
+  rename(source_secID2priID = source)
+head(NCBI_secID2priID)
+#
+# NCBI_ewd <-  NCBI_secID2priID %>%
+#   filter(primaryID == "Entry Withdrawn")
+# head(NCBI_ewd)
+#
+# NCBI_secID2priID <- NCBI_secID2priID %>%
+#   filter(primaryID != "Entry Withdrawn")
+# head(NCBI_secID2priID)
+NCBI_symbol2alia <- fread("E://sec2pri/mapping_preprocessing/artifacts/ncbi_processed/NCBI_symbol2alia&prev.tsv", header = T) %>%
+  mutate(primaryID = as.character(primaryID),
+         comment = gsub(" Release.*", ".", comment)) %>%
+  select(!c(predicateID, mapping_cardinality_sec2pri, comment)) %>%
+  rename(source_symbol2alia = source) %>%
+  unique()
+head(NCBI_symbol2alia)
+NCBI_secID2priID <- NCBI_secID2priID %>%
+  full_join(NCBI_symbol2alia, by = c("primaryID", "secondarySymbol")) %>%
+  dplyr::rename(
+    subject_id = primaryID,
+    subject_label = primarySymbol,
+    predicate_id = predicateID,
+    object_id = secondaryID,
+    object_label = secondarySymbol,
+    mapping_cardinality = mapping_cardinality_sec2pri) %>%
+  mutate(source = gsub(" NA|NA ", "", paste(source_secID2priID, source_symbol2alia))) %>%
+  select(subject_id, subject_label, predicate_id, object_id, object_label, mapping_cardinality, comment, source)
+head(NCBI_secID2priID, 2)
+curie_map <- c(
+  "NCBI:" = "http://www.ncbi.nlm.nih.gov/gene/",
+  "IAO:" = "http://purl.obolibrary.org/obo/IAO_",
+  "oboInOwl:" = "http://www.geneontology.org/formats/oboInOwl#"
+)
+sourceVersion <- get_source_version()
+source_metadata <- sourceVersion$metadata[sourceVersion$datasource == "NCBI"]
+comment = "object_label represents an alternative symbol by which the subject_label is also known."
+mapping_set_id =  "omicsfixid_ncbi_01"
+mapping_set_description = "Secondary to primary ID mappings for NCBI database, generated for the omicsFixID project."
+
+write_sssom_tsv(
+  NCBI_secID2priID,
+  "E://sec2pri/mapping_preprocessing/artifacts/ncbi_secID2priID_mapping.sssom.tsv",
+  curie_map = curie_map,
+  source = source_metadata,
+  comment = comment,
+  mapping_set_id = mapping_set_id,
+  mapping_set_description = mapping_set_description,
+  mapping_date = mapping_date
+)
+```
+
+## uniprot 
+```{r}
+UniProt_secID2priID <- fread("E://sec2pri/mapping_preprocessing/artifacts/uniprot_processed/UniProt_secID2priID.tsv", header = T)
+head(UniProt_secID2priID, 2)
+UniProt_secID2priID <- UniProt_secID2priID %>%
+  dplyr::rename(
+    subject_id = primaryID,
+    object_id = secondaryID,
+    predicate_id = predicateID,
+    mapping_cardinality = mapping_cardinality_sec2pri) %>%
+  select(subject_id, predicate_id, object_id, mapping_cardinality, comment, source)
+head(UniProt_secID2priID, 2)
+curie_map <- c(
+  "UniProt:" = "http://identifiers.org/uniprot/",
+  "IAO:" = "http://purl.obolibrary.org/obo/IAO_",
+  "oboInOwl:" = "http://www.geneontology.org/formats/oboInOwl#"
+)
+sourceVersion <- get_source_version()
+source_metadata <- sourceVersion$metadata[sourceVersion$datasource == "UniProt"]
+comment = ""
+mapping_set_id =  "omicsfixid_uniprot_01"
+mapping_set_description = "Secondary to primary ID mappings for UniProt database, generated for the omicsFixID project."
+
+write_sssom_tsv(
+  UniProt_secID2priID,
+  "E://sec2pri/mapping_preprocessing/artifacts/uniprot_secID2priID_mapping.sssom.tsv",
+  curie_map = curie_map,
+  source = source_metadata,
+  comment = comment,
+  mapping_set_id = mapping_set_id,
+  mapping_set_description = mapping_set_description,
+  mapping_date = mapping_date
+)
+
+```
