@@ -16,7 +16,7 @@ jobs:
       # step 1: checkout the repository
     steps:
       - name: Download GitHub repo for the queries
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # step 2: run the bash commands to count the content for different databases
       - name: ChEBI content
