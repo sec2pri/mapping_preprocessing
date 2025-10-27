@@ -201,25 +201,25 @@ jobs:
           echo "CHANGE=$change" >> $GITHUB_ENV 
       
       - name: 'Upload processed data as artifacts all'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ncbi_processed
           path: datasources/ncbi/recentData/*
 
       - name: 'Upload processed data as artifacts priIDs'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: NCBI_priIDs.tsv
           path: datasources/ncbi/recentData/NCBI_priIDs.tsv
 
       - name: 'Upload processed data as artifacts secID2priIDs'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: NCBI_secID2priID.tsv
           path: datasources/ncbi/recentData/NCBI_secID2priID.tsv
 
       - name: 'Upload processed data as artifacts bridgedb file'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: NCBI_secID2priID.bridge
           path: datasources/ncbi/recentData/NCBI_secID2priID.bridge
