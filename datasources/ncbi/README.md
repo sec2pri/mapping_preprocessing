@@ -24,7 +24,7 @@ wget https://ftp.ncbi.nih.gov/gene/DATA/gene_info.gz
  gzip -d *.gz
 ```
 
-3. keeping rows with data for human and mice:
+3. keeping rows with data for human and mice (later filtered out):
 ```bash
 date_extension=$(date +%Y-%m-%d)
 awk 'NR==1 || $1 == "9606" || $1 == "10090"'  gene_info > "gene_info_human_mice_${date_extension}"
