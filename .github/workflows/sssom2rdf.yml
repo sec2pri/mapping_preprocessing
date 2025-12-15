@@ -81,7 +81,7 @@ jobs:
           done
 
       - name: Upload RDF files for next job
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: intermediate_rdf
           path: datasources/**/mappings/*.ttl
@@ -125,7 +125,7 @@ jobs:
           path: mappings
 
       - name: Upload RDF Turtle files as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: all_sssom_rdf
           path: mappings/**/*.ttl

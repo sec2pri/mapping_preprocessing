@@ -118,43 +118,43 @@ jobs:
       
       # step 4: compare the new and old data and upload as artifact
       - name: 'Upload processed data as artifacts all'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: wikidata_processed
           path: datasources/wikidata/recentData/
           
       - name: 'Upload processed data as artifacts metabolites all mappings'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: Wikidata_secID2priID_metabolites.tsv
           path: datasources/wikidata/recentData/Wikidata_secID2priID_metabolites.tsv
 
       - name: 'Upload processed data as artifacts metabolites primary IDs'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: Wikidata_priIDs_metabolites.tsv
           path: datasources/wikidata/recentData/Wikidata_priIDs_metabolites.tsv
 
       - name: 'Upload processed data as artifacts protein'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: Wikidata_secID2priID_protein.tsv
           path: datasources/wikidata/recentData/Wikidata_secID2priID_protein.tsv
 
       - name: 'Upload processed data as artifacts protein primary IDs'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: Wikidata_priIDs_protein.tsv
           path: datasources/wikidata/recentData/Wikidata_priIDs_protein.tsv
           
       - name: 'Upload processed data as artifacts gene'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: Wikidata_secID2priID_gene.tsv
           path: datasources/wikidata/recentData/Wikidata_secID2priID_gene.tsv
 
       - name: 'Upload processed data as artifacts gene primary IDs'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: Wikidata_priIDs_gene.tsv
           path: datasources/wikidata/recentData/Wikidata_priIDs_gene.tsv

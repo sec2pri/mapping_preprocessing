@@ -260,31 +260,31 @@ jobs:
           echo "CHANGE=$change" >> $GITHUB_ENV
 
       - name: 'Upload processed data as artifacts all'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: chebi_processed
           path: datasources/chebi/recentData/*
 
       - name: 'Upload processed data as artifacts name2synonym'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ChEBI_name2synonym.tsv
           path: datasources/chebi/recentData/ChEBI_name2synonym.tsv
 
       - name: 'Upload processed data as artifacts priIDs'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ChEBI_priIDs.tsv
           path: datasources/chebi/recentData/ChEBI_priIDs.tsv
 
       - name: 'Upload processed data as artifacts secID2priID'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ChEBI_secID2priID.tsv
           path: datasources/chebi/recentData/ChEBI_secID2priID.tsv
 
       - name: 'Upload processed data as artifacts BridgeDb file'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ChEBI_secID2priID.bridge
           path: datasources/chebi/recentData/ChEBI_secID2priID.bridge

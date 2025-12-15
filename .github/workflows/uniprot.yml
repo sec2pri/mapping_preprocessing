@@ -174,19 +174,19 @@ jobs:
 
           
       - name: 'Upload processed data as artifacts all'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: uniprot_processed
           path: datasources/uniprot/recentData/*
 
       - name: 'Upload processed data as artifacts priIDs'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: UniProt_priIDs.tsv
           path: datasources/uniprot/recentData/UniProt_priIDs.tsv
 
       - name: 'Upload processed data as artifacts secID2priID'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: UniProt_secID2priID.tsv
           path: datasources/uniprot/recentData/UniProt_secID2priID.tsv    
