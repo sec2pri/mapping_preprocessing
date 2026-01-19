@@ -11,3 +11,4 @@
 
 # ignore target files #
 java/target/*
+/.metadata/
