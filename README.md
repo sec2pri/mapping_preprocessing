@@ -59,7 +59,7 @@ Check the [pom.xml file](https://github.com/sec2pri/mapping_preprocessing/blob/m
 wget https://github.com/bridgedb/BridgeDb/archive/refs/tags/release_3.0.29.zip
 gunzip BridgeDb-release_3.0.29.zip
 cd BridgeDb-release_3.0.29
-javac -version #test if JDK has been successfully installed, if not use 'sudo apt install openjdk-8-jdk-headless'
+javac -version #test if JDK version 11 has been successfully installed, if not use 'sudo apt install openjdk-11-jdk-headless'
 #sudo apt install maven #to build the code
 mvn clean install -DskipTests -Dgpg.skip #to buld the dependacies for this project and skipping potentially failing tests
 ```
