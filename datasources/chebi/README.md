@@ -1,17 +1,17 @@
 # ChEBI Metabolites SDF Processing
 
-This repository contains instructions for processing the ChEBI Metabolites SDF file. The **current version is 223, released on 2023-07-01** (see [here](https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel223/)).
+This repository contains instructions for processing the ChEBI Metabolites SDF file. The **current version is 247, released on 2025-12-03** (see [here](http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel247/SDF/)).
 
 ## Steps
 
-1. Download the ChEBI Metabolites SDF file:
+1. Download the ChEBI Metabolites SDF file (example below if for version 247):
 ```bash
-wget https://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel223/SDF/ChEBI_complete_3star.sdf.gz
+wget http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel247/SDF/ChEBI_3stars.sdf.gz
 ```
 
 2. Unzip the downloaded file:
 ```bash
-gunzip ChEBI_complete_3star.sdf.gz
+gunzip ChEBI_3stars.sdf.gz
 ```
 
 ## Processing Scripts
