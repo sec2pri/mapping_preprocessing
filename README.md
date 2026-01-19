@@ -57,6 +57,12 @@ Create ID mapping files
 
 Visit the location where the executable java file is located (in folder 'target').
 
+#sudo apt-get install gzip #if not available
+RELEASE_NUMBER="247"
+wget "http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${RELEASE_NUMBER}/SDF/chebi_3_stars.sdf.gz"
+gunzip chebi_3_stars.sdf.gz
+inputFile="chebi_3_stars.sdf"
+outputDir="$(pwd)"
 java -cp target/mapping_preprocessing-0.0.1-jar-with-dependencies.jar org.sec2pri.chebi_sdf $inputFile $outputDir
 java -cp target/mapping_preprocessing-0.0.1-jar-with-dependencies.jar org.sec2pri.hmdb_xml $inputFile $outputDir
 3) NCBI txt
