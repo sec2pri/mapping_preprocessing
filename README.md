@@ -74,7 +74,7 @@ wget "http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${RELEASE_NUMBER}/SDF/
 gunzip chebi_3_stars.sdf.gz
 inputFile="chebi_3_stars.sdf"
 outputDir="$(pwd)"
-java -cp target/mapping_preprocessing-0.0.1.jar org.sec2pri.chebi_sdf $inputFile $outputDir
+java -cp ".:*" target/mapping_preprocessing-0.0.1.jar org.sec2pri.chebi_sdf $inputFile $outputDir
 java -cp target/mapping_preprocessing-0.0.1.jar org.sec2pri.hmdb_xml $inputFile $outputDir
 3) NCBI txt
 ```shell
