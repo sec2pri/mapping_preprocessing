@@ -28,7 +28,8 @@
     </a>
 </p>
 
-In this repository, the details of data processing to create mapping files for the omics FixID tool are explained. Most of the data processing is done in R, some is done in Java when the input is too large to be processed in R, and one database is processed using Bash.
+This repository contains the source code for data processing to create identifier (IDs) mapping files for secondary IDs (outdated/deprecated/split/megred). 
+The following databases have been included in this project:
 
 | Datasource | license | citation |
 |-----------------|-----------------|-----------------|
@@ -39,41 +40,11 @@ In this repository, the details of data processing to create mapping files for t
 | [UniProt](https://github.com/sec2pri/mapping_preprocessing/blob/main/datasources/uniprot/config) | [CC BY 4.0](https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/LICENSE) | UniProt Consortium. UniProt: the universal protein knowledgebase in 2021. Nucleic Acids Res. 2021 Jan 8;49(D1):D480-D489. doi: [10.1093/nar/gkaa1100](https://doi.org/10.1093/nar/gkaa1100). PMID: 33237286; PMCID: PMC7778908. |
 | [Wikidata](https://github.com/sec2pri/mapping_preprocessing/blob/main/datasources/wikidata/config) | [CC0](https://www.wikidata.org/wiki/Wikidata:Licensing) | Vrandecic, D., Krotzsch, M. Wikidata: a free collaborative knowledgebase. Communications of the ACM. 2014. doi: [10.1145/2629489](https://doi.org/10.1145/2629489). |
 
-
 --------
-To install those in Java, you can follow the steps below:
-
-Installation
---------
-Java 11 is required.
-
-```shell
-cd java
-mvn clean install assembly:single
-```
-
-How to create mapping files
---------
-1) ChEBI SDF 
-
-```shell
-java -cp target/mapping_prerocessing-0.0.1-jar-with-dependencies.jar org.sec2pri.chebi_sdf $inputFile $outputDir
-```
-
-2) HMDB XML
-
-```shell
-java -cp target/mapping_prerocessing-0.0.1-jar-with-dependencies.jar org.sec2pri.hmdb_xml $inputFile $outputDir
-```
-
-**`InputFile`:** the input file;
-
-**`outputDir`:** the directory in which the output should be saved.
-
 
 Releases
 --------
-The mapping files are released and archived on [Zenodo]()
+The mapping files are released and archived on [Zenodo]() link tba
 
 
 
