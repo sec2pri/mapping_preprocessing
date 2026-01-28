@@ -58,7 +58,7 @@ jobs:
             success=false
 
             while [ $retry_count -lt $max_retries ]; do
-              response=$(curl -o /dev/null -s -w "%{http_code}" "http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${release}/SDF/ChEBI_complete_3star.sdf.gz")
+              response=$(curl -o /dev/null -s -w "%{http_code}" "http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${release}/SDF/chebi_3_stars.sdf.gz")
               curl_exit_code=$?
 
               if [ $curl_exit_code -eq 0 ] && [ "$response" -eq 200 ]; then
@@ -123,9 +123,9 @@ jobs:
           echo "CURRENT_RELEASE_NUMBER=$CURRENT_RELEASE_NUMBER" >> $GITHUB_ENV
           url_release="http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel$RELEASE_NUMBER/SDF/"
           echo "URL_RELEASE=$url_release" >> $GITHUB_ENV
-          wget "http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${RELEASE_NUMBER}/SDF/ChEBI_complete_3star.sdf.gz"
+          wget "http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${RELEASE_NUMBER}/SDF/chebi_3_stars.sdf.gz"
           ##Unzip gz file:
-          gunzip ChEBI_complete_3star.sdf.gz #TODO replace by config var
+          gunzip chebi_3_stars.sdf.gz #TODO replace by config var
           ##Check file size if available
           ls
           ##Print file size
@@ -155,7 +155,7 @@ jobs:
       - name: Test SDF processing
         id: sdf_process
         run: |
-          inputFile="ChEBI_complete_3star.sdf" 
+          inputFile="chebi_3_stars.sdf" 
           mkdir new
           cd java
           mvn clean install assembly:single
@@ -274,7 +274,7 @@ jobs:
       - name: 'Upload processed data as artifacts priIDs'
         uses: actions/upload-artifact@v4
         with:
-          name: ChEBI_priIDs.tsv
+          name: ChEBI_priID.tsv
           path: datasources/chebi/recentData/ChEBI_priIDs.tsv
 
       - name: 'Upload processed data as artifacts secID2priID'
