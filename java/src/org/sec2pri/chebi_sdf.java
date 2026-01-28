@@ -1,3 +1,8 @@
+/* Copyright (C)  2023  Tooba Abbassi-Daloii
+ *                2025  Egon Willighagen <egonw@users.sf.net>
+ *
+ * License: Apache License 2.0
+ */
 package org.sec2pri;
 
 import java.io.BufferedReader;
