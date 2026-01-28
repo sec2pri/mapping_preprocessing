@@ -1,3 +1,7 @@
+/* Copyright (C)  2023  Tooba Abbassi-Daloii
+ *
+ * License: Apache License 2.0
+ */
 package org.sec2pri;
 
 import javax.xml.parsers.DocumentBuilderFactory;  
