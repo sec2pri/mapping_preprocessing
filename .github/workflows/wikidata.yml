@@ -72,11 +72,11 @@ jobs:
           
           echo 'Accessing the Wikidata data'          
           ## Download outdated IDs for chemicals qLever Style
-          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalAllRedirects.rq -G https://qlever.cs.uni-freiburg.de/api/wikidata -o datasources/wikidata/recentData/metabolites.tsv
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/chemicalAllRedirects.rq -G https://qlever.dev/api/wikidata -o datasources/wikidata/recentData/metabolites.tsv
           ## Download outdated IDs for genes qLever Style
-          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/geneHumanAllRedirects.rq -G https://qlever.cs.uni-freiburg.de/api/wikidata -o datasources/wikidata/recentData/gene.tsv
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/geneHumanAllRedirects.rq -G https://qlever.dev/api/wikidata -o datasources/wikidata/recentData/gene.tsv
           ## Download outdated IDs for proteins qLever Style
-          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/proteinHumanAllRedirects.rq -G https://qlever.cs.uni-freiburg.de/api/wikidata -o datasources/wikidata/recentData/protein.tsv
+          curl -H "Accept: text/tab-separated-values" --data-urlencode query@datasources/wikidata/queries/proteinHumanAllRedirects.rq -G https://qlever.dev/api/wikidata -o datasources/wikidata/recentData/protein.tsv
          
           
           ##Check new data, fail job if query timeout has occured
@@ -85,6 +85,12 @@ jobs:
           do
             if grep -q TimeoutException "$File"; then
               echo "Query Timeout occurred for file: " "$File" 
+              echo "Wikidata data will not be updated"
+              head -n 20 "$File" 
+              #echo "DOWNLOAD_FILE=true" >>$GITHUB_ENV
+              fail_file="${fail_file} $File"
+            elif grep -q "html" "$File"; then
+              echo "Data grab error occurred for file: " "$File" 
               echo "Wikidata data will not be updated"
               head -n 20 "$File" 
               #echo "DOWNLOAD_FILE=true" >>$GITHUB_ENV
