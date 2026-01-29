@@ -10,13 +10,23 @@ WHERE
 {
 { ?primaryID p:P31/ps:P31 wd:Q11173 }
 UNION
+{ ?primaryID wdt:P31 wd:Q11173 }
+UNION
 { ?primaryID p:P31/ps:P31 wd:Q36496 }
+UNION
+{ ?primaryID wdt:P31 wd:Q36496 }
 UNION
 { ?primaryID p:P31/ps:P31 wd:Q79529 }
 UNION
+{ ?primaryID wdt:P31 wd:Q79529 }
+UNION
 { ?primaryID p:P31/ps:P31 wd:Q55662747 }
 UNION
+{ ?primaryID wdt:P31 wd:Q55662747 }
+UNION
 { ?primaryID p:P31/ps:31 wd:Q113145171 }
+UNION
+{ ?primaryID wdt:P31 wd:Q113145171 }
 UNION
 { ?primaryID p:P279/ps:P279 wd:Q11173 }
 UNION
@@ -25,8 +35,9 @@ UNION
 { ?primaryID p:P279/ps:P279 wd:Q79529 }
 UNION
 { ?primaryID p:P279/ps:P279 wd:Q55662747 }
-  UNION
+UNION
 { ?primaryID p:P279/ps:P279 wd:Q113145171 }
+
 
         OPTIONAL{?secondaryID owl:sameAs ?primaryID.}		
         OPTIONAL{?primaryID rdfs:label ?name. 
