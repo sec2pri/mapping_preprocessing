@@ -10,6 +10,8 @@ WHERE
 {
 { ?primaryID p:P31/ps:P31 wd:Q8054 }
 UNION
+{ ?primaryID wdt:P31 wd:Q8054 }
+UNION
 { ?primaryID p:P279/ps:P279 wd:Q8054 }
 
         ?primaryID wdt:P703 wd:Q15978631.		
