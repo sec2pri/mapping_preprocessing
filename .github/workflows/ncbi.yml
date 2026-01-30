@@ -24,7 +24,7 @@ jobs:
     steps:
       # step 1: check the release date for the latest NCBI files
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Check for new ncbi files
         id: check_download
         run: |
@@ -49,7 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       # step 2: download the recent data 
       - name: Download the recent data
         run: |
