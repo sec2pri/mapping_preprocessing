@@ -27,7 +27,7 @@ jobs:
     steps:
       # checkout the repository
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       # check the release date for the latest ChEBI release
       - name: Check for new ChEBI release
         id: check_download
@@ -112,7 +112,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Download SDF for new release
         run: |
           echo "$DATE_NEW=$DATE_NEW" >> $GITHUB_ENV
