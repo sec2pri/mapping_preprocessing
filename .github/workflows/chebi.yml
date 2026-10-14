@@ -261,9 +261,9 @@ jobs:
 
           echo "Checking decompressed SDF..."
 
-          test -s ChEBI_3stars.sdf
+          test -s chebi_3_stars.sdf
 
-          ls -lh ChEBI_3stars.sdf
+          ls -lh chebi_3_stars.sdf
 
 
       - name: Build Java preprocessing code
@@ -290,7 +290,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          inputFile="ChEBI_3stars.sdf"
+          inputFile="chebi_3_stars.sdf"
 
           outputDir="datasources/chebi/recentData"
 
