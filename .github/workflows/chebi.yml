@@ -2,87 +2,213 @@ name: Check and test ChEBI updates
 
 on:
   workflow_dispatch:
+
   pull_request:
     paths:
       - '.github/workflows/chebi.yml'
+      - '.github/ISSUE_TEMPLATE/ISSUE_DATA.md'
       - 'java/src/org/sec2pri/chebi_sdf.java'
       - 'java/src/org/sec2pri/MappingRecord.java'
       - 'java/src/org/sec2pri/MappingOutput.java'
       - 'datasources/chebi/config'
+
   schedule:
     - cron: "0 0 1,15 * *"
+
 
 permissions:
   contents: write
   issues: write
 
+
 jobs:
+
   check_new_release:
-    runs-on: ubuntu-latest
     name: Check latest ChEBI release
+    runs-on: ubuntu-latest
+
     outputs:
       RELEASE_NUMBER: ${{ steps.check_release.outputs.RELEASE_NUMBER }}
       CURRENT_RELEASE_NUMBER: ${{ steps.check_release.outputs.CURRENT_RELEASE_NUMBER }}
       NEW_RELEASE: ${{ steps.check_release.outputs.NEW_RELEASE }}
       DATE_NEW: ${{ steps.check_release.outputs.DATE_NEW }}
       DATE_OLD: ${{ steps.check_release.outputs.DATE_OLD }}
+
     steps:
+
       - name: Checkout repository
         uses: actions/checkout@v5
+
 
       - name: Check for new ChEBI release
         id: check_release
         shell: bash
+
         run: |
           set -euo pipefail
+
+          # Read current ChEBI configuration
           . datasources/chebi/config
 
-          echo "CURRENT_RELEASE_NUMBER=$release" >> "$GITHUB_OUTPUT"
-          echo "DATE_OLD=$date" >> "$GITHUB_OUTPUT"
+          current_release="$release"
+          date_old="$date"
 
-          wget -q "http://ftp.ebi.ac.uk/pub/databases/chebi/archive/" -O chebi_index.html
+          echo "CURRENT_RELEASE_NUMBER=$current_release" >> "$GITHUB_OUTPUT"
+          echo "DATE_OLD=$date_old" >> "$GITHUB_OUTPUT"
 
-          release_new=$(grep -oP 'href="rel\K[0-9]+(?=/")' chebi_index.html | sort -n | tail -1)
-          test -n "$release_new"
+          echo "Current configured release: $current_release"
+          echo "Current configured date:    $date_old"
 
-          release_line=$(grep "href=\"rel${release_new}/\"" chebi_index.html | tail -1)
-          date_new=$(printf '%s\n' "$release_line" | grep -oP '[0-9]{4}-[0-9]{2}-[0-9]{2}' | head -1)
+          echo "Accessing the ChEBI archive..."
+
+          wget -q \
+            "http://ftp.ebi.ac.uk/pub/databases/chebi/archive/" \
+            -O chebi_index.html
+
+          # Determine highest release number available in archive
+          release_new=$(
+            grep -oP 'href="rel\K[0-9]+(?=/")' chebi_index.html |
+            sort -n |
+            tail -1
+          )
+
+          if [ -z "$release_new" ]; then
+            echo "ERROR: Could not determine latest ChEBI release."
+            exit 1
+          fi
+
+          # Retrieve the archive line belonging to that release
+          release_line=$(
+            grep "href=\"rel${release_new}/\"" chebi_index.html |
+            tail -1
+          )
+
+          # Extract release date
+          date_new=$(
+            printf '%s\n' "$release_line" |
+            grep -oP '[0-9]{4}-[0-9]{2}-[0-9]{2}' |
+            head -1
+          )
+
+          if [ -z "$date_new" ]; then
+            echo "ERROR: Could not determine date for ChEBI release $release_new."
+            exit 1
+          fi
 
           echo "RELEASE_NUMBER=$release_new" >> "$GITHUB_OUTPUT"
           echo "DATE_NEW=$date_new" >> "$GITHUB_OUTPUT"
 
-          if [ "$release_new" -gt "$release" ]; then
-            sdf_url="http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${release_new}/SDF/ChEBI_3stars.sdf.gz"
-            if curl --location --fail --silent --head "$sdf_url" >/dev/null; then
+          echo "Latest ChEBI release: $release_new"
+          echo "Latest release date:  $date_new"
+
+          # Full SDF URL expected by the new Java preprocessing
+          sdf_url="http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${release_new}/SDF/ChEBI_3stars.sdf.gz"
+
+          echo "Testing ChEBI SDF URL:"
+          echo "$sdf_url"
+
+          # workflow_dispatch and PR should be able to test the current
+          # release even when there is no newer ChEBI release.
+          if [ "$release_new" -gt "$current_release" ]; then
+
+            echo "New ChEBI release detected."
+
+            max_retries=5
+            retry_count=0
+            success=false
+
+            while [ "$retry_count" -lt "$max_retries" ]; do
+
+              response=$(
+                curl \
+                  --location \
+                  --silent \
+                  --output /dev/null \
+                  --write-out "%{http_code}" \
+                  "$sdf_url"
+              )
+
+              if [ "$response" = "200" ]; then
+
+                echo "ChEBI SDF is accessible."
+                success=true
+                break
+
+              fi
+
+              retry_count=$((retry_count + 1))
+
+              echo "Attempt $retry_count failed."
+              echo "HTTP response: $response"
+
+              if [ "$retry_count" -lt "$max_retries" ]; then
+                sleep 60
+              fi
+
+            done
+
+            if [ "$success" = true ]; then
+
               echo "NEW_RELEASE=true" >> "$GITHUB_OUTPUT"
+
             else
+
+              echo "ERROR: Latest ChEBI SDF could not be reached."
+
               echo "NEW_RELEASE=false" >> "$GITHUB_OUTPUT"
               echo "ISSUE=true" >> "$GITHUB_ENV"
+
             fi
+
           else
+
+            echo "No newer ChEBI release detected."
+
             echo "NEW_RELEASE=false" >> "$GITHUB_OUTPUT"
+
           fi
 
           rm -f chebi_index.html
 
+
       - name: Post issue about upstream data availability
         if: env.ISSUE == 'true'
+
         uses: JasonEtco/create-an-issue@v2
+
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
           SOURCE: ChEBI
+
+          RELEASE_NUMBER: ${{ steps.check_release.outputs.RELEASE_NUMBER }}
+
+          URL_RELEASE: http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${{ steps.check_release.outputs.RELEASE_NUMBER }}/SDF/
+
+          GITHUB_RUN_ID: ${{ github.run_id }}
+
         with:
           filename: .github/ISSUE_TEMPLATE/ISSUE_DATA.md
           update_existing: true
 
+
+
   test_sdf_processing:
+
     name: Test ChEBI release
-    needs: check_new_release
+
+    needs:
+      - check_new_release
+
+    # Scheduled execution only processes a newly detected release.
+    # Manual runs and PRs process the detected release for testing.
     if: |
       needs.check_new_release.outputs.NEW_RELEASE == 'true' ||
       github.event_name == 'workflow_dispatch' ||
       github.event_name == 'pull_request'
+
     runs-on: ubuntu-latest
+
     env:
       RELEASE_NUMBER: ${{ needs.check_new_release.outputs.RELEASE_NUMBER }}
       CURRENT_RELEASE_NUMBER: ${{ needs.check_new_release.outputs.CURRENT_RELEASE_NUMBER }}
@@ -90,61 +216,138 @@ jobs:
       DATE_OLD: ${{ needs.check_new_release.outputs.DATE_OLD }}
 
     steps:
+
       - name: Checkout repository
         uses: actions/checkout@v5
 
+
       - name: Set up Java
         uses: actions/setup-java@v5
+
         with:
           java-version: '11'
-          distribution: temurin
+          distribution: 'temurin'
           cache: maven
+
 
       - name: Download ChEBI SDF
         shell: bash
+
         run: |
           set -euo pipefail
+
+          echo "Release to test: $RELEASE_NUMBER"
+
           sdf_url="http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${RELEASE_NUMBER}/SDF/ChEBI_3stars.sdf.gz"
-          wget --tries=5 --timeout=60 "$sdf_url" -O ChEBI_3stars.sdf.gz
+
+          echo "Downloading:"
+          echo "$sdf_url"
+
+          wget \
+            --tries=5 \
+            --timeout=60 \
+            "$sdf_url" \
+            -O ChEBI_3stars.sdf.gz
+
+          echo "Checking downloaded archive..."
+
           test -s ChEBI_3stars.sdf.gz
+
+          ls -lh ChEBI_3stars.sdf.gz
+
+          echo "Decompressing SDF..."
+
           gunzip ChEBI_3stars.sdf.gz
+
+          echo "Checking decompressed SDF..."
+
           test -s ChEBI_3stars.sdf
+
           ls -lh ChEBI_3stars.sdf
+
 
       - name: Build Java preprocessing code
         shell: bash
         working-directory: java
+
         run: |
           set -euo pipefail
+
+          echo "Building Java project..."
+
           mvn clean package assembly:single
-          echo "=== Maven target ==="
+
+          echo
+          echo "=== Maven target directory ==="
+
           ls -lh target/
+
 
       - name: Process ChEBI SDF
         id: sdf_process
         shell: bash
+
         run: |
           set -euo pipefail
 
           inputFile="ChEBI_3stars.sdf"
+
           outputDir="datasources/chebi/recentData"
+
           jarFile="java/target/mapping_preprocessing-0.0.1-jar-with-dependencies.jar"
 
-          echo "=== Inputs ==="
+
+          echo
+          echo "=== Input file ==="
+
           pwd
+
           ls -lh "$inputFile"
+
+
+          echo
+          echo "=== Java JAR ==="
+
+          test -s "$jarFile"
+
           ls -lh "$jarFile"
 
+
+          echo
+          echo "=== Prepare output directory ==="
+
           rm -rf "$outputDir"
+
           mkdir -p "$outputDir"
 
-          java -cp "$jarFile" org.sec2pri.chebi_sdf \
+
+          echo
+          echo "=== Run ChEBI preprocessing ==="
+
+          java \
+            -cp "$jarFile" \
+            org.sec2pri.chebi_sdf \
             "$inputFile" \
             "$outputDir" \
             "$RELEASE_NUMBER"
 
-          echo "=== Generated output ==="
-          find "$outputDir" -maxdepth 1 -type f -printf '%f\n' | sort
+
+          echo
+          echo "=== Java processing completed ==="
+
+
+          echo
+          echo "=== Generated files ==="
+
+          find "$outputDir" \
+            -maxdepth 1 \
+            -type f \
+            -printf '%f\n' |
+            sort
+
+
+          echo
+          echo "=== Verify required output files ==="
 
           required_files=(
             "ChEBI_priIDs.tsv"
@@ -153,141 +356,460 @@ jobs:
             "ChEBI_secID2priID.bridge"
           )
 
+
           for file in "${required_files[@]}"; do
-            test -s "$outputDir/$file" || {
-              echo "ERROR: Missing or empty output: $outputDir/$file"
+
+            path="$outputDir/$file"
+
+            if [ ! -s "$path" ]; then
+
+              echo "ERROR: Missing or empty output file:"
+              echo "$path"
+
               exit 1
-            }
+
+            fi
+
+            echo "OK: $path"
+
           done
+
 
           echo "FAILED=false" >> "$GITHUB_ENV"
 
+
       - name: Check TSV headers
         shell: bash
+
         run: |
           set -euo pipefail
+
           outputDir="datasources/chebi/recentData"
 
-          test "$(head -n 1 "$outputDir/ChEBI_priIDs.tsv")" = $'primaryID'
-          test "$(head -n 1 "$outputDir/ChEBI_secID2priID.tsv")" = $'primaryID\tsecondaryID'
-          test "$(head -n 1 "$outputDir/ChEBI_name2synonym.tsv")" = $'primaryID\tname\tsynonym'
+
+          echo "Checking ChEBI_priIDs.tsv..."
+
+          test \
+            "$(head -n 1 "$outputDir/ChEBI_priIDs.tsv")" \
+            = $'primaryID'
+
+
+          echo "Checking ChEBI_secID2priID.tsv..."
+
+          test \
+            "$(head -n 1 "$outputDir/ChEBI_secID2priID.tsv")" \
+            = $'primaryID\tsecondaryID'
+
+
+          echo "Checking ChEBI_name2synonym.tsv..."
+
+          test \
+            "$(head -n 1 "$outputDir/ChEBI_name2synonym.tsv")" \
+            = $'primaryID\tname\tsynonym'
+
 
           echo "All TSV headers are correct."
 
-      - name: Check ChEBI identifier format and mapping consistency
+
+      - name: Check ChEBI identifier format
         shell: bash
+
         run: |
           set -euo pipefail
+
           outputDir="datasources/chebi/recentData"
 
-          wget -q "https://raw.githubusercontent.com/bridgedb/datasources/main/datasources.tsv" -O datasources.tsv
-          CHEBI_ID=$(awk -F '\t' '$1 == "ChEBI" {print $10; exit}' datasources.tsv)
-          test -n "$CHEBI_ID"
 
-          tail -n +2 "$outputDir/ChEBI_priIDs.tsv" | cut -f1 > primary_ids.txt
-          tail -n +2 "$outputDir/ChEBI_secID2priID.tsv" | cut -f1 > mapping_primary_ids.txt
-          tail -n +2 "$outputDir/ChEBI_secID2priID.tsv" | cut -f2 > secondary_ids.txt
+          echo "Downloading BridgeDb datasource definitions..."
+
+          wget -q \
+            "https://raw.githubusercontent.com/bridgedb/datasources/main/datasources.tsv" \
+            -O datasources.tsv
+
+
+          CHEBI_ID=$(
+            awk -F '\t' \
+              '$1 == "ChEBI" {print $10; exit}' \
+              datasources.tsv
+          )
+
+
+          if [ -z "$CHEBI_ID" ]; then
+
+            echo "ERROR: Could not retrieve the ChEBI identifier regex."
+
+            exit 1
+
+          fi
+
+
+          echo "ChEBI regex:"
+          echo "$CHEBI_ID"
+
+
+          # Remove headers before validation
+
+          tail -n +2 \
+            "$outputDir/ChEBI_priIDs.tsv" |
+            cut -f1 \
+            > primary_ids.txt
+
+
+          tail -n +2 \
+            "$outputDir/ChEBI_secID2priID.tsv" |
+            cut -f1 \
+            > mapping_primary_ids.txt
+
+
+          tail -n +2 \
+            "$outputDir/ChEBI_secID2priID.tsv" |
+            cut -f2 \
+            > secondary_ids.txt
+
 
           validate_ids() {
+
             file="$1"
             label="$2"
-            if grep -nvE "^${CHEBI_ID}$" "$file" > invalid_ids.txt; then
+
+
+            if grep \
+              -nvE \
+              "^${CHEBI_ID}$" \
+              "$file" \
+              > invalid_ids.txt
+            then
+
               echo "ERROR: Invalid ${label}:"
+
               cat invalid_ids.txt
+
               exit 1
+
             fi
+
+
             echo "All ${label} match the ChEBI identifier pattern."
+
           }
 
-          validate_ids primary_ids.txt "primary IDs"
-          validate_ids mapping_primary_ids.txt "mapping primary IDs"
-          validate_ids secondary_ids.txt "secondary IDs"
 
-          sort -u primary_ids.txt > all_primary_ids.txt
-          sort -u mapping_primary_ids.txt > mapped_primary_ids.txt
-          comm -23 mapped_primary_ids.txt all_primary_ids.txt > missing_primary_ids.txt
+          validate_ids \
+            primary_ids.txt \
+            "primary IDs"
+
+
+          validate_ids \
+            mapping_primary_ids.txt \
+            "mapping primary IDs"
+
+
+          validate_ids \
+            secondary_ids.txt \
+            "secondary IDs"
+
+
+      - name: Check mapping consistency
+        shell: bash
+
+        run: |
+          set -euo pipefail
+
+          outputDir="datasources/chebi/recentData"
+
+
+          tail -n +2 \
+            "$outputDir/ChEBI_priIDs.tsv" |
+            cut -f1 |
+            sort -u \
+            > all_primary_ids.txt
+
+
+          tail -n +2 \
+            "$outputDir/ChEBI_secID2priID.tsv" |
+            cut -f1 |
+            sort -u \
+            > mapped_primary_ids.txt
+
+
+          comm \
+            -23 \
+            mapped_primary_ids.txt \
+            all_primary_ids.txt \
+            > missing_primary_ids.txt
+
 
           if [ -s missing_primary_ids.txt ]; then
-            echo "ERROR: secID2priID contains primary IDs missing from priIDs.tsv:"
+
+            echo "ERROR:"
+            echo "secID2priID.tsv contains primary IDs"
+            echo "that are missing from ChEBI_priIDs.tsv."
+
             cat missing_primary_ids.txt
+
             exit 1
+
           fi
+
 
           echo "Every mapped primary ID occurs in ChEBI_priIDs.tsv."
 
+
       - name: Show output statistics
         shell: bash
+
         run: |
           set -euo pipefail
+
           outputDir="datasources/chebi/recentData"
-          echo "Primary IDs: $(tail -n +2 "$outputDir/ChEBI_priIDs.tsv" | wc -l)"
-          echo "Secondary-ID mappings: $(tail -n +2 "$outputDir/ChEBI_secID2priID.tsv" | wc -l)"
-          echo "Name/synonym mappings: $(tail -n +2 "$outputDir/ChEBI_name2synonym.tsv" | wc -l)"
+
+
+          primary_count=$(
+            tail -n +2 \
+              "$outputDir/ChEBI_priIDs.tsv" |
+            wc -l
+          )
+
+
+          mapping_count=$(
+            tail -n +2 \
+              "$outputDir/ChEBI_secID2priID.tsv" |
+            wc -l
+          )
+
+
+          synonym_count=$(
+            tail -n +2 \
+              "$outputDir/ChEBI_name2synonym.tsv" |
+            wc -l
+          )
+
+
+          echo "===================================="
+          echo "ChEBI processing statistics"
+          echo "===================================="
+
+          echo "Primary IDs:           $primary_count"
+
+          echo "Secondary ID mappings: $mapping_count"
+
+          echo "Name/synonym mappings: $synonym_count"
+
+          echo "===================================="
+
 
       - name: Compare with current mapping when available
         shell: bash
+
         run: |
           set -euo pipefail
+
           . datasources/chebi/config
 
+
           old="datasources/chebi/data/$to_check_from_zenodo"
+
           new="datasources/chebi/recentData/$to_check_from_zenodo"
 
+
+          echo "Old mapping:"
+          echo "$old"
+
+          echo "New mapping:"
+          echo "$new"
+
+
           if [ ! -f "$old" ]; then
-            echo "Old comparison file is not present. Skipping diff."
+
+            echo "Old comparison file is not present."
+            echo "Skipping old/new diff."
+
             echo "COUNT=0" >> "$GITHUB_ENV"
+
             exit 0
+
           fi
 
-          tail -n +2 "$old" | tr -d '\r' | sort -u > ids_old.txt
-          tail -n +2 "$new" | tr -d '\r' | sort -u > ids_new.txt
-          comm -13 ids_old.txt ids_new.txt > added.txt
-          comm -23 ids_old.txt ids_new.txt > removed.txt
+
+          if [ ! -f "$new" ]; then
+
+            echo "ERROR:"
+            echo "New comparison file is missing."
+
+            exit 1
+
+          fi
+
+
+          # Ignore TSV headers in comparison
+
+          tail -n +2 "$old" |
+            tr -d '\r' |
+            sort -u \
+            > ids_old.txt
+
+
+          tail -n +2 "$new" |
+            tr -d '\r' |
+            sort -u \
+            > ids_new.txt
+
+
+          comm \
+            -13 \
+            ids_old.txt \
+            ids_new.txt \
+            > added.txt
+
+
+          comm \
+            -23 \
+            ids_old.txt \
+            ids_new.txt \
+            > removed.txt
+
 
           count_added=$(wc -l < added.txt)
+
           count_removed=$(wc -l < removed.txt)
+
           count=$((count_added + count_removed))
+
           total_old=$(wc -l < ids_old.txt)
-          if [ "$total_old" -gt 0 ]; then change=$((100 * count / total_old)); else change=0; fi
+
+
+          if [ "$total_old" -gt 0 ]; then
+
+            change=$((100 * count / total_old))
+
+          else
+
+            change=0
+
+          fi
+
+
+          echo
+          echo "===================================="
+          echo "Removed mappings"
+          echo "===================================="
+
+          if [ -s removed.txt ]; then
+
+            cat removed.txt
+
+          else
+
+            echo "None"
+
+          fi
+
+
+          echo
+          echo "===================================="
+          echo "Added mappings"
+          echo "===================================="
+
+          if [ -s added.txt ]; then
+
+            cat added.txt
+
+          else
+
+            echo "None"
+
+          fi
+
+
+          echo
+          echo "===================================="
+          echo "Changes"
+          echo "===================================="
+
+          echo "Added mappings:   $count_added"
+
+          echo "Removed mappings: $count_removed"
+
+          echo "Total changes:    $count"
+
+          echo "Change:           ${change}%"
+
 
           echo "ADDED=$count_added" >> "$GITHUB_ENV"
+
           echo "REMOVED=$count_removed" >> "$GITHUB_ENV"
+
           echo "COUNT=$count" >> "$GITHUB_ENV"
+
           echo "CHANGE=$change" >> "$GITHUB_ENV"
+
 
       - name: Upload processed ChEBI data
         uses: actions/upload-artifact@v4
+
         with:
           name: chebi_processed
+
           path: datasources/chebi/recentData/
+
           if-no-files-found: error
 
-      - name: Create or update issue
+
+      - name: Create or update ChEBI update issue
         if: env.COUNT != '0' && env.COUNT != ''
+
         id: create_issue
+
         uses: JasonEtco/create-an-issue@v2
+
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
           SOURCE: ChEBI
+
+          RELEASE_NUMBER: ${{ env.RELEASE_NUMBER }}
+
+          URL_RELEASE: http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${{ env.RELEASE_NUMBER }}/SDF/
+
+          GITHUB_RUN_ID: ${{ github.run_id }}
+
         with:
           filename: .github/ISSUE_TEMPLATE/ISSUE_UPDATE.md
+
           update_existing: true
+
 
       - name: Bump issue with comment
         if: env.COUNT != '0' && env.COUNT != ''
+
         uses: peter-evans/create-or-update-comment@v4
+
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          issue-number: ${{ steps.create_issue.outputs.number }}
-          body: |
-            Bump issue to notify about the changes in data.
 
-      - name: Post issue about failing test
+          issue-number: ${{ steps.create_issue.outputs.number }}
+
+          body: |
+            Bump issue to notify about the changes in ChEBI data.
+
+
+      - name: Post issue about failing preprocessing test
         if: failure()
+
         uses: JasonEtco/create-an-issue@v2
+
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
           SOURCE: ChEBI
+
+          RELEASE_NUMBER: ${{ env.RELEASE_NUMBER }}
+
+          URL_RELEASE: http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${{ env.RELEASE_NUMBER }}/SDF/
+
+          GITHUB_RUN_ID: ${{ github.run_id }}
+
         with:
           filename: .github/ISSUE_TEMPLATE/ISSUE_FAIL.md
+
           update_existing: true
