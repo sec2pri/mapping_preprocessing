@@ -102,7 +102,7 @@ jobs:
           echo "Latest release date:  $date_new"
 
           # Full SDF URL expected by the new Java preprocessing
-          sdf_url="http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${release_new}/SDF/ChEBI_3stars.sdf.gz"
+          sdf_url="http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${release_new}/SDF/chebi_3_stars.sdf.gz"
 
           echo "Testing ChEBI SDF URL:"
           echo "$sdf_url"
@@ -238,7 +238,7 @@ jobs:
 
           echo "Release to test: $RELEASE_NUMBER"
 
-          sdf_url="http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${RELEASE_NUMBER}/SDF/ChEBI_3stars.sdf.gz"
+          sdf_url="http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${RELEASE_NUMBER}/SDF/chebi_3_stars.sdf.gz"
 
           echo "Downloading:"
           echo "$sdf_url"
@@ -247,17 +247,17 @@ jobs:
             --tries=5 \
             --timeout=60 \
             "$sdf_url" \
-            -O ChEBI_3stars.sdf.gz
+            -O chebi_3_stars.sdf.gz
 
           echo "Checking downloaded archive..."
 
-          test -s ChEBI_3stars.sdf.gz
+          test -s chebi_3_stars.sdf.gz
 
-          ls -lh ChEBI_3stars.sdf.gz
+          ls -lh chebi_3_stars.sdf.gz
 
           echo "Decompressing SDF..."
 
-          gunzip ChEBI_3stars.sdf.gz
+          gunzip chebi_3_stars.sdf.gz
 
           echo "Checking decompressed SDF..."
 
