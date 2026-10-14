@@ -83,7 +83,7 @@ jobs:
           echo "Latest date:     $date_new"
 
           if [ "$release_new" -gt "$current_release" ]; then
-            sdf_url="http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${release_new}/SDF/ChEBI_3stars.sdf.gz"
+            sdf_url="http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${release_new}/SDF/chebi_3_stars.sdf.gz"
 
             echo "Checking:"
             echo "$sdf_url"
@@ -178,17 +178,17 @@ jobs:
 
           echo "Testing ChEBI release ${RELEASE_NUMBER}"
 
-          sdf_url="http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${RELEASE_NUMBER}/SDF/ChEBI_3stars.sdf.gz"
+          sdf_url="http://ftp.ebi.ac.uk/pub/databases/chebi/archive/rel${RELEASE_NUMBER}/SDF/chebi_3_stars.sdf.gz"
 
           wget \
             --tries=5 \
             --timeout=60 \
             "$sdf_url" \
-            -O ChEBI_3stars.sdf.gz
+            -O chebi_3_stars.sdf.gz
 
-          test -s ChEBI_3stars.sdf.gz
+          test -s chebi_3_stars.sdf.gz
 
-          gunzip ChEBI_3stars.sdf.gz
+          gunzip chebi_3_stars.sdf.gz
 
           test -s ChEBI_3stars.sdf
 
